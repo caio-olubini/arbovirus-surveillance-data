@@ -29,13 +29,16 @@ from ..common import ExtractResult
 from ..config import Config, as_date, load_config, pick
 
 if TYPE_CHECKING:
+    from ..pipeline.climate import ClimateTransformResult
+    from ..pipeline.google_trends import GTrendsTransformResult
     from ..pipeline.sinan import SinanTransformResult
 
 log = logging.getLogger("arboili")
 
 # Sources run by `arboili all`, in pipeline order. gt-related is deliberately
-# excluded — it is an ~18-hour job that should be started on its own.
-ALL_SOURCES = ["sinan", "gt-search", "climate", "bulletins", "ebc"]
+# excluded — it is an ~18-hour job that should be started on its own. inmet is
+# optional (station ZIPs); era5 is the primary climate source.
+ALL_SOURCES = ["sinan", "gt-search", "era5", "bulletins", "ebc"]
 
 # Mirrors src.pipeline.sinan.SPECS. Spelled out here so building the parser
 # doesn't import polars — `arboili --help` should stay instant.
@@ -85,12 +88,32 @@ def run_gt_related(cfg: Config, args: Namespace) -> ExtractResult:
     )
 
 
-def run_climate(cfg: Config, args: Namespace) -> ExtractResult:
+def run_era5(cfg: Config, args: Namespace) -> ExtractResult:
+    from .climate.download_era5_data import extract
+
+    settings = cfg.source("era5")
+    backends = pick(getattr(args, "backends", None), settings.get("backends"), ["zenodo", "arco"])
+    if isinstance(backends, str):
+        backends = [b.strip() for b in backends.split(",") if b.strip()]
+    return extract(
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), "data/climate/era5")),
+        from_year=pick(args.from_year, settings.get("from_year"), 2000),
+        to_year=pick(args.to_year, settings.get("to_year"), datetime.now().year),
+        backends=backends,
+        variables=settings.get("variables"),
+        area=settings.get("area"),
+        grid=settings.get("grid"),
+        dataset=pick(None, settings.get("dataset"), "reanalysis-era5-land"),
+        delay=pick(args.delay, settings.get("delay"), 1.0),
+    )
+
+
+def run_inmet(cfg: Config, args: Namespace) -> ExtractResult:
     from .climate.download_inmet_data import extract
 
-    settings = cfg.source("climate")
+    settings = cfg.source("inmet")
     return extract(
-        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), "data/climate")),
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), "data/climate/inmet")),
         from_year=pick(args.from_year, settings.get("from_year"), 2000),
         to_year=pick(args.to_year, settings.get("to_year"), datetime.now().year),
     )
@@ -165,11 +188,85 @@ def run_transform_sinan(cfg: Config, args: Namespace) -> "SinanTransformResult":
     )
 
 
+def run_transform_climate(cfg: Config, args: Namespace) -> "ClimateTransformResult":
+    """Zenodo + ARCO ERA5 → population-weighted UF × epi-week features."""
+    from ..pipeline.climate import transform
+
+    settings = cfg.pipeline("climate")
+    default_dir = "data/climate/era5"
+    backends = pick(getattr(args, "backends", None), settings.get("backends"), ["zenodo", "arco"])
+    if isinstance(backends, str):
+        backends = [b.strip() for b in backends.split(",") if b.strip()]
+
+    return transform(
+        era5_dir=cfg.resolve(pick(args.input_dir, settings.get("era5_dir"), default_dir)),
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_dir)),
+        municipalities_path=cfg.reference("municipalities"),
+        from_year=pick(args.from_year, settings.get("from_year")),
+        to_year=pick(args.to_year, settings.get("to_year")),
+        backends=backends,
+        rainy_day_mm=pick(args.rainy_day_mm, settings.get("rainy_day_mm"), 0.03),
+        formats=pick(args.formats, settings.get("formats"), ["parquet", "csv_gz"]),
+    )
+
+
+def run_transform_gtrends(cfg: Config, args: Namespace) -> "GTrendsTransformResult":
+    """Thin rename/validate of the Google Trends weekly search index."""
+    from ..pipeline.google_trends import transform
+
+    settings = cfg.pipeline("gtrends")
+    default_in = "data/google_trends/GoogleTrends_search.csv"
+    default_out = "data/google_trends"
+    keep_br = pick(getattr(args, "keep_br", None), settings.get("keep_br"), True)
+    if getattr(args, "drop_br", False):
+        keep_br = False
+
+    return transform(
+        input_path=cfg.resolve(pick(args.input_path, settings.get("input_path"), default_in)),
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+        keep_br=bool(keep_br),
+        formats=pick(args.formats, settings.get("formats"), ["parquet", "csv_gz"]),
+    )
+
+
+def run_transform_gt_related(cfg: Config, args: Namespace) -> "GTrendsRelatedTransformResult":
+    """Thin reshape of monthly related topics/queries (works on partial extracts)."""
+    from ..pipeline.google_trends import transform_related
+
+    settings = cfg.pipeline("gt_related")
+    default_topics = "data/google_trends/GoogleTrends_related_topic.csv"
+    default_queries = "data/google_trends/GoogleTrends_related_query.csv"
+    default_out = "data/google_trends"
+    keep_br = pick(getattr(args, "keep_br", None), settings.get("keep_br"), True)
+    if getattr(args, "drop_br", False):
+        keep_br = False
+    drop_empty = pick(settings.get("drop_empty_related"), True)
+    if getattr(args, "keep_empty", False):
+        drop_empty = False
+
+    topics = cfg.resolve(
+        pick(args.topics_path, settings.get("topics_path"), default_topics)
+    )
+    queries = cfg.resolve(
+        pick(args.queries_path, settings.get("queries_path"), default_queries)
+    )
+    return transform_related(
+        topics_path=topics,
+        queries_path=queries,
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+        keep_br=bool(keep_br),
+        drop_empty=bool(drop_empty),
+        formats=pick(args.formats, settings.get("formats"), ["parquet", "csv_gz"]),
+    )
+
+
 RUNNERS = {
     "sinan": run_sinan,
     "gt-search": run_gt_search,
     "gt-related": run_gt_related,
-    "climate": run_climate,
+    "era5": run_era5,
+    "climate": run_era5,  # alias — primary climate source is ERA5-Land
+    "inmet": run_inmet,
     "bulletins": run_bulletins,
     "ebc": run_ebc,
 }
@@ -178,6 +275,10 @@ RUNNERS = {
 # `main()` dispatches both through one path.
 TRANSFORMS = {
     "sinan": run_transform_sinan,
+    "climate": run_transform_climate,
+    "gtrends": run_transform_gtrends,
+    "gt-search": run_transform_gtrends,  # alias
+    "gt-related": run_transform_gt_related,
 }
 
 
@@ -220,7 +321,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_gtr.add_argument("--start-month", help="First month to fetch, YYYY-MM")
     p_gtr.add_argument("--sleep", type=float, help="Seconds between requests")
 
-    _add_year_range(add("climate", "INMET annual meteorological ZIPs"))
+    p_era5 = add("era5", "ERA5 climate: Zenodo (fast) → ARCO gaps → optional CDS")
+    _add_year_range(p_era5)
+    p_era5.add_argument(
+        "--backends",
+        help="Comma-separated backends: zenodo,arco,cds (default from config: zenodo,arco)",
+    )
+    p_era5.add_argument("--delay", type=float, help="Seconds between successful CDS retrieves")
+
+    _add_year_range(add("inmet", "INMET annual meteorological ZIPs (optional)"))
     _add_year_range(add("bulletins", "Ministry of Health epidemiological bulletin PDFs"))
 
     p_ebc = add("ebc", "EBC / Agência Brasil news articles")
@@ -256,6 +365,52 @@ def build_parser() -> argparse.ArgumentParser:
     p_tf_sinan.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
                             help="Output formats to write")
 
+    p_tf_climate = transform_sub.add_parser(
+        "climate",
+        help="ERA5 Zenodo+ARCO → UF × epi-week climate features (pop-weighted)",
+    )
+    p_tf_climate.add_argument("--input-dir", type=Path, help="ERA5 download root (zenodo/, arco/)")
+    p_tf_climate.add_argument("--output-dir", type=Path, help="Where to write ERA5_UF_EW.*")
+    _add_year_range(p_tf_climate)
+    p_tf_climate.add_argument(
+        "--backends",
+        help="Comma-separated: zenodo,arco (default from config)",
+    )
+    p_tf_climate.add_argument(
+        "--rainy-day-mm", type=float,
+        help="Daily precip threshold (mm) counting a rainy day (default 0.03)",
+    )
+    p_tf_climate.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
+                              help="Output formats to write")
+
+    p_tf_gt = transform_sub.add_parser(
+        "gtrends",
+        help="Google Trends search index → EW-keyed table (thin rename/validate)",
+        aliases=["gt-search"],
+    )
+    p_tf_gt.add_argument("--input-path", type=Path, help="Path to GoogleTrends_search.csv")
+    p_tf_gt.add_argument("--output-dir", type=Path, help="Where to write GoogleTrends_search_EW.*")
+    p_tf_gt.add_argument("--drop-br", action="store_true",
+                         help="Drop national BR rows (default: keep them)")
+    p_tf_gt.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
+                         help="Output formats to write")
+
+    p_tf_gtr = transform_sub.add_parser(
+        "gt-related",
+        help="Google Trends related topics/queries → monthly tables (partial OK)",
+    )
+    p_tf_gtr.add_argument("--topics-path", type=Path,
+                          help="Path to GoogleTrends_related_topic.csv")
+    p_tf_gtr.add_argument("--queries-path", type=Path,
+                          help="Path to GoogleTrends_related_query.csv")
+    p_tf_gtr.add_argument("--output-dir", type=Path, help="Where to write monthly related outputs")
+    p_tf_gtr.add_argument("--drop-br", action="store_true",
+                          help="Drop national BR rows (default: keep them)")
+    p_tf_gtr.add_argument("--keep-empty", action="store_true",
+                          help="Keep placeholder rows with blank related_title")
+    p_tf_gtr.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
+                          help="Output formats to write")
+
     return parser
 
 
@@ -268,12 +423,17 @@ def _defaults_for(command: str, args: Namespace) -> Namespace:
     known = {
         "output_dir", "from_year", "to_year", "keep_zip", "reference_date", "sleep",
         "start_month", "query", "site", "types", "per_page", "max_pages", "delay", "restart",
-        "input_dir", "disease", "dif_lower", "dif_upper", "formats",
+        "backends", "input_dir", "disease", "dif_lower", "dif_upper", "formats",
+        "rainy_day_mm", "input_path", "keep_br", "drop_br",
+        "topics_path", "queries_path", "keep_empty",
     }
     merged = Namespace(**vars(args))
     for flag in known:
         if not hasattr(merged, flag):
-            setattr(merged, flag, False if flag in {"keep_zip", "restart"} else None)
+            setattr(
+                merged, flag,
+                False if flag in {"keep_zip", "restart", "drop_br", "keep_empty"} else None,
+            )
     return merged
 
 
@@ -292,13 +452,20 @@ def main(argv: list[str] | None = None) -> int:
     if args.list:
         print(f"Config: {cfg.path}\n")
         for name in RUNNERS:
+            if name == "climate":
+                continue  # alias of era5
             settings = cfg.source(name.replace("-", "_"))
             marker = " " if name in ALL_SOURCES else "*"
             print(f"{marker} {name:<12} {settings or '(no config block)'}")
-        print("\n* not included in `arboili all` — long-running, start it separately")
+        print("\n* not included in `arboili all` — long-running / optional, start separately")
         print("\nTransformations (arboili transform <stage>):")
-        for name in TRANSFORMS:
-            print(f"  {name:<12} {cfg.pipeline(name) or '(no config block)'}")
+        seen: set[str] = set()
+        for name, runner in TRANSFORMS.items():
+            if runner in seen:
+                continue  # skip aliases
+            seen.add(runner)
+            block = {"gt-search": "gtrends", "gt-related": "gt_related"}.get(name, name)
+            print(f"  {name:<12} {cfg.pipeline(block) or '(no config block)'}")
         return 0
 
     if not args.command:

@@ -1,10 +1,13 @@
 # arbovirus-surveillance-data
 
-Reproducible data pipeline for digital surveillance of arboviruses (dengue,
-chikungunya) and respiratory syndromes (SARI/influenza, COVID-19) in Brazil.
+Reproducible data pipeline (master's dissertation / data paper) for digital
+surveillance of arboviruses (dengue, chikungunya) and respiratory syndromes
+(SARI/influenza, COVID-19) in Brazil.
+
+For AI coding agents, project context is in [`AGENTS.md`](./AGENTS.md).
 It collects and transforms a multi-source dataset linking official
 epidemiological case counts (SINAN, SIVEP-Gripe), digital search behaviour
-(Google Trends), meteorological data (INMET), Ministry of Health bulletins,
+(Google Trends), meteorological reanalysis (ERA5-Land; optional INMET), Ministry of Health bulletins,
 and news coverage (Agência Brasil/EBC) — stratified by federative unit (26
 states + DF) and aligned temporally for surveillance modelling.
 
@@ -12,9 +15,11 @@ states + DF) and aligned temporally for surveillance modelling.
 
 - [x] Collection — all six sources (SINAN, SIVEP, Google Trends search + related, climate, bulletins, EBC news)
 - [x] Pipeline — SINAN (`arboili transform sinan`): case-level CSVs → weekly case series
+- [x] Pipeline — Climate (`arboili transform climate`): Zenodo+ARCO → UF × epi-week features
+- [x] Pipeline — Google Trends search (`arboili transform gtrends`): thin EW-keyed table
+- [x] Pipeline — Google Trends related (`arboili transform gt-related`): monthly tables (partial OK)
 - [ ] Pipeline — SIVEP-Gripe (SARI): case-level → weekly series
-- [ ] Pipeline — Google Trends: align weekly/monthly series to the epi-week calendar
-- [ ] Pipeline — Climate: station ZIPs → daily/weekly series by state
+- [ ] Pipeline — Google Trends related: monthly topics/queries → analysis table
 - [ ] Pipeline — Bulletins: PDF text extraction (currently stored raw, unparsed)
 - [ ] Pipeline — EBC news: article text extraction (currently stored raw, unparsed)
 - [ ] Final merge: join all series into one `Arbo_SARI_disease_table`
@@ -27,20 +32,28 @@ states + DF) and aligned temporally for surveillance modelling.
 │   │   ├── cli.py        ← `arboili` CLI entry point
 │   │   ├── epidemiological/   ← SINAN downloader (MoH S3)
 │   │   ├── google_trends/     ← pytrends search + related topics/queries
-│   │   ├── climate/           ← INMET annual ZIP downloader
+│   │   ├── climate/           ← ERA5-Land (CDS) + optional INMET ZIP downloaders
 │   │   ├── bulletins/         ← MoH bulletin PDF scraper
 │   │   └── ebc/                ← Agência Brasil news scraper
 │   │
 │   ├── pipeline/          ← post-collection transformations
-│   │   └── sinan/         ← case-level CSVs → weekly case series (`arboili transform sinan`)
+│   │   ├── epiweek.py     ← shared Sunday-anchored epidemiological week
+│   │   ├── sinan/         ← case-level CSVs → weekly case series
+│   │   ├── climate/       ← ERA5 Zenodo+ARCO → UF × epi-week features
+│   │   └── google_trends/ ← GT search CSV → EW-keyed table
 │   │
 │   ├── config.py          ← config.yml loader, shared by collection & pipeline
 │   └── common.py          ← shared ExtractResult type
 │
 ├── tests/                 ← unit + integrity tests, run on committed fixtures
-├── notebooks/             ← interactive runs of the collection pipeline
+├── notebooks/             ← collection orchestration + per-source pipeline walkthroughs
+│   ├── data_collection.ipynb
+│   ├── sinan_pipeline.ipynb
+│   ├── climate_pipeline.ipynb
+│   ├── gtrends_pipeline.ipynb
+│   └── gtrends_related_pipeline.ipynb
 ├── config.yml             ← all extraction/transformation settings
-└── data/                  ← downloaded & transformed data (git-ignored)
+└── data/                  ← downloaded & transformed data (mostly git-ignored)
 ```
 
 ## Concerns per source
@@ -51,7 +64,8 @@ states + DF) and aligned temporally for surveillance modelling.
 | SIVEP-Gripe (SARI) | Separate registry, processed independently from SINAN |
 | Google Trends search | Relative index (0–100), not absolute volume; rate-limited, resumable |
 | Google Trends related | ~13k requests, ~18h resumable run; saves after every request |
-| Climate (INMET) | Large ZIPs (50–200 MB each); raw ZIPs left unextracted |
+| Climate (ERA5) | Zenodo HTTP (fast) → ARCO GCS gaps → optional CDS queue |
+| Climate (INMET, optional) | Large ZIPs (50–200 MB each); station-level, not used by `all` |
 | Bulletins | Scraper depends on MoH's Plone CMS pagination; PDFs stored raw, unparsed |
 | EBC news | Raw HTML only, no text-extraction pipeline yet; resumable via cursor |
 
@@ -89,11 +103,15 @@ uv run arboili --list
 | `uv run arboili sinan` | SINAN dengue yearly case CSVs from the MoH S3 bucket | ~10 min |
 | `uv run arboili gt-search` | Google Trends weekly search index, 5-year window | ~5 min |
 | `uv run arboili gt-related` | Google Trends monthly related topics & queries | ~18 h |
-| `uv run arboili climate` | INMET annual meteorological ZIPs | ~30 min |
+| `uv run arboili era5` | ERA5: Zenodo bulk + ARCO gap years (+ optional CDS) | tens of min (Zenodo) |
+| `uv run arboili inmet` | INMET annual meteorological ZIPs (optional) | ~30 min |
 | `uv run arboili bulletins` | Ministry of Health epidemiological bulletin PDFs | ~20 min |
 | `uv run arboili ebc` | Agência Brasil news articles | ~1 h per query |
-| `uv run arboili all` | Runs sinan, gt-search, climate, bulletins, and ebc in order | ~2 h |
+| `uv run arboili all` | Runs sinan, gt-search, era5, bulletins, and ebc in order | long (CDS queue) |
 | `uv run arboili transform sinan` | SINAN case-level CSVs → weekly case series | ~11 s |
+| `uv run arboili transform climate` | ERA5 Zenodo+ARCO → UF × epi-week climate features | depends on years |
+| `uv run arboili transform gtrends` | Google Trends search → EW-keyed parquet/csv.gz | seconds |
+| `uv run arboili transform gt-related` | Related topics/queries → monthly tables (partial OK) | seconds |
 
 `all` deliberately excludes `gt-related`, which is an ~18-hour job better started on its own. Within `all`, a source that fails is logged and the run continues to the next one.
 
@@ -129,7 +147,7 @@ uv run pytest -m integration      # re-runs the integrity checks on the full ser
 | SIVEP-Gripe (SARI) | MoH | varies–2024 | weekly by state |
 | Google Trends search | pytrends | 2019-12–2024-12 | weekly, 27 UFs + BR |
 | Google Trends related | pytrends | 2020-01–present | monthly, 27 UFs + BR |
-| Climate | INMET historical archive | 2000–present | daily by station |
+| Climate | ERA5-Land (CDS); optional INMET | 2000–present | hourly grid → monthly files |
 | Bulletins | gov.br/saude | 2019–2026 | weekly, national |
 | News | Agência Brasil (EBC) | varies–present | article-level, national |
 

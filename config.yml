@@ -14,10 +14,12 @@
 # resolved relative to this unless it is itself absolute.
 data_dir: data
 
-# Shared reference tables used by more than one extractor.
+# Shared reference tables used by more than one extractor / transform.
 reference:
   federative_units: data/epidemiological/br_federative_units.csv
   popular_terms: data/google_trends/popular_terms.csv
+  # IBGE mun codes + 2024 population estimates + centroids (climate pop-weights).
+  municipalities: data/climate/br_municipalities.csv
 
 sources:
 
@@ -42,11 +44,33 @@ sources:
     start_month: "2020-01"
     sleep: 5.0
 
-  # 4 — INMET annual meteorological ZIPs.
-  climate:
-    out_dir: data/climate
-    from_year: 2000
+  # 4 — Climate (ERA5 family). Fastest path first:
+  #   zenodo → HTTP bulk ERA5-Land mun daily (1950–2022 + 2025), no key
+  #   arco   → Google public ERA5 Zarr for gap years (2023–2024, …), no key
+  #   cds    → Copernicus queue (last resort; needs ~/.cdsapirc)
+  era5:
+    out_dir: data/climate/era5
+    from_year: 2014      # analysis horizon (Zenodo bulk still ships full 1950–2022 files)
     to_year: null        # null = current year
+    backends: [zenodo, arco]   # add cds only if both mirrors fail
+    # N, W, S, E — used by arco/cds grid extracts
+    area: [5.5, -74.0, -34.0, -34.0]
+    variables:
+      - 2m_temperature
+      - 2m_dewpoint_temperature
+      - total_precipitation
+      - surface_pressure
+    # CDS-only knobs (ignored unless backends includes cds)
+    dataset: reanalysis-era5-land
+    grid: [0.25, 0.25]
+    delay: 1.0
+
+  # 4b — INMET annual station ZIPs (optional; kept for station-level work).
+  # Not included in `arboili all` — prefer era5 for UF×EW features.
+  inmet:
+    out_dir: data/climate/inmet
+    from_year: 2000
+    to_year: null
 
   # 5 — Ministry of Health epidemiological bulletin PDFs.
   bulletins:
@@ -86,3 +110,30 @@ pipeline:
     dif_lower: -180
     dif_upper: 1
     formats: [parquet, csv_gz]   # parquet is primary; csv.gz is for R
+
+  # ERA5 Zenodo (mun daily) + ARCO (0.25° gaps) → UF × epi-week physical features.
+  # Population-weighted means; rainy-day threshold from the dengue-climate literature.
+  climate:
+    era5_dir: data/climate/era5
+    out_dir: data/climate/era5
+    from_year: 2014             # null = every year present in the downloaded products
+    to_year: null
+    backends: [zenodo, arco]    # CDS transform path deferred
+    rainy_day_mm: 0.03
+    formats: [parquet, csv_gz]
+
+  # Google Trends weekly search index — thin rename/validate.
+  gtrends:
+    input_path: data/google_trends/GoogleTrends_search.csv
+    out_dir: data/google_trends
+    keep_br: true               # keep national BR rows alongside the 27 UFs
+    formats: [parquet, csv_gz]
+
+  # Google Trends related topics/queries — monthly grain (partial extracts OK).
+  gt_related:
+    topics_path: data/google_trends/GoogleTrends_related_topic.csv
+    queries_path: data/google_trends/GoogleTrends_related_query.csv
+    out_dir: data/google_trends
+    keep_br: true
+    drop_empty_related: true    # drop placeholder rows with blank related_title
+    formats: [parquet, csv_gz]
