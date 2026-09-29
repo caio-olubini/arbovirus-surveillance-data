@@ -195,6 +195,14 @@ def extract(
                     )
                     ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
                     if err_q is not None:
+                        if "429" in err_q:
+                            print("  Rate limit hit (429) — saving progress and stopping.")
+                            _save(topic_results, query_results, topic_errors,
+                                  query_errors, out_dir, popular_terms_path)
+                            return ExtractResult(
+                                downloaded=n_downloaded, existing=n_existing, failed=n_failed,
+                                manifest_path=manifest_path,
+                            )
                         query_errors.append(
                             {"keyword": topic_name, "geo": geo, "time": month, "error": err_q}
                         )
@@ -232,6 +240,15 @@ def extract(
     )
 
 
+def _merge_csv(path: Path, new: pd.DataFrame, subset: list[str]) -> pd.DataFrame:
+    """Append *new* onto any existing CSV at *path*, keeping the latest row per key."""
+    if path.exists() and path.stat().st_size > 0:
+        old = pd.read_csv(path)
+        if not old.empty:
+            new = pd.concat([old, new], ignore_index=True)
+    return new.drop_duplicates(subset=subset, keep="last")
+
+
 def _save(
     topic_results: list[dict],
     query_results: list[dict],
@@ -259,6 +276,9 @@ def _save(
             ["topic_title", "topic_id", "date", "location", "value", "disease", "key_symptom"]
         )
         path = out_dir / "GoogleTrends_related_topic.csv"
+        gt_t = _merge_csv(
+            path, gt_t, ["topic_title", "topic_id", "date", "location", "disease"]
+        )
         gt_t.to_csv(path, index=False)
         print(f"\nWrote {path}  ({len(gt_t):,} rows)")
 
@@ -268,6 +288,7 @@ def _save(
         gt_q = gt_q[["topSearches", "time", "location", "value", "keyword"]]
         gt_q.columns = pd.Index(["topic_title", "date", "location", "value", "disease"])
         path = out_dir / "GoogleTrends_related_query.csv"
+        gt_q = _merge_csv(path, gt_q, ["topic_title", "date", "location", "disease"])
         gt_q.to_csv(path, index=False)
         print(f"Wrote {path}  ({len(gt_q):,} rows)")
 

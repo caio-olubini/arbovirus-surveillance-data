@@ -1,0 +1,5 @@
+date,location,topic_title,topic_id,value,disease,key_symptom
+2020-01,AC,Dengue fever,/m/09wsg,100,Dengue,false
+2020-01,AC,Symptom,/m/0c1tj,40,Dengue,true
+2020-01,SP,,/m/09wsg,,Dengue,false
+2020-02,BR,Aedes aegypti,/m/012c4b,55,Dengue,false
