@@ -1,15 +1,25 @@
-# Claude Code
+# Claude Code / Cursor local
 .claude/
+.cursor/
 
-# Downloaded data
+# Downloaded & generated data
 data/epidemiological/SINAN/
 data/epidemiological/SIVEP/
 data/google_trends/GoogleTrends_search.csv
 data/google_trends/GoogleTrends_related_topic.csv
 data/google_trends/GoogleTrends_related_query.csv
+data/google_trends/GoogleTrends_search_EW.parquet
+data/google_trends/GoogleTrends_search_EW.csv.gz
+data/google_trends/GoogleTrends_related_*_monthly.parquet
+data/google_trends/GoogleTrends_related_*_monthly.csv.gz
 data/google_trends/manifest_search.csv
 data/google_trends/manifest_related.csv
+data/google_trends/query_error_*.csv
+data/climate/era5/
+data/climate/inmet/
+# legacy flat layout (pre-era5 split)
 data/climate/*.zip
+data/climate/*.nc
 data/climate/manifest.csv
 data/climate/failures.csv
 # year directories (2019/, 2020/, ...) plus the curated gold set
@@ -25,6 +35,12 @@ data/news/*/articles/
 
 # Final outputs (large)
 data/epidemiological/Arbo_SARI_disease_table.csv
+
+# Literature PDFs (keep articles/README.md)
+articles/*.pdf
+
+# Runtime logs / local certs
+logs/
 
 # Python / uv
 .venv/
