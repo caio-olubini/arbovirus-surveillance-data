@@ -148,7 +148,7 @@ def write_manifest(entries: list[Entry], output_dir: Path) -> tuple[Path, Path]:
 
 
 def extract(
-    out_dir: Path = DATA_DIR / "climate",
+    out_dir: Path = DATA_DIR / "climate" / "inmet",
     from_year: int = FIRST_YEAR,
     to_year: int = datetime.now().year,
 ) -> ExtractResult:
