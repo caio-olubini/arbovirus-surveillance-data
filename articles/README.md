@@ -1,14 +1,35 @@
 # Climate methodology references
 
-Papers used to ground how climate becomes EW×UF features for dengue in Brazil.
+Papers used to ground how climate becomes EW×UF features for dengue in Brazil,
+plus the canonical ERA5 / ERA5-Land reanalysis descriptions behind the Zenodo
+and ARCO products consumed by this pipeline.
 
-Use these three (ignore duplicate filenames if present — prefer the longer names):
+## Dengue–climate feature engineering (UF / microregion × time)
+
+Use these three for spatial and temporal reduction choices (ignore duplicate
+filenames if present — prefer the longer names):
 
 | File | Citation | Grain | Source |
 |------|----------|-------|--------|
 | `01_zhu_2025_spatiotemporal_dengue_climate_factors.pdf` | Zhu et al., *Sci Data* (2025) [doi:10.1038/s41597-025-05045-1](https://doi.org/10.1038/s41597-025-05045-1) | microregion × epi-week | ERA5-Land (GEE), population-weighted |
 | `02_chen_moraga_2025_lstm_shap_climate_lags_uf.pdf` | Chen & Moraga, *BMC Public Health* (2025) [doi:10.1186/s12889-025-22106-7](https://doi.org/10.1186/s12889-025-22106-7) | **27 UF × epi-week** | ERA5, population-weighted + SHAP lags |
 | `03_sebastianelli_2024_ensemble_ml_climate_fu.pdf` | Sebastianelli et al., *Sci Rep* (2024) [doi:10.1038/s41598-024-52796-9](https://doi.org/10.1038/s41598-024-52796-9) | 27 FU × month | ERA5-Land + RH from dewpoint |
+
+## Reanalysis sources (ERA5 family)
+
+Zenodo municipality-daily files are built from **ERA5-Land**; ARCO gap months
+come from the public **ERA5** 0.25° archive. These two papers document those
+reanalyses:
+
+| File | Citation | Role in this repo |
+|------|----------|-------------------|
+| `04_hersbach_2020_era5_global_reanalysis.pdf` | Hersbach et al., *Q. J. R. Meteorol. Soc.* (2020) [doi:10.1002/qj.3803](https://doi.org/10.1002/qj.3803) | Canonical ERA5 description; underlies Google ARCO-ERA5 extracts (`gs://gcp-public-data-arco-era5/...`) used for gap years (e.g. 2023–2024) |
+| `05_munoz_sabater_2021_era5_land.pdf` | Muñoz-Sabater et al., *Earth Syst. Sci. Data* (2021) [doi:10.5194/essd-13-4349-2021](https://doi.org/10.5194/essd-13-4349-2021) | ERA5-Land description; underlies Zenodo municipality daily parquets (doi:10.5281/zenodo.10036212, doi:10.5281/zenodo.18257037) |
+
+**Download status (this checkout):**
+
+- `05_munoz_sabater_2021_era5_land.pdf` — obtained from Copernicus ESSD open-access PDF (`essd-13-4349-2021.pdf`).
+- `04_hersbach_2020_era5_global_reanalysis.pdf` — **not obtained here**. The article is open access (CC BY) at Wiley, but automated `curl` requests to `doi/pdfdirect/10.1002/qj.3803` returned HTTP 403. Cite via [doi:10.1002/qj.3803](https://doi.org/10.1002/qj.3803) and download manually in a browser if the PDF is needed locally.
 
 ## Shared transformation pattern
 
