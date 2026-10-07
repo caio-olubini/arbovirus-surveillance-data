@@ -260,6 +260,84 @@ def run_transform_gt_related(cfg: Config, args: Namespace) -> "GTrendsRelatedTra
     )
 
 
+def run_transform_news_text(cfg: Config, args: Namespace) -> "NewsTextTransformResult":
+    """Saved EBC article HTML → the frozen news-text corpus."""
+    from ..pipeline.news.text import transform
+
+    settings = cfg.pipeline("news_text")
+    default_in = "data/news/dengue"
+    default_out = "data/pipeline/news"
+
+    return transform(
+        root=cfg.resolve(pick(args.input_dir, settings.get("in_dir"), default_in)),
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+        formats=pick(args.formats, settings.get("formats"), ["parquet", "csv_gz"]),
+    )
+
+
+def run_transform_news_lexicon(cfg: Config, args: Namespace) -> "NewsLexiconTransformResult":
+    """Braço 01 — lexicon + rules over the frozen corpus → weekly features."""
+    from ..pipeline.news.lexicon import transform
+
+    settings = cfg.pipeline("news_lexicon")
+    default_corpus = "data/pipeline/news/EBC_dengue_text.parquet"
+    default_out = "data/pipeline/news"
+
+    require = pick(
+        getattr(args, "require_disease_term", None),
+        settings.get("require_disease_term"),
+        True,
+    )
+    if getattr(args, "keep_all_articles", False):
+        require = False
+    portuguese_only = pick(settings.get("portuguese_only"), True)
+    if getattr(args, "include_non_portuguese", False):
+        portuguese_only = False
+
+    return transform(
+        corpus_path=cfg.resolve(
+            pick(args.corpus_path, settings.get("corpus_path"), default_corpus)
+        ),
+        lexicon_path=cfg.resolve(
+            pick(args.lexicon, settings.get("lexicon"), cfg.reference("news_lexicon"))
+        ),
+        fu_path=cfg.reference("federative_units"),
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+        require_disease_term=bool(require),
+        portuguese_only=bool(portuguese_only),
+        formats=pick(args.formats, settings.get("formats"), ["parquet", "csv_gz"]),
+    )
+
+
+def _not_implemented(stage: str, error: NotImplementedError) -> None:
+    """Turn a stub's refusal into a clean exit instead of a traceback.
+
+    The stub raises `NotImplementedError` so library callers get a real error;
+    the CLI is a user-facing surface and deserves a sentence, not a stack.
+    """
+    raise SystemExit(f"{stage} is not implemented yet.\n{error}")
+
+
+def run_transform_news_embeddings(cfg: Config, args: Namespace) -> None:
+    """Braço 02 — not implemented; exits with the reason."""
+    from ..pipeline.news.embeddings import transform
+
+    try:
+        transform()
+    except NotImplementedError as error:
+        _not_implemented("news-embeddings", error)
+
+
+def run_transform_news_topics(cfg: Config, args: Namespace) -> None:
+    """Braço 03 — not implemented; exits with the reason."""
+    from ..pipeline.news.topics import transform
+
+    try:
+        transform()
+    except NotImplementedError as error:
+        _not_implemented("news-topics", error)
+
+
 RUNNERS = {
     "sinan": run_sinan,
     "gt-search": run_gt_search,
@@ -279,6 +357,19 @@ TRANSFORMS = {
     "gtrends": run_transform_gtrends,
     "gt-search": run_transform_gtrends,  # alias
     "gt-related": run_transform_gt_related,
+    "news-text": run_transform_news_text,
+    "news-lexicon": run_transform_news_lexicon,
+    "news-embeddings": run_transform_news_embeddings,   # braço 02 — stub
+    "news-topics": run_transform_news_topics,           # braço 03 — stub
+}
+
+# Stage name → `pipeline:` block key, for `arboili --list` and the runners.
+# Only the names that differ from the block key need an entry.
+PIPELINE_BLOCKS = {
+    "gt-search": "gtrends",
+    "gt-related": "gt_related",
+    "news-text": "news_text",
+    "news-lexicon": "news_lexicon",
 }
 
 
@@ -411,6 +502,43 @@ def build_parser() -> argparse.ArgumentParser:
     p_tf_gtr.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
                           help="Output formats to write")
 
+    p_tf_ntext = transform_sub.add_parser(
+        "news-text",
+        help="Saved EBC article HTML → frozen news-text corpus (every news braço reads it)",
+    )
+    p_tf_ntext.add_argument("--input-dir", type=Path,
+                            help="EBC query directory holding articles/ and manifest.jsonl")
+    p_tf_ntext.add_argument("--output-dir", type=Path,
+                            help="Where to write EBC_dengue_text.*")
+    p_tf_ntext.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
+                            help="Output formats to write")
+
+    p_tf_nlex = transform_sub.add_parser(
+        "news-lexicon",
+        help="Braço 01 — PT-BR lexicon + rules → weekly news features (BR + UF)",
+    )
+    p_tf_nlex.add_argument("--corpus-path", type=Path,
+                           help="Path to EBC_dengue_text.parquet")
+    p_tf_nlex.add_argument("--lexicon", type=Path,
+                           help="Path to the versioned PT-BR lexicon YAML")
+    p_tf_nlex.add_argument("--output-dir", type=Path,
+                           help="Where to write EBC_dengue_lexicon_EW.*")
+    p_tf_nlex.add_argument("--keep-all-articles", action="store_true",
+                           help="Do not require a dengue-family term in the article")
+    p_tf_nlex.add_argument("--include-non-portuguese", action="store_true",
+                           help="Keep articles flagged as non-Portuguese (default: drop)")
+    p_tf_nlex.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
+                           help="Output formats to write")
+
+    transform_sub.add_parser(
+        "news-embeddings",
+        help="Braço 02 — dense embeddings + EW pooling (not implemented)",
+    )
+    transform_sub.add_parser(
+        "news-topics",
+        help="Braço 03 — temporal topic modeling (not implemented)",
+    )
+
     return parser
 
 
@@ -426,14 +554,17 @@ def _defaults_for(command: str, args: Namespace) -> Namespace:
         "backends", "input_dir", "disease", "dif_lower", "dif_upper", "formats",
         "rainy_day_mm", "input_path", "keep_br", "drop_br",
         "topics_path", "queries_path", "keep_empty",
+        "corpus_path", "lexicon", "require_disease_term",
+        "keep_all_articles", "include_non_portuguese",
+    }
+    flags_false = {
+        "keep_zip", "restart", "drop_br", "keep_empty",
+        "keep_all_articles", "include_non_portuguese",
     }
     merged = Namespace(**vars(args))
     for flag in known:
         if not hasattr(merged, flag):
-            setattr(
-                merged, flag,
-                False if flag in {"keep_zip", "restart", "drop_br", "keep_empty"} else None,
-            )
+            setattr(merged, flag, False if flag in flags_false else None)
     return merged
 
 
@@ -464,8 +595,8 @@ def main(argv: list[str] | None = None) -> int:
             if runner in seen:
                 continue  # skip aliases
             seen.add(runner)
-            block = {"gt-search": "gtrends", "gt-related": "gt_related"}.get(name, name)
-            print(f"  {name:<12} {cfg.pipeline(block) or '(no config block)'}")
+            block = PIPELINE_BLOCKS.get(name, name)
+            print(f"  {name:<16} {cfg.pipeline(block) or '(no config block)'}")
         return 0
 
     if not args.command:

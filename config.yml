@@ -20,6 +20,9 @@ reference:
   popular_terms: data/google_trends/popular_terms.csv
   # IBGE mun codes + 2024 population estimates + centroids (climate pop-weights).
   municipalities: data/climate/br_municipalities.csv
+  # Braço 01 lexicon. Versioned: editing a term or a weight invalidates the
+  # comparison with the other news representations.
+  news_lexicon: data/news/reference/lexico_dengue.yaml
 
 sources:
 
@@ -136,4 +139,26 @@ pipeline:
     out_dir: data/google_trends
     keep_br: true
     drop_empty_related: true    # drop placeholder rows with blank related_title
+    formats: [parquet, csv_gz]
+
+  # EBC article HTML → the frozen news-text corpus every representation reads.
+  # `in_dir` is the query directory written by `arboili ebc`, so it must hold
+  # articles/ and manifest.jsonl. Nothing downstream re-parses HTML.
+  news_text:
+    in_dir: data/news/dengue
+    out_dir: data/pipeline/news
+    formats: [parquet, csv_gz]
+
+  # Braço 01 — PT-BR lexicon + rules over the frozen corpus.
+  # See src/pipeline/news/README.md §2 and notes/01-lexico-regras.md.
+  news_lexicon:
+    corpus_path: data/pipeline/news/EBC_dengue_text.parquet
+    lexicon: data/news/reference/lexico_dengue.yaml
+    out_dir: data/pipeline/news
+    # Drop articles that never name a dengue-family disease (errata pages,
+    # photo-agenda stubs, digests whose dengue link is incidental).
+    require_disease_term: true
+    # Drop the ~3.8% of the corpus that is Spanish. Agência Brasil publishes a
+    # Spanish edition and the split is not random — 61 of the 172 are from 2016.
+    portuguese_only: true
     formats: [parquet, csv_gz]
