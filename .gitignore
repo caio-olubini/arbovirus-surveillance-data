@@ -1,5 +1,8 @@
 # Claude Code / Cursor local
-.claude/
+# `.claude/*` (not `.claude/`) so the repo-local skills below stay versioned
+# while settings.local.json and the rest of the local state do not.
+.claude/*
+!.claude/skills/
 .cursor/
 
 # Downloaded & generated data
@@ -32,6 +35,9 @@ data/news/*/state.json
 data/news/*/manifest.jsonl
 data/news/*/listings/
 data/news/*/articles/
+
+# News representation features (all braços; keep data/news/reference/ versioned)
+data/pipeline/news/
 
 # Final outputs (large)
 data/epidemiological/Arbo_SARI_disease_table.csv
