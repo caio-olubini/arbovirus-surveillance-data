@@ -1,0 +1,146 @@
+# Léxico PT-BR para features semanais de notícia de dengue — braço 01.
+#
+# Ver notes/01-lexico-regras.md. Este arquivo é a peça congelada do caminho 01:
+# mudar qualquer termo ou peso invalida a comparação com os braços 02 e 03, então
+# toda edição precisa de data e motivo aqui no topo.
+#
+# Version: 1 — 2026-10-07 (versão inicial, derivada da lista de notes/01)
+#
+# --- como os termos são casados ---------------------------------------------
+#
+# Os termos são escritos na forma normalizada: minúsculos e sem acento. O
+# carregador aplica `strip_accents` ao texto antes de casar, então "obito" casa
+# "óbito" e "OBITO". Escrever com acento também funciona, mas não é o estilo.
+#
+# Termos de UMA palavra ganham plural automaticamente:
+#   -cao → -coes        (hospitalizacao → hospitalizacoes)
+#   -r, -z → +es        (dor → dores)
+#   outros → +s         (surto → surtos, crise → crises)
+# Plural irregular entra na lista na mão, como forma extra ("pais" e "paises").
+#
+# Frases de DUAS OU MAIS palavras são casadas como escritas — sem plural
+# automático. Escreva a frase na forma que quer encontrar ("aumento de casos"
+# casa "aumento de casos", não "aumento de caso").
+#
+# O casamento é sempre por palavra inteira (`\b`), nunca por substring: "dor"
+# não casa "dormir".
+#
+# --- o que cada bloco alimenta ----------------------------------------------
+#
+#   severity  → news_severity (soma dos pesos das categorias que dispararam)
+#   disease   → filtro de escopo: só artigos que citam um termo de doença contam
+#               para news_volume (require_disease_term abaixo)
+#   clinical  → nada ainda; carregado para o schema de anotação compartilhado
+#               com o caminho 04 (notes/04)
+#   vector    → idem
+#   negations → janela de negação aplicada a severity e às contagens
+#
+# --- pesos de severity -------------------------------------------------------
+#
+# Os pesos são ordinais, não calibrados: ordenam "surto" acima de "alerta" e
+# param aí. Calibrar (por termo? por categoria? por TF-IDF?) é pendência aberta
+# em notes/01. Três degraus, seguindo a lista da nota.
+
+version: 1
+updated: "2026-10-07"
+disease: dengue
+
+# Só artigos que citam um termo de doença entram em news_volume. A query do
+# scraper foi "dengue", então isso remove pouco — mas remove as páginas de
+# errata, os stubs de "pauta de foto" e os digeridos cujo único nexo com dengue
+# é incidental. Desligar deixa news_volume = contagem bruta de artigos.
+require_disease_term: true
+
+severity:
+  epidemic:
+    weight: 3
+    terms:
+      - epidemia
+      - pandemia
+      - colapso
+      - crise
+  outbreak:
+    weight: 2
+    terms:
+      - surto
+      - aumento de casos
+      - explosao de casos
+      - recorde de casos
+  alert:
+    weight: 1
+    terms:
+      - alerta
+      - emergencia
+
+disease:
+  - dengue
+  - chikungunya
+  - zika
+  - febre amarela
+  - arbovirose
+  - arbovirus
+  - aedes aegypti
+  - aedes albopictus
+
+clinical:
+  - febre
+  - dor de cabeca
+  - dor atras dos olhos
+  - dor no corpo
+  - mancha
+  - nausea
+  - vomito
+  - sangramento
+  - choque
+  - plaqueta
+  - hospitalizacao
+  - uti
+  - obito
+
+vector:
+  - mosquito
+  - criadouro
+  - fumace
+  - larvicida
+  - visita domiciliar
+  - mutirao
+
+# Modificadores de negação. Uma ocorrência de severity ou de contagem é
+# descartada quando um destes aparece nos `negation_window` caracteres
+# imediatamente anteriores (ver lexicon/spec.py). Aproximação de janela, não
+# escopo sintático — não trata "não apenas", que não nega.
+negations:
+  - nao
+  - sem
+  - nenhum
+  - nenhuma
+  - ausencia
+  - negou
+  - descartou
+  - descartado
+  - improcedente
+  - falso
+
+# Substantivos que podem seguir um número e virar contagem. A chave é o `kind`
+# da feature; as formas são usadas literalmente (sem plural automático), porque
+# aqui o que interessa é o substantivo exato que segue o número.
+count_units:
+  casos: [caso, casos, pessoa, pessoas, infectado, infectados, confirmado,
+          confirmados, notificacao, notificacoes, registro, registros]
+  obitos: [obito, obitos, morte, mortes]
+
+# Uma contagem seguida de "de/por <doença>" só conta se a doença for de dengue.
+# A cobertura de dengue cita outras doenças, e o número delas não é nosso: há um
+# artigo que reporta "11.881.430 casos de DRSAI" ao lado de dados de dengue, e
+# sem esta regra ele entra como se fosse o pior surto de dengue da história.
+#
+# A lista abaixo são as palavras genéricas aceitas além dos termos de `disease`.
+# Qualquer outra palavra depois de "de"/"por" derruba a contagem — erra para o
+# lado de não contar, que é o lado seguro.
+generic_disease_words: [doenca, doencas, arbovirose, arboviroses, infeccao,
+                        infeccoes, transmissao]
+
+# Multiplicadores escritos por extenso depois do número ("500 mil casos").
+count_scales:
+  mil: [mil, milhar, milhares]
+  milhao: [milhao, milhoes]
