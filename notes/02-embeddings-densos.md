@@ -1,7 +1,10 @@
 # 02 — Embeddings densos de sentença + pooling por semana epidemiológica
 
-**Estado:** ideia — 2026-10-07
+**Estado:** testando — 2026-10-13
 **Papel no artigo:** representação concorrente (ver [00](00-protocolo-comparacao.md))
+**Implementação:** `src/pipeline/news/embeddings/` — roda via
+`uv run arboili transform news-embeddings` (extra opcional `embeddings`). Métodos,
+números medidos e limitações em `src/pipeline/news/README.md` §3.
 
 ## Hipótese
 
@@ -14,13 +17,28 @@ informativa" que o modelo consegue consumir como covariável densa.
 
 Por UF (ou BR) × EW:
 
-- `emb_mean[ew]` — média (ou max-pool) dos embeddings dos artigos da semana.
+- `emb_mean[ew]` — média dos embeddings dos artigos da semana (768 dims).
 - `emb_std[ew]` — dispersão; semana com artigos heterogêneos ≠ semana homogênea.
-- `no_news[ew]` — indicador binário de semana sem artigo. **Obrigatório**: sem ele
-  o modelo não distingue "sem notícia" de "notícia neutra".
+- `no_news[ew]` — indicador de semana sem artigo. **Obrigatório**: sem ele o modelo
+  não distingue "sem notícia" de "notícia neutra".
 
-Dimensão típica 384–1024. Se ficar largo demais para o backbone, reduzir com PCA
-(registrar variância explicada) — mas isso é decisão de modelagem, não de representação.
+**Como as três colunas saíram** (2026-10-13). `emb_std` é a *norma* do desvio por
+dimensão, não o vetor de desvio: uma coluna de 768 floats diria o mesmo que a norma.
+`no_news` não virou coluna — é a **ausência** da linha, a mesma convenção do braço 01
+(ver `pool_by_week` em `steps.py`). Um vetor zero é um ponto real do espaço e se
+leria como "notícia que não significa nada", não como "sem notícia"; a ausência o
+modelo já sabe tratar, porque é assim que o calendário do alvo funciona.
+
+**E `emb_std` saiu pior do que a hipótese acima supõe.** Nas tabelas reais, 3.079
+das 5.152 linhas (59,8%) agregam **um único artigo** — e aí a dispersão não é
+baixa, é indefinida (0 por construção). O recurso existe nas semanas movimentadas e
+é constante nas semanas vazias, que é justamente onde uma covariável costuma fazer
+falta. É o argumento mais forte até agora a favor de agregar num grão mais grosso
+(mês) ou de abandonar `emb_std` como feature. Ver §3 do README do pipeline.
+
+Dimensão típica 384–1024; BERTimbau dá 768. Se ficar largo demais para o backbone,
+reduzir com PCA (registrar variância explicada) — mas isso é decisão de modelagem,
+não de representação, e por isso não está feita no pipeline.
 
 ## Como testar
 
@@ -68,8 +86,21 @@ modelo e a reprodutibilidade (fixar versão/revisão do checkpoint).
 
 ## Pendências / próximo passo
 
-- [ ] Escolher o encoder primário (BERTimbau é o palpite) e o comparador.
-- [ ] Decidir: pooling por média, max, ou atenção aprendida?
+- [x] Escolher o encoder primário. **Decidido em 2026-10-13:** BERTimbau
+      (`neuralmind/bert-base-portuguese-cased`), revisão pinada no sha
+      `94d69c95f98f7d5b2a8700c420230ae10def0baa`. Fixar a revisão e não o nome do
+      branch é o que torna o artefato reprodutível — mesmo princípio do léxico
+      versionado no braço 01. O comparador (E5 multilíngue, BGE-M3) segue em aberto
+      e é trabalho de comparação, não de pipeline.
+- [x] Decidir o pooling. **Decidido em 2026-10-13:** média mascarada pelo
+      `attention_mask` sobre `last_hidden_state` (não `[CLS]`, não a pooler head,
+      que é descartada por toda receita de sentence-embedding), normalizada em L2,
+      + a norma do desvio por semana. Max-pool fica fora por ora; pooling por
+      atenção aprendida seria treinável e portanto mudaria a natureza do braço.
 - [ ] Vale fine-tuning no corpus (classificação de relevância) ou o braço fica
       congelado? Fine-tuning muda a natureza do braço — decidir antes de comparar.
+      Por ora **congelado**, como o resto do pipeline.
 - [ ] Testar no Time-MMD Health antes de ir para dengue.
+- [ ] Rodar o protocolo 00 de fato — braços 01, 02 e 03 sob o mesmo modelo, mesmas
+      métricas e o controle negativo (texto embaralhado). A seção exploratória do
+      notebook **não** é isso.

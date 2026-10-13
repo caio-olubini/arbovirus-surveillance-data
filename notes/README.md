@@ -22,8 +22,8 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 |---|---------|-------|--------|
 | 00 | [Protocolo de comparação](00-protocolo-comparacao.md) | regra do jogo | rascunho |
 | 01 | [Léxico PT-BR + regras](01-lexico-regras.md) | concorrente | testando |
-| 02 | [Embeddings densos + pooling por EW](02-embeddings-densos.md) | concorrente | ideia |
-| 03 | [Topic modeling temporal](03-topic-modeling.md) | concorrente | ideia |
+| 02 | [Embeddings densos + pooling por EW](02-embeddings-densos.md) | concorrente | testando |
+| 03 | [Topic modeling temporal](03-topic-modeling.md) | concorrente | testando |
 | 04 | [Extração estruturada por LLM](04-llm-extracao-estruturada.md) | corredor por fora | ideia |
 | 05 | [LLM como forecaster / agente](05-llm-forecaster.md) | corredor por fora | ideia |
 | — | [Ideias soltas](ideias-soltas.md) | caixa de entrada | — |

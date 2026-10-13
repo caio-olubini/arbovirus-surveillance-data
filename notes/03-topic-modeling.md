@@ -1,6 +1,6 @@
-# 03 — Topic modeling temporal (STM / BERTopic)
+# 03 — Topic modeling temporal (DMR / STM / BERTopic)
 
-**Estado:** ideia — 2026-10-07
+**Estado:** testando — implementado 2026-10-13 (ver §Decisão)
 **Papel no artigo:** representação concorrente (ver [00](00-protocolo-comparacao.md))
 
 ## Hipótese
@@ -18,10 +18,14 @@ mais `topic_share` defasado 1–4 semanas. Entra como covariável no mesmo backb
 
 ## Como testar
 
-1. Extrair o texto dos HTMLs, pré-processar em PT (lematização com spaCy `pt_core_news`).
+1. Extrair o texto dos HTMLs, pré-processar em PT. ~~Lematização com spaCy
+   `pt_core_news`~~ → **folding de acento + regex de palavra + lista de stopwords
+   congelada** (ver §Decisão).
 2. **Modelo primário: STM com o tempo como covariável de prevalência** — é
    construído exatamente para isso e funciona em corpus pequeno.
    [Roberts 2019, *J Stat Softw* 91(2)](https://doi.org/10.18637/jss.v091.i02).
+   → **Implementado como DMR** (`tomotopy`), o mecanismo que o STM estende; ver
+   §Decisão para por que não é o pacote R.
 3. **Comparador: BERTopic** com encoder multilíngue/PT.
    [Grootendorst 2022, arXiv:2203.05794](https://arxiv.org/abs/2203.05794).
    Semear (`random_state`) e reportar estabilidade entre seeds — é estocástico e
@@ -58,6 +62,59 @@ mais `topic_share` defasado 1–4 semanas. Entra como covariável no mesmo backb
   291 artigos do Jornal do Commercio (PE), 2002–2008; a cobertura **segue** a curva
   epidemiológica. Citável para o argumento de direcionalidade.
 
+## Decisão — 2026-10-13
+
+Implementado em `src/pipeline/news/topics/`. As três escolhas que a nota deixava
+abertas, e o que as fechou:
+
+- **Modelo: `tomotopy` DMR** (Dirichlet Multinomial Regression; Mimno & McCallum
+  2012, [arXiv:1206.3278](https://arxiv.org/abs/1206.3278)) com o **período como
+  covariável do documento**. DMR condiciona a *prevalência* do tópico ao
+  covariável — é o mecanismo que o STM estende, então é o substituto Python-nativo
+  do candidato primário desta nota, não outra coisa. Três razões, em ordem de peso:
+  **(1) sem R** — esta máquina não tem R e o projeto já substituiu sua cadeia R
+  legada por produtos Python; um runtime R seria o único do repositório e teria de
+  ser instalado por quem reproduz o artigo. **(2) Independência do braço 02** —
+  `notes/00` fixa 01/02/03 como representações *concorrentes*; o pipeline padrão do
+  BERTopic precisa de embeddings de frase, e reusar o BERTimbau congelado do braço
+  02 faria os dois braços compartilharem o encoder ("o mesmo embedding cortado de
+  dois jeitos" não é comparação independente). **(3) O corpus é desigualmente denso
+  ao longo de 24 anos** — o risco que esta nota já nomeava, e exatamente o
+  desequilíbrio sob o qual o passo HDBSCAN do BERTopic é conhecidamente instável.
+  LDA (`family: lda`) é o baseline, mesma biblioteca e mesmo laço de treino menos
+  o metadado.
+- **k é selecionado, não configurado.** A faixa `k_range` é varrida, `c_v` pontua
+  cada candidato, e o argmax vence — empate vai para o **menor** k. O *sweep
+  inteiro* é publicado em `EBC_dengue_topics_sweep` (os modelos que perderam, com
+  sua coerência e seu `ll_per_word`), para que a escolha possa ser conferida em vez
+  de aceita. Não existe constante `topic_count` no `spec.py` de propósito: fixá-la
+  faria a seleção parecer mudança de schema.
+- **Tokenização: folding de acento + regex `[a-z]+` + lista de stopwords PT-BR
+  congelada.** Sem lematizador, sem POS tagger, sem spaCy — `pt_core_news` foi
+  posto de lado porque adicionaria um modelo de centenas de MB como *único*
+  consumidor de um runtime novo de NLP, num repositório cujo outro braço de notícia
+  é regex puro. O custo honesto é recall em flexões raras, que `min_df` poda da
+  vocabulário de qualquer forma.
+
+**Resultado (4.369 artigos, 965 semanas × 28 locais):** `k = 15` selecionado,
+coerência `c_v` 0.7510, contra 0.7141 (k=5), 0.7165 (k=10), 0.7263 (k=20) e 0.7016
+(k=25). A coerência **vira** dos dois lados de 15, enquanto `ll_per_word` segue
+subindo até k=25 — o desacordo entre os dois critérios, medido neste corpus, é o
+argumento para o critério. 221 s em CPU, worker único.
+
+O grão do covariável é **mês**, não a semana do output: 965 níveis semanais contra
+~4,5 artigos cada super-parametrizariam o DMR, enquanto ~290 níveis mensais pegam
+~15. O grão publicado continua semanal — o covariável molda o *ajuste*, não a saída.
+
+**Achado que este braço tornou visível:** **180 dos 4.369 artigos (4,1%) são em
+inglês** — a edição em inglês da Agência Brasil — e todos passam pelo portão de
+idioma, porque `common.guess_language` só separa *espanhol* de *não-espanhol* e
+chuta `pt` por padrão. O tópico 1 é exatamente esse artefato (*the, and, that, for,
+with, health*). Os braços 01 e 02 absorviam esses artigos em silêncio; este é o
+primeiro que gasta um tópico inteiro neles. **Não foi corrigido aqui**: o protocolo
+00 fixa o conjunto de artigos como terreno comum, e re-filtrar em um braço faria seu
+corpus diferir dos outros dois e quebrar a comparação. É pendência do protocolo 00.
+
 ## Custo
 
 Médio. STM/LDA rodam em CPU; BERTopic precisa de encoder mas é uma passada.
@@ -78,9 +135,20 @@ sentido — e justificar isso no artigo.
 
 ## Pendências / próximo passo
 
-- [ ] Decidir se o primário é STM (interpretável, feito para corpus pequeno) ou
-      BERTopic (estado da arte em notícia). Meu palpite: STM primário, BERTopic
-      comparador.
-- [ ] Definir como tópicos entram no modelo: shares diretos, ou clusters binários?
+- [x] Decidir se o primário é STM (interpretável, feito para corpus pequeno) ou
+      BERTopic (estado da arte em notícia). → **DMR**, com LDA de baseline; ver
+      §Decisão.
+- [x] Definir como tópicos entram no modelo: shares diretos, ou clusters binários?
+      → **shares diretos**, `share[ew, location, topic]`, média não-ponderada sobre
+      os artigos da semana. Clusters binários perdem a mistura, que é o ponto.
 - [ ] Planejar a figura de "o que a imprensa falava quando" — provavelmente é a
-      figura mais citável do artigo.
+      figura mais citável do artigo. A tabela `EBC_dengue_topics_meta` já dá os
+      termos por tópico; falta a série temporal de share por tópico como figura.
+- [ ] **Estabilidade entre seeds não foi estabelecida.** Um ajuste, uma seed. Um
+      ajuste só não estabelece que os tópicos são estáveis — rodar o sweep em várias
+      seeds e reportar a concordância tópico-a-tópico é a medição que resolveria.
+- [ ] **Refit com origem rolante.** O DMR é ajustado uma vez sobre o corpus
+      inteiro, então os tópicos são moldados pelos 24 anos de uma vez — incluindo
+      2024, o ano recorde. O sweep torna a *seleção* visível, mas não trata disso.
+- [ ] **A fatia em inglês** (180 artigos, 4,1%) é pendência do protocolo 00, não
+      deste braço; ver §Decisão.

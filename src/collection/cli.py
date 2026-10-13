@@ -31,6 +31,8 @@ from ..config import Config, as_date, load_config, pick
 if TYPE_CHECKING:
     from ..pipeline.climate import ClimateTransformResult
     from ..pipeline.google_trends import GTrendsTransformResult
+    from ..pipeline.news.embeddings import NewsEmbeddingsTransformResult
+    from ..pipeline.news.topics import NewsTopicsTransformResult
     from ..pipeline.sinan import SinanTransformResult
 
 log = logging.getLogger("arboili")
@@ -309,33 +311,88 @@ def run_transform_news_lexicon(cfg: Config, args: Namespace) -> "NewsLexiconTran
     )
 
 
-def _not_implemented(stage: str, error: NotImplementedError) -> None:
-    """Turn a stub's refusal into a clean exit instead of a traceback.
-
-    The stub raises `NotImplementedError` so library callers get a real error;
-    the CLI is a user-facing surface and deserves a sentence, not a stack.
-    """
-    raise SystemExit(f"{stage} is not implemented yet.\n{error}")
-
-
-def run_transform_news_embeddings(cfg: Config, args: Namespace) -> None:
-    """Braço 02 — not implemented; exits with the reason."""
+def run_transform_news_embeddings(cfg: Config, args: Namespace) -> "NewsEmbeddingsTransformResult":
+    """Braço 02 — dense BERTimbau embeddings → per-article + pooled weekly tables."""
     from ..pipeline.news.embeddings import transform
+    from ..pipeline.news.embeddings.steps import DEFAULT_BATCH_SIZE, MissingExtraError
+
+    settings = cfg.pipeline("news_embeddings")
+    default_corpus = "data/pipeline/news/EBC_dengue_text.parquet"
+    default_out = "data/pipeline/news"
+
+    portuguese_only = pick(settings.get("portuguese_only"), True)
+    require = pick(settings.get("require_disease_term"), True)
 
     try:
-        transform()
-    except NotImplementedError as error:
-        _not_implemented("news-embeddings", error)
+        return transform(
+            corpus_path=cfg.resolve(
+                pick(args.corpus_path, settings.get("corpus_path"), default_corpus)
+            ),
+            fu_path=cfg.reference("federative_units"),
+            lexicon_path=cfg.resolve(
+                pick(args.lexicon, settings.get("lexicon"), cfg.reference("news_lexicon"))
+            ),
+            out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+            model_name=pick(args.model_name, settings.get("model_name")),
+            model_revision=pick(args.model_revision, settings.get("model_revision")),
+            batch_size=pick(args.batch_size, settings.get("batch_size"), DEFAULT_BATCH_SIZE),
+            portuguese_only=bool(portuguese_only),
+            require_disease_term=bool(require),
+            normalize=bool(pick(settings.get("normalize"), True)),
+            formats=pick(args.formats, settings.get("formats"), ["parquet"]),
+        )
+    except MissingExtraError as error:
+        raise SystemExit(str(error)) from None
 
 
-def run_transform_news_topics(cfg: Config, args: Namespace) -> None:
-    """Braço 03 — not implemented; exits with the reason."""
+def run_transform_news_topics(cfg: Config, args: Namespace) -> "NewsTopicsTransformResult":
+    """Braço 03 — temporal topic modeling → weekly topic shares + topic terms."""
     from ..pipeline.news.topics import transform
+    from ..pipeline.news.topics.steps import (
+        DEFAULT_ITERATIONS,
+        DEFAULT_SEED,
+        MissingExtraError,
+    )
+    from ..pipeline.news.topics.spec import (
+        COHERENCE_METRIC,
+        COVARIATE_GRAIN,
+        DEFAULT_FAMILY,
+        K_RANGE,
+        MIN_DF,
+        TOP_TERMS,
+    )
+
+    settings = cfg.pipeline("news_topics")
+    default_corpus = "data/pipeline/news/EBC_dengue_text.parquet"
+    default_out = "data/pipeline/news"
+
+    portuguese_only = pick(settings.get("portuguese_only"), True)
+    require = pick(settings.get("require_disease_term"), True)
 
     try:
-        transform()
-    except NotImplementedError as error:
-        _not_implemented("news-topics", error)
+        return transform(
+            corpus_path=cfg.resolve(
+                pick(args.corpus_path, settings.get("corpus_path"), default_corpus)
+            ),
+            fu_path=cfg.reference("federative_units"),
+            lexicon_path=cfg.resolve(
+                pick(args.lexicon, settings.get("lexicon"), cfg.reference("news_lexicon"))
+            ),
+            out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+            k_range=pick(args.k_range, settings.get("k_range"), K_RANGE),
+            grain=pick(args.grain, settings.get("grain"), COVARIATE_GRAIN),
+            family=pick(args.family, settings.get("family"), DEFAULT_FAMILY),
+            seed=pick(args.seed, settings.get("seed"), DEFAULT_SEED),
+            iterations=pick(args.iterations, settings.get("iterations"), DEFAULT_ITERATIONS),
+            min_df=pick(settings.get("min_df"), MIN_DF),
+            metric=pick(settings.get("coherence_metric"), COHERENCE_METRIC),
+            top_terms=pick(args.top_terms, settings.get("top_terms"), TOP_TERMS),
+            portuguese_only=bool(portuguese_only),
+            require_disease_term=bool(require),
+            formats=pick(args.formats, settings.get("formats"), ["parquet", "csv_gz"]),
+        )
+    except MissingExtraError as error:
+        raise SystemExit(str(error)) from None
 
 
 RUNNERS = {
@@ -359,8 +416,8 @@ TRANSFORMS = {
     "gt-related": run_transform_gt_related,
     "news-text": run_transform_news_text,
     "news-lexicon": run_transform_news_lexicon,
-    "news-embeddings": run_transform_news_embeddings,   # braço 02 — stub
-    "news-topics": run_transform_news_topics,           # braço 03 — stub
+    "news-embeddings": run_transform_news_embeddings,   # braço 02
+    "news-topics": run_transform_news_topics,           # braço 03
 }
 
 # Stage name → `pipeline:` block key, for `arboili --list` and the runners.
@@ -370,6 +427,8 @@ PIPELINE_BLOCKS = {
     "gt-related": "gt_related",
     "news-text": "news_text",
     "news-lexicon": "news_lexicon",
+    "news-embeddings": "news_embeddings",
+    "news-topics": "news_topics",
 }
 
 
@@ -530,14 +589,42 @@ def build_parser() -> argparse.ArgumentParser:
     p_tf_nlex.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
                            help="Output formats to write")
 
-    transform_sub.add_parser(
+    p_tf_nemb = transform_sub.add_parser(
         "news-embeddings",
-        help="Braço 02 — dense embeddings + EW pooling (not implemented)",
+        help="Braço 02 — dense BERTimbau embeddings → per-article + pooled weekly tables",
     )
-    transform_sub.add_parser(
+    p_tf_nemb.add_argument("--corpus-path", type=Path,
+                           help="Path to EBC_dengue_text.parquet")
+    p_tf_nemb.add_argument("--lexicon", type=Path,
+                           help="Lexicon YAML supplying the shared disease-term gate")
+    p_tf_nemb.add_argument("--output-dir", type=Path,
+                           help="Where to write the embeddings tables")
+    p_tf_nemb.add_argument("--model-name", help="Hugging Face encoder id")
+    p_tf_nemb.add_argument("--model-revision", help="Pinned checkpoint revision (commit sha)")
+    p_tf_nemb.add_argument("--batch-size", type=int, help="Articles per forward pass")
+    p_tf_nemb.add_argument("--formats", nargs="+", choices=["parquet"],
+                           help="Output formats to write (parquet only)")
+    p_tf_ntop = transform_sub.add_parser(
         "news-topics",
-        help="Braço 03 — temporal topic modeling (not implemented)",
+        help="Braço 03 — temporal topic modeling → weekly topic shares",
     )
+    p_tf_ntop.add_argument("--corpus-path", type=Path,
+                           help="Path to EBC_dengue_text.parquet")
+    p_tf_ntop.add_argument("--lexicon", type=Path,
+                           help="Lexicon YAML supplying the shared disease-term gate")
+    p_tf_ntop.add_argument("--output-dir", type=Path,
+                           help="Where to write the topic tables")
+    p_tf_ntop.add_argument("--k-range", type=int, nargs="+",
+                           help="Candidate topic counts to sweep; the most coherent wins")
+    p_tf_ntop.add_argument("--grain", choices=["month", "year", "week"],
+                           help="Period the DMR covariate is binned into")
+    p_tf_ntop.add_argument("--family", choices=["dmr", "lda"],
+                           help="dmr conditions prevalence on the period; lda is the baseline")
+    p_tf_ntop.add_argument("--seed", type=int, help="Sampler seed (needs workers=1 to fix a fit)")
+    p_tf_ntop.add_argument("--iterations", type=int, help="Gibbs sampling iterations per fit")
+    p_tf_ntop.add_argument("--top-terms", type=int, help="Terms published per topic in the meta table")
+    p_tf_ntop.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
+                           help="Output formats to write")
 
     return parser
 
@@ -556,6 +643,8 @@ def _defaults_for(command: str, args: Namespace) -> Namespace:
         "topics_path", "queries_path", "keep_empty",
         "corpus_path", "lexicon", "require_disease_term",
         "keep_all_articles", "include_non_portuguese",
+        "model_name", "model_revision", "batch_size",
+        "k_range", "grain", "family", "seed", "iterations", "top_terms",
     }
     flags_false = {
         "keep_zip", "restart", "drop_br", "keep_empty",

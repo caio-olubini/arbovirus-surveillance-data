@@ -162,3 +162,57 @@ pipeline:
     # Spanish edition and the split is not random — 61 of the 172 are from 2016.
     portuguese_only: true
     formats: [parquet, csv_gz]
+
+  # Braço 02 — dense BERTimbau embeddings, pooled by (epi week, location).
+  # The encoder is frozen (no fine-tuning) and its *revision* is pinned, not just
+  # its name: a branch would move under the artifact and make yesterday's
+  # embedding unreproducible. See src/pipeline/news/README.md §3 and
+  # notes/02-embeddings-densos.md.
+  #   uv sync --extra embeddings      # torch + transformers
+  news_embeddings:
+    corpus_path: data/pipeline/news/EBC_dengue_text.parquet
+    lexicon: data/news/reference/lexico_dengue.yaml
+    out_dir: data/pipeline/news
+    model_name: neuralmind/bert-base-portuguese-cased
+    model_revision: 94d69c95f98f7d5b2a8700c420230ae10def0baa
+    batch_size: 16
+    # Same gates as braço 01 — protocol 00 fixes the article set as common
+    # ground, so the comparison isolates the representation, not the filter.
+    require_disease_term: true
+    portuguese_only: true
+    # L2-normalize each article vector so a week's mean is a centroid on the unit
+    # sphere and emb_std reads as angular spread. Changing it changes the numbers.
+    normalize: true
+    formats: [parquet]          # a 768-float column does not survive csv text form
+
+  # Braço 03 — temporal topic modeling, pooled by (epi week, location).
+  # One model per run, fit over the whole corpus with the *period* as a covariate
+  # (tomotopy's DMR — the mechanism STM extends), then each week's articles are
+  # averaged into a topic mixture. `family: lda` drops the covariate and produces
+  # the baseline; run it with a different `out_dir` if you want to keep both.
+  # See src/pipeline/news/README.md §4 and notes/03-topic-modeling.md.
+  #   uv sync --extra topics          # tomotopy
+  news_topics:
+    corpus_path: data/pipeline/news/EBC_dengue_text.parquet
+    lexicon: data/news/reference/lexico_dengue.yaml
+    out_dir: data/pipeline/news
+    # The number of topics is *selected*, not configured: every candidate below is
+    # fitted, scored by coherence (never perplexity — see the spec), and the most
+    # coherent wins. Ties go to the smaller k. The whole sweep is written to
+    # EBC_dengue_topics_sweep so the choice can be checked rather than trusted.
+    k_range: [5, 10, 15, 20, 25]
+    coherence_metric: c_v
+    # The period the covariate is binned into. `month`, not the weekly grain the
+    # tables are keyed by: 965 weekly levels against ~4.5 articles each would
+    # over-parameterise the fit, while ~290 monthly levels get ~15.
+    grain: month
+    family: dmr
+    seed: 42                     # needs workers=1 to actually fix the fit
+    iterations: 1000
+    min_df: 3                    # a term must appear in >= 3 documents
+    top_terms: 15                # terms published per topic in the meta table
+    # Same gates as braços 01 and 02 — protocol 00 fixes the article set as common
+    # ground, so the comparison isolates the representation, not the filter.
+    require_disease_term: true
+    portuguese_only: true
+    formats: [parquet, csv_gz]   # both tables are long and narrow, unlike braço 02

@@ -14,8 +14,8 @@ result, so the ground under it has to be fixed. See
 |---|---|---|---|
 | Text corpus | `arboili transform news-text` | article × Sunday epi-week | **complete** |
 | Braço 01 — lexicon + rules | `arboili transform news-lexicon` | EW × (BR + UF) | **complete** |
-| Braço 02 — dense embeddings | `arboili transform news-embeddings` | EW × (BR + UF) | stub |
-| Braço 03 — topic modeling | `arboili transform news-topics` | EW × (BR + UF) | stub |
+| Braço 02 — dense embeddings | `arboili transform news-embeddings` | EW × (BR + UF) | **complete** |
+| Braço 03 — temporal topics | `arboili transform news-topics` | EW × (BR + UF) | **complete** |
 
 Braços 04 and 05 (LLM extraction, LLM forecaster) are not here. They are
 *corredores por fora*: they consume the same corpus but produce different kinds
@@ -25,6 +25,8 @@ representation exist.
 ```bash
 uv run arboili transform news-text
 uv run arboili transform news-lexicon
+uv sync --extra embeddings && uv run arboili transform news-embeddings
+uv sync --extra topics && uv run arboili transform news-topics
 ```
 
 ---
@@ -48,7 +50,7 @@ Every downstream braço reads this table; none of them re-parses HTML.
 | `text` | the extracted body |
 | `era`, `extractor` | which generation and which rule fired |
 | `char_count` | `len(text)` |
-| `lang_guess` | `pt` or `other` — see §5 |
+| `lang_guess` | `pt` or `other` — see §6 |
 
 ### Two template generations
 
@@ -149,7 +151,7 @@ Hypothesis, literature and counter-evidence: [`notes/01`](../../../notes/01-lexi
 `news_volume`, `news_severity` and `news_cases` are the three the note fixes;
 `news_deaths` comes from a rule the note's own regex list names (`"X óbitos"`), and
 `news_articles_with_cases` exists to answer the note's open question about
-whether `news_cases` is worth keeping. It is not: see §4.
+whether `news_cases` is worth keeping. It is not: see §5.
 
 The lexicon is versioned at
 [`data/news/reference/lexico_dengue.yaml`](../../../data/news/reference/lexico_dengue.yaml).
@@ -229,21 +231,273 @@ comparable across units.
 
 ---
 
-## 3. Braços 02 and 03 — stubs
+## 3. Braço 02 — dense BERTimbau embeddings
 
-`embeddings/` and `topics/` carry the schema each braço will publish and refuse
-to run. What is missing is a **research decision**, not code: which encoder for
-02, and how many topics for 03 (selected on held-out likelihood or coherence,
-which is itself a result worth reporting). Neither `torch`, `transformers`,
-`bertopic` nor `stm` is installed or pinned today, so writing the stage would
-have meant inventing a model choice that the notes leave open.
+`uv sync --extra embeddings && uv run arboili transform news-embeddings`
 
-Both schemas are written down now so the three representations stay swappable in
-the same model.
+The competing hypothesis to §2: a pre-trained encoder reads the whole article, so
+it keeps the paraphrase, the hedge and the indirect mention that a lexicon drops,
+and the mean of a week's vectors is a representation of "the informative week" that
+a model can consume as a dense covariate.
+
+### The encoder is frozen, and pinned by commit
+
+`neuralmind/bert-base-portuguese-cased`
+([Souza 2020](https://doi.org/10.1007/978-3-030-61377-8_28)), 768-wide, revision
+`94d69c95f98f7d5b2a8700c420230ae10def0baa`. The revision is a commit sha and not a
+branch, for the same reason the lexicon is versioned: a branch moves under the
+artifact, and "which BERTimbau?" would stop having an answer.
+
+No fine-tuning, on purpose. Fine-tuning changes what the braço *is*, so it is a
+sub-experiment that has to be decided before the comparison rather than during it.
+
+`torch` and `transformers` are an **optional extra**, not core dependencies —
+together they are ~800 MB and nothing else in the repository imports them. The
+encoder is injectable (`transform(..., encoder=...)`), which is what lets the whole
+unit suite and the notebook run without the download.
+
+### Pooling is the masked mean, not `[CLS]`
+
+Averaging `last_hidden_state` over the real tokens, masked by `attention_mask`, then
+L2-normalized. `[CLS]` is the next-sentence-prediction signal and the pooler head is
+discarded by every sentence-embedding recipe; neither is a summary of the article.
+
+"Masked" is load-bearing: averaging over `[PAD]` positions would make a vector depend
+on what it was batched with. `tests/pipeline/news/test_embeddings_steps.py` pins that
+down by encoding one sentence alone and again beside a shorter one.
+
+### The article set is braço 01's, deliberately
+
+Same language gate, same dengue-term gate, same `UfMatcher` — imported, not
+re-implemented. Protocol 00 fixes the corpus as common ground: if one braço sees
+4,369 articles and another sees 4,569, the comparison measures the filter instead of
+the representation. `lexicon.steps.mentions_disease` was extracted out of braço 01's
+`analyse()` so both braços run the *same function* rather than two copies of it.
+
+### Two tables
+
+| Table | Grain | Rows | Size |
+|---|---|---|---|
+| `EBC_dengue_embeddings_article.parquet` | one row per article | 4,369 | 12.6 MB |
+| `EBC_dengue_embeddings_EW.parquet` | EW × (BR + UF) | 5,152 | 8.7 MB |
+
+Both are written because pooling is lossy and re-encoding is the entire cost:
+re-pooling, re-scoping or chunking from the article table takes seconds, while the
+run that produced it took 574.6 s. Parquet only — a 768-float column does not
+survive csv text form, and the stage refuses `--formats csv_gz` rather than writing
+something lossy.
+
+`emb_std` is the **norm** of the per-dimension standard deviation, not the vector: a
+768-wide std column would double the table to say one number the norm already
+carries. It is the population std, so a single-article week is exactly 0.
+
+### Measured output
+
+4,369 of the 4,569 articles (the 200 dropped are the same ones §2 drops), 5,152 rows
+over 965 weeks × 28 locations, 574.6 s on CPU (M1, batch 16, no GPU). The week range
+(2002-02-17 → 2026-09-13), the 874 weeks carrying at least one UF row, and the
+per-UF article counts (RJ 1,636, SP 863, DF 388, PR 353, MG 346) are all **identical
+to braço 01's** — which is the check that the common ground actually held.
+
+| | |
+|---|---|
+| articles encoded | 4,369 / 4,569 |
+| pooled rows | 5,152 = 965 weeks × 28 locations |
+| vectors | 768-wide, L2-normalized |
+| elapsed | 574.6 s (CPU) |
+| **truncated at 512 tokens** | **1,704 / 4,369 (39.0%)**, longest 7,624 tokens |
+| token percentiles | p50 438 · p75 637 · p90 895 · p99 1,965 |
+| rows pooling one article | 3,079 / 5,152 (59.8%) |
+
+### What this braço cannot claim
+
+1. **39% of articles lose their tail.** The 512-token limit is BERT's, not a choice.
+   `n_tokens` is carried per article precisely so this is visible instead of silent —
+   a 34,960-character era-B piece and a 163-character era-C note both become one
+   768-vector, and only that column says which of them was cut.
+2. **`emb_std` is undefined for 59.8% of rows.** A row that pools one article has no
+   dispersion, not low dispersion. The feature is live on the busy weeks and constant
+   on the quiet ones — usually where a covariate is wanted. This is the strongest
+   argument so far for pooling at a coarser grain.
+3. **The content axis is weak.** In the exploratory reading in
+   `notebooks/news_embeddings_pipeline.ipynb`, PC1 of the national weekly means
+   explains 20.8% of its own variance and correlates +0.119 with weekly cases, while
+   `n_articles` — braço 01's `news_volume` — reaches +0.347. That is the pattern
+   [Tan 2024](https://arxiv.org/abs/2406.16964) predicts, and the reason protocol 00
+   mandates a shuffled-text negative control. It is **not** the protocol-00 result.
+4. **768 dimensions is a lot of covariate.** No reduction is applied; whether the
+   forecaster takes the vector whole or a PCA of it (and the variance that keeps) is
+   a modelling decision left open in `notes/02`.
+5. Everything §6 declares about single-source, national-news-versus-UF-target and
+   mention-based scoping applies here unchanged. The scoping is literally the same
+   code.
 
 ---
 
-## 4. What building this measured
+## 4. Braço 03 — temporal topic modeling
+
+`uv sync --extra topics && uv run arboili transform news-topics`
+
+The third competing hypothesis, and the one aimed at a different question. Braço 01
+says **how much** the press wrote; braço 02 says what a week's prose *looks like* as
+a dense vector. Braço 03 says **what** the week was about: a week's coverage is not a
+block, it mixes cases, vector, vaccine, policy and hospital collapse, and the
+mixture is the covariate.
+
+### The model is DMR, and the covariate is the period
+
+`tomotopy`'s DMR (Dirichlet Multinomial Regression;
+[Mimno & McCallum 2012](https://arxiv.org/abs/1206.3278)) with the epidemiological
+period as the per-document covariate. DMR conditions topic *prevalence* on the
+covariate — it is the mechanism STM
+([Roberts 2019](https://doi.org/10.18637/jss.v091.i02)) extends, so it is the
+Python-native stand-in for `notes/03`'s primary candidate rather than a substitute
+for it. The three reasons it was chosen over STM and BERTopic, in order of weight,
+are argued in `topics/spec.py`: **no R** (the project replaced its legacy R chain
+with Python products and would otherwise carry the only R runtime in the repo);
+**independence from braço 02** (BERTopic's standard pipeline needs sentence
+embeddings, and reusing braço 02's frozen BERTimbau would make the two braços share
+an encoder — "the same embedding sliced two ways" is not an independent
+comparison); and **the corpus is unevenly dense across 24 years** (`notes/03`'s own
+risk, and exactly the density imbalance BERTopic's HDBSCAN step is known to be
+unstable under).
+
+LDA (`family: lda`) is the baseline the note calls for. It is the same library and
+the same training loop minus the metadata, so it is a run parameter and not a second
+stage.
+
+**The covariate grain is a month, not the weekly grain the tables are keyed by.**
+DMR regresses prevalence on the covariate's levels: 965 weekly levels against ~4.5
+articles each would be an over-parameterised fit, while ~290 monthly levels get ~15.
+The published grain stays weekly — the covariate shapes the *fit*, not the output.
+
+### k is selected by coherence, and the sweep is published
+
+`notes/03` fixes the criterion: coherence, never perplexity
+([Greene 2014](https://doi.org/10.1007/978-3-662-44848-9_29)), because likelihood
+rises with k almost mechanically while coherence does not. `k_range` is swept, `c_v`
+scores each candidate, and the argmax wins — ties going to the **smaller** k, so an
+uninformative plateau resolves to the more parsimonious model.
+
+There is no `topic_count` constant in `spec.py` on purpose: pinning one would make
+the selection look like a schema change. Instead the whole sweep is written to
+`EBC_dengue_topics_sweep` — the models that *lost*, with their coherence and their
+`ll_per_word` — so the choice can be checked rather than trusted. `ll_per_word` is
+reported and deliberately not used to choose, which is the part a reader should be
+able to check: it is flat-to-rising across the range while coherence turns over.
+
+### Tokenization is deliberately light
+
+Accent folding (`news.common.strip_accents`), a `[a-z]+` regex, and a frozen PT-BR
+stopword list. No lemmatizer, no POS tagger, no spaCy — `notes/03` proposed
+`pt_core_news`, set aside because it would add a several-hundred-megabyte model as
+the *only* consumer of a new NLP runtime in a repository whose other news braço is
+pure regex. The honest cost is recall on rare inflections, which `min_df` prunes out
+of the vocabulary anyway.
+
+Folding first is what lets the stopword list be one flat tuple: `não`/`nao` and
+`está`/`esta` collapse to one entry each. The list has two deliberate groups —
+function words, and news boilerplate (`disse`, `afirmou`, `segundo`). The second is
+content words by part of speech, but in a corpus of attributed news prose they
+cluster into an "attribution" topic that says nothing about dengue. Domain
+vocabulary is deliberately *not* in it: `caso`, `morte`, `vacina`, `aedes` are what
+the topics are supposed to be made of.
+
+### Three tables
+
+| Table | Grain | Rows | Size |
+|---|---|---|---|
+| `EBC_dengue_topics_EW.parquet` | EW × (BR + UF) × topic | 77,280 | 0.2 MB |
+| `EBC_dengue_topics_meta.parquet` | model × topic × term | 225 | 0.02 MB |
+| `EBC_dengue_topics_sweep.parquet` | one row per candidate k | 5 | <0.01 MB |
+
+The meta table is **not optional**: "topic 7 predicts dengue" is not a finding
+anyone can check, so every topic ships with its defining terms. Parquet plus
+`csv.gz` for all three, unlike braço 02 — these tables are long and narrow with no
+dense vector column, so they do survive csv text form and the R consumer gets them
+the way braço 01 writes its own.
+
+Shares are pooled as the **unweighted mean over articles**, so each article speaks
+once regardless of length, matching braço 02's pooling rule. A document whose tokens
+were all stopwords is assigned the uniform row rather than dropped: it is still in
+the article set protocol 00 fixes, so it must still count toward `n_articles`.
+
+### Measured output
+
+4,369 of the 4,569 articles — the same 200 dropped as §2 and §3 — over 965 weeks ×
+28 locations. `k=15` selected, coherence 0.7510, 221.3 s on CPU (M1, single worker).
+
+| candidate k | 5 | 10 | **15** | 20 | 25 |
+|---|---|---|---|---|---|
+| `c_v` coherence | 0.7141 | 0.7165 | **0.7510** | 0.7263 | 0.7016 |
+| `ll_per_word` | −8.1185 | −8.1138 | **−8.1123** | −8.1069 | −8.0915 |
+
+The turnover is real — coherence peaks and falls on both sides of 15 — and it is the
+one place the two criteria visibly disagree: likelihood keeps climbing to k=25 while
+coherence turns down after 15. That is the argument for the criterion, measured on
+this corpus rather than quoted.
+
+The 5,152 (ew, location) groups are **identical to braço 02's row count**, and the
+965 weeks and 28 locations are identical to both earlier braços — the check that the
+common ground actually held across all three.
+
+| | |
+|---|---|
+| articles modelled | 4,369 / 4,569 |
+| vocabulary | 17,131 terms (`min_df` 3) |
+| pooled rows | 77,280 = 5,152 groups × 15 topics |
+| **k selected** | **15** (coherence 0.7510) |
+| shares summing to 1 | 5,152 groups, max deviation 2.4 × 10⁻⁷ |
+| elapsed | 221.3 s (CPU, 1 worker) |
+
+All fifteen integrity checks pass on the published tables
+(`topics/integrity.py`, exercised in both directions in
+`tests/pipeline/news/test_topics_integrity.py`).
+
+### What the topics turned out to be
+
+Readable, which is the point of publishing the meta table. Topic 2 is vector control
+(*mosquito, aedes, aegypti, focos, agentes, água*), topic 3 is the arbovirus-family
+topic (*zika, chikungunya, microcefalia, febre amarela*), topic 10 is vaccination
+(*vacina, doses, butantan, vacinação*), topic 14 is clinical presentation (*sintomas,
+febre, dor, tratamento*), topic 5 is research (*fiocruz, pesquisadores, instituto*),
+topic 4 is federal policy (*governo, ministério, recursos, lei*).
+
+### What this braço cannot claim
+
+1. **A topic model cannot see a document twice.** DMR is fit once over the whole
+   corpus, so the topics are shaped by all 24 years at once — including 2024, the
+   record year. `notes/03` names this risk. The sweep table makes the selection
+   visible, but it does not address it; a rolling-origin refit is the declared next
+   step if it turns out to matter.
+2. **180 of the 4,369 articles (4.1%) are English, and they survive the language
+   gate.** They are Agência Brasil's English edition, and `lang_guess` calls every
+   one of them `pt` — because `common.guess_language` only separates *Spanish* from
+   *not-Spanish* and defaults to Portuguese, so English has no marker to trip.
+   **Topic 1 is exactly this artifact**: *the, and, that, for, with, health, will,
+   brazil, cases*. Braços 01 and 02 absorbed these articles silently — a lexicon
+   count does not care about language, and an embedding puts an English article next
+   to its Portuguese counterpart — so braço 03 is the first representation that
+   *spends a whole topic* on them and makes them visible. It is **not** fixed here:
+   protocol 00 fixes the article set as common ground, and re-gating it in one braço
+   would make its corpus differ from the other two and break the comparison. It is
+   an open item for protocol 00 and it belongs to all three braços at once.
+3. **Topic stability across seeds has not been established.** One DMR fit at one
+   seed produced the published topics. A single fit does not by itself establish
+   that the topics are stable, and `notes/03`'s risk list says so. Re-running the
+   sweep at several seeds and reporting the topic-to-topic agreement is the
+   measurement that would settle it, and it has not been run.
+4. **Topic 7 is a conversational register, not a subject.** *mais, gente, pessoas,
+   fazer, temos, estamos* is interview quotation — a register the boilerplate list
+   does not reach. It is the topic-model equivalent of braço 02's finding that PC1
+   is weak: a real property of the corpus, reported rather than hidden.
+5. Everything §6 declares about single-source, national-news-versus-UF-target and
+   mention-based scoping applies here unchanged. The scoping is literally the same
+   code, imported from `news.corpus`.
+
+---
+
+## 5. What building this measured
 
 Facts about the corpus that constrain all three braços. Each was measured on the
 full corpus, not sampled.
@@ -260,6 +514,14 @@ full corpus, not sampled.
   so. The heuristic is sound for article bodies; it was badly wrong when it was
   reading navigation text (see §1), which is why the corpus and the guess are
   produced together rather than independently.
+- **`lang_guess` does not detect English.** The detector separates *Spanish* from
+  *not-Spanish* and defaults to `pt`, so the **180 English articles (4.1% of the
+  kept corpus)** from Agência Brasil's English edition are all labelled `pt` and
+  all pass the language gate. The Spanish bullet above is the measurement that was
+  made; this is the one that was not, and it took braço 03 — the first
+  representation that spends a whole topic on a language rather than averaging it
+  away — to make it visible. It constrains all three braços and is an open item for
+  protocol 00 (§4.2).
 - **Only 24% of articles state a case count** (1,089/4,569), and 6% a death
   count (276/4,569). So `news_cases` is non-null in 511 of 965 weeks and
   `news_deaths` in 189. This is the empirical answer to the note's open question:
@@ -285,7 +547,7 @@ full corpus, not sampled.
 
 ---
 
-## 5. Declared limitations
+## 6. Declared limitations
 
 1. **Single source, state-owned, national.** One outlet, so `news_volume` is
    media attention in one newsroom, not "the media".
@@ -302,7 +564,7 @@ full corpus, not sampled.
 5. **`news_severity` weights are ordinal, not calibrated** — they order
    "surto" above "alerta" and stop there.
 6. **`lang_guess` is a marker count, not language detection.** It is a column
-   with a caveat in its name on purpose; §4 reports how well it actually does.
+   with a caveat in its name on purpose; §5 reports how well it actually does.
 7. **Three pages carry no article text.** Two 2008-04-02 pages and one
    2008-11-20 page were fetched without their body. They count toward
    `news_volume` and contribute nothing else. Re-fetching them is possible but
@@ -310,11 +572,13 @@ full corpus, not sampled.
 
 ---
 
-## 6. Validation
+## 7. Validation
 
 ```python
 from src.pipeline.news.text.integrity import run_all            # corpus
-from src.pipeline.news.lexicon.integrity import run_all         # features
+from src.pipeline.news.lexicon.integrity import run_all         # braço 01 features
+from src.pipeline.news.embeddings.integrity import run_all      # braço 02 tables
+from src.pipeline.news.topics.integrity import run_all          # braço 03 tables
 ```
 
 The corpus checks are structural plus two behavioural. `min_length` catches
@@ -334,6 +598,27 @@ The feature checks assert `locations ⊆ {BR} ∪ 27 UFs`, that counts are null 
 positive, and that **every week carries a BR row** — every article contributes
 to BR by construction, so a week without one means the location spread dropped
 something.
+
+The braço 02 checks repeat those plus two of its own. `check_dim_consistent`
+asserts both tables are 768-wide, which is the one way a different model could slip
+into a run unnoticed. `check_finite` exists because masked pooling can divide by a
+zero mask and emit NaN, and nothing downstream raises on that — it propagates into
+the forecaster quietly. Every check is exercised in the failing direction in
+`tests/pipeline/news/test_embeddings_integrity.py`, because a check that only ever
+passes is indistinguishable from no check at all.
+
+Braço 03 publishes three tables instead of one, so its checks are as much about
+their agreement as about any single table. `check_shares_sum_to_one` is the one a
+topic model can break without anything else looking wrong: a mixture is a
+distribution, so a week's shares over the 15 topics must add to 1, and the tolerance
+is stated (`SHARE_TOLERANCE`) rather than left to `np.allclose`'s default.
+`check_topic_ids_consistent` requires every topic the shares reference to have a
+definition in the meta table — the failure it guards against is a shares table whose
+topic 12 has no readable terms, which would make the published finding
+uninterpretable. `check_sweep_selects_one` is the check that keeps the evidence
+honest: the sweep must mark exactly one winner *and* that winner must be the argmax,
+so the tables and the justification cannot drift apart. `check_single_model` keeps
+one run to one model, since mixing two fits would make the shares meaningless.
 
 Fixtures live under `tests/fixtures/news/`: five saved pages, one per extraction
 path — an era-C article, three era-B ones (the 2002 wire note, the 2011 page

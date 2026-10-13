@@ -1,54 +1,68 @@
-"""Braço 03 — temporal topic modeling. Not implemented.
+"""Braço 03 — temporal topic modeling → weekly topic shares.
 
-Schema in `spec.py`; hypothesis, model candidates and the closest precedent
-(EpiNews) in notes/03-topic-modeling.md.
+`arboili transform news-topics` reads the frozen text corpus, fits one topic model
+over it with the period as a document covariate (tomotopy's DMR), and publishes the
+mean topic mixture of each (epidemiological week, location) — location being `BR`
+or a federative unit. That is the grain every news braço publishes, so the three
+stay swappable in the same model.
 
-What is missing, concretely:
+Three tables: the weekly shares the forecaster consumes, the topic → term table
+that says what each topic *is*, and the coherence sweep that justifies the number
+of topics. The second is not optional — "topic 7 predicts dengue" is not a finding
+anyone can check — and the third is the evidence `notes/03` asks to be reported
+rather than left in a log.
 
-1. A model. STM is the note's primary candidate because it takes time as a
-   covariate, which is what makes the model *temporal* rather than a topic model
-   applied to a sorted corpus. BERTopic and LDA are the comparator and baseline.
-2. The number of topics, selected on held-out likelihood or coherence rather
-   than chosen. That selection is itself a result worth reporting.
-3. A tokenizer decision for PT-BR — stopwords, and whether to lemmatize. STM's
-   R implementation and the Python alternatives disagree about preprocessing, so
-   this has to be fixed and recorded, not inherited from a default.
-4. Dependencies (`stm` is R, so this braço needs a bridge or a Python
-   alternative; `bertopic` and `scikit-learn` are not installed today).
+`k` is selected by coherence over `K_RANGE`, never by perplexity, and the covariate
+grain is a period (month by default), not the weekly grain the tables are keyed by.
+Both choices, and why the model is DMR rather than STM or BERTopic, are argued in
+`spec.py`.
 
-Until then the stage refuses to run rather than emitting something plausible.
+Needs the optional `topics` extra:
+
+    uv sync --extra topics
+
+See notes/03-topic-modeling.md for the hypothesis and the evidence, and
+`src/pipeline/news/README.md` §4 for the measured output and the limitations.
 """
 
 from __future__ import annotations
 
+from .integrity import Check, run_all
 from .spec import (
+    COHERENCE_METRIC,
+    COVARIATE_GRAIN,
+    DEFAULT_FORMATS,
+    K_RANGE,
     META_OUTPUT_COLUMNS,
     META_OUTPUT_NAME,
+    MODEL_FAMILIES,
     OUTPUT_COLUMNS,
     OUTPUT_NAME,
-    PLANNED_MODEL,
     REQUIRED_EXTRA,
-    TOPIC_COUNT,
+    SWEEP_OUTPUT_COLUMNS,
+    SWEEP_OUTPUT_NAME,
 )
-
-
-def transform(*args: object, **kwargs: object) -> None:
-    """Refuse, with the reason and the note that owns the decision."""
-    raise NotImplementedError(
-        "Braço 03 (temporal topic modeling) is not implemented. It needs "
-        f"{REQUIRED_EXTRA}, a topic count selected rather than guessed, and a "
-        "frozen PT-BR preprocessing recipe — see notes/03-topic-modeling.md and "
-        "src/pipeline/news/topics/spec.py."
-    )
-
+from .steps import MissingExtraError, TopicModel, load_model_factory
+from .transform import NewsTopicsTransformResult, transform
 
 __all__ = [
+    "COHERENCE_METRIC",
+    "COVARIATE_GRAIN",
+    "DEFAULT_FORMATS",
+    "K_RANGE",
     "META_OUTPUT_COLUMNS",
     "META_OUTPUT_NAME",
+    "MODEL_FAMILIES",
     "OUTPUT_COLUMNS",
     "OUTPUT_NAME",
-    "PLANNED_MODEL",
     "REQUIRED_EXTRA",
-    "TOPIC_COUNT",
+    "SWEEP_OUTPUT_COLUMNS",
+    "SWEEP_OUTPUT_NAME",
+    "Check",
+    "MissingExtraError",
+    "NewsTopicsTransformResult",
+    "TopicModel",
+    "load_model_factory",
+    "run_all",
     "transform",
 ]

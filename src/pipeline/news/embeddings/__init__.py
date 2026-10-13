@@ -1,51 +1,51 @@
-"""Braço 02 — dense sentence embeddings + pooling by epi week. Not implemented.
+"""Braço 02 — dense BERTimbau embeddings → weekly features.
 
-The schema this stage will publish is in `spec.py`; the hypothesis, the model
-candidates and the counter-evidence are in notes/02-embeddings-densos.md.
+`arboili transform news-embeddings` reads the frozen text corpus, encodes each
+article with a pinned BERTimbau checkpoint (frozen — no fine-tuning), and pools
+the vectors by (epidemiological week, location), location being `BR` or a
+federative unit. That is the grain every news braço publishes, so the three stay
+swappable in the same model.
 
-What is missing, concretely:
+Two tables: the per-article vectors, which cost the inference and are what any
+later re-pooling needs, and the pooled weekly table the forecaster consumes.
 
-1. A pinned encoder. BERTimbau and BioBERTpt are the two candidates the note
-   names; choosing one is a research decision, and it has to be frozen before
-   any embedding is computed or the experiment is not reproducible.
-2. The dependency itself (`torch` + `transformers`). Nothing in this repository
-   imports either today, so no version is pinned — adding them is a deliberate
-   step, not a side effect of writing this stub.
-3. A decision on pooling, and on whether the pooled vector is used whole or
-   reduced (PCA) before it reaches the forecaster.
+Needs the optional `embeddings` extra:
 
-Until then the stage refuses to run rather than emitting something plausible.
+    uv sync --extra embeddings
+
+See notes/02-embeddings-densos.md for the hypothesis and the evidence, and
+`src/pipeline/news/README.md` §3 for the measured output and the limitations.
 """
 
 from __future__ import annotations
 
 from .spec import (
+    ARTICLE_OUTPUT_COLUMNS,
     ARTICLE_OUTPUT_NAME,
     DEFAULT_FORMATS,
+    EMBEDDING_DIM,
+    MODEL_NAME,
+    MODEL_REVISION_SHA,
     OUTPUT_COLUMNS,
     OUTPUT_NAME,
-    PLANNED_DIM,
     REQUIRED_EXTRA,
 )
-
-
-def transform(*args: object, **kwargs: object) -> None:
-    """Refuse, with the reason and the note that owns the decision."""
-    raise NotImplementedError(
-        "Braço 02 (dense embeddings) is not implemented. It needs "
-        f"{REQUIRED_EXTRA} and a frozen encoder choice — see "
-        "notes/02-embeddings-densos.md and src/pipeline/news/embeddings/spec.py. "
-        "The schema is already written down so the three representations stay "
-        "swappable."
-    )
-
+from .steps import Encoder, MissingExtraError, load_encoder
+from .transform import NewsEmbeddingsTransformResult, transform
 
 __all__ = [
+    "ARTICLE_OUTPUT_COLUMNS",
     "ARTICLE_OUTPUT_NAME",
     "DEFAULT_FORMATS",
+    "EMBEDDING_DIM",
+    "MODEL_NAME",
+    "MODEL_REVISION_SHA",
     "OUTPUT_COLUMNS",
     "OUTPUT_NAME",
-    "PLANNED_DIM",
     "REQUIRED_EXTRA",
+    "Encoder",
+    "MissingExtraError",
+    "NewsEmbeddingsTransformResult",
+    "load_encoder",
     "transform",
 ]

@@ -7,10 +7,15 @@ better. That comparison only means something because the common ground is
 fixed — see notes/00-protocolo-comparacao.md.
 
     common.py       shared: HTML → text, accent folding, language guess
+    corpus.py       shared: the article-set gates and geo scoping every braço reuses
     text/           stage 0 — the frozen corpus every braço reads
-    lexicon/        braço 01 — PT-BR lexicon + rules          (implemented)
-    embeddings/     braço 02 — dense embeddings + EW pooling  (stub)
-    topics/         braço 03 — temporal topic modeling        (stub)
+    lexicon/        braço 01 — PT-BR lexicon + rules             (implemented)
+    embeddings/     braço 02 — dense embeddings + EW pooling     (implemented)
+    topics/         braço 03 — temporal topic modeling (DMR)     (implemented)
+
+`corpus.py` exists because the braços are parallel: braço 03 needs the same
+article gate and geo scoping braço 02 uses, but importing them from braço 02 would
+make one representation depend on another. They sit above both instead.
 
 Braços 04 and 05 (LLM extraction, LLM forecaster) are *not* here: they are
 corredores por fora that consume the same corpus but produce different kinds of

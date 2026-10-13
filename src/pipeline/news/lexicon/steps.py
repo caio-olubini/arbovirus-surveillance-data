@@ -296,6 +296,21 @@ def severity_score(normalized: str, lexicon: Lexicon) -> int:
     return score
 
 
+def mentions_disease(normalized: str, lexicon: Lexicon) -> bool:
+    """Does a *normalized* article name a dengue-family disease anywhere?
+
+    Public because braço 02 shares it. The article set is common ground under
+    protocol 00 — the gate drops errata pages, photo-agenda stubs and digests
+    whose dengue link is incidental — so both braços must drop the same articles,
+    or the comparison measures the corpus instead of the representation.
+
+    Takes text that has already been through `strip_accents`, like every other
+    matcher in this module; normalizing here would re-fold the same article once
+    per pattern.
+    """
+    return any(pattern.search(normalized) for pattern in lexicon.disease)
+
+
 def _parse_number(raw: str, scale: str | None) -> int | None:
     """Portuguese numeral: `.` groups thousands, `,` is the decimal mark.
 
@@ -406,7 +421,7 @@ def analyse(text: str, title: str, lexicon: Lexicon, matcher: UfMatcher) -> Arti
         severity=severity_score(normalized, lexicon),
         cases=cases,
         deaths=deaths,
-        has_disease_term=any(p.search(normalized) for p in lexicon.disease),
+        has_disease_term=mentions_disease(normalized, lexicon),
         locations=frozenset(matcher.find(original)),
     )
 
@@ -525,6 +540,7 @@ __all__ = [
     "count_mentions",
     "load_lexicon",
     "load_uf_matcher",
+    "mentions_disease",
     "severity_score",
     "week_span",
 ]

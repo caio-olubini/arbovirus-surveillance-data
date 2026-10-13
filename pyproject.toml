@@ -39,6 +39,27 @@ dev = [
     "pytest==8.4.2",
 ]
 
+[project.optional-dependencies]
+# Braço 02 (news embeddings). Deliberately an extra, not a core dependency:
+# torch is ~800 MB and nothing in the other sources or braços imports it. The
+# encoder itself is pinned here and its revision is pinned in config.yml, so an
+# embedding computed today can be recomputed byte-for-byte later.
+#   uv sync --extra embeddings
+embeddings = [
+    "torch==2.14.1",
+    "transformers==5.19.0",
+]
+
+# Braço 03 (news topics). Also an extra rather than a core dependency: tomotopy
+# is a ~30 MB C++ extension and nothing else here imports it. It carries both the
+# DMR model that takes the time covariate and the LDA baseline, so the whole
+# braço is one pin. Its `coherence` module is what selects k, which is why the
+# choice of k is reproducible from the lock file rather than from a script.
+#   uv sync --extra topics
+topics = [
+    "tomotopy==0.14.0",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [
