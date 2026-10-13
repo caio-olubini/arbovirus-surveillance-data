@@ -31,7 +31,10 @@ arbovirus-surveillance-data/
 │   ├── sinan_pipeline.ipynb              ← step-by-step SINAN transform + lit checks
 │   ├── climate_pipeline.ipynb            ← step-by-step climate UF×EW + lit checks
 │   ├── gtrends_pipeline.ipynb            ← step-by-step GT search EW keys + lit checks
-│   └── gtrends_related_pipeline.ipynb    ← step-by-step GT related monthly (partial OK)
+│   ├── gtrends_related_pipeline.ipynb    ← step-by-step GT related monthly (partial OK)
+│   ├── news_pipeline.ipynb               ← corpus + braço 01 steps + exploratory SINAN read
+│   ├── news_embeddings_pipeline.ipynb    ← braço 02: encoder, pooling, braço-01-vs-02 read
+│   └── news_topics_pipeline.ipynb        ← braço 03: tokenizer, k sweep, topic→term read
 │
 ├── data/
 │   ├── epidemiological/
@@ -118,12 +121,13 @@ arbovirus-surveillance-data/
 │       │   ├── README.md
 │       │   └── spec.py / steps.py / transform.py / integrity.py
 │       └── news/                         ← news representations (three parallel braços)
-│           ├── README.md                 ← methods write-up: corpus, braço 01, measured facts
+│           ├── README.md                 ← methods write-up: corpus, braços 01–03, measured facts
 │           ├── common.py                 ← shared extraction + normalization (no HTML re-parsed downstream)
+│           ├── corpus.py                 ← shared article-set gates + geo scoping (braços must not import each other)
 │           ├── text/                     ← frozen corpus: HTML → text + Sunday EW
 │           ├── lexicon/                  ← braço 01: PT-BR lexicon + rules → EW × (BR + UF)
-│           ├── embeddings/               ← braço 02: schema only (stub, refuses to run)
-│           └── topics/                   ← braço 03: schema only (stub, refuses to run)
+│           ├── embeddings/               ← braço 02: BERTimbau → per-article + pooled EW × (BR + UF)
+│           └── topics/                   ← braço 03: tomotopy DMR → EW × (BR + UF) × topic
 │
 ├── notes/                                ← research-path tracker (not paper prose; see notes/README.md)
 │   ├── 00-protocolo-comparacao.md        ← the comparison protocol (fixes the common ground)
@@ -156,7 +160,7 @@ arbovirus-surveillance-data/
 
 ---
 
-## Checkout State (snapshot: 2026-10-07)
+## Checkout State (snapshot: 2026-10-13)
 
 What is actually on disk versus configured. Re-verify before quoting numbers.
 
@@ -172,11 +176,15 @@ What is actually on disk versus configured. Re-verify before quoting numbers.
 | INMET station ZIPs | ❌ **absent** | Optional; not an input to `transform climate`. |
 | Bulletins | 🟡 raw | 204 PDFs, 2019–2026. No text extraction. |
 | EBC news (raw) | 🟡 raw | 4,569 article HTML files for query `dengue`. |
-| `EBC_dengue_text.parquet` (+ `.csv.gz`) | ✅ **ready** | 4,569 articles, 973 weeks (2002-02-17 → 2026-09-13), eras b=2,628 / c=1,941, 45 s. 3 pages saved without a body; 171 Spanish. |
+| `EBC_dengue_text.parquet` (+ `.csv.gz`) | ✅ **ready** | 4,569 articles, 973 weeks (2002-02-17 → 2026-09-13), eras b=2,628 / c=1,941, 45 s. 3 pages saved without a body; 171 Spanish. `lang_guess` separates Spanish from not-Spanish only, so the **180 English articles (Agência Brasil's English edition) are labelled `pt`** and pass the language gate — a protocol-00 open item, surfaced by braço 03. |
 | `EBC_dengue_lexicon_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 5,152 rows, 965 weeks × 28 locations, 4,369/4,569 articles, 6 s. Braço 01. |
-| Braços 02/03 (embeddings, topics) | ❌ **stub** | Schema written; the CLI refuses with the missing research decision. Needs torch/transformers/bertopic/stm, not yet pinned. |
+| `EBC_dengue_embeddings_article.parquet` | ✅ **ready** | 4,369 rows × 7 cols, 12.6 MB. Braço 02, per article, 768-wide L2-normalized. Needs `--extra embeddings` to reproduce; 1,704/4,369 (39.0%) exceed 512 tokens and are truncated. |
+| `EBC_dengue_embeddings_EW.parquet` | ✅ **ready** | 5,152 rows, 965 weeks × 28 locations, 8.7 MB, 574.6 s on CPU. Braço 02 pooled. Article set, week range and per-UF counts are identical to braço 01's — the common ground held. `emb_std` is 0 on the 3,079 rows (59.8%) that pool one article. |
+| `EBC_dengue_topics_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 77,280 rows = 5,152 (EW × location) groups × 15 topics, 965 weeks × 28 locations, 221.3 s on CPU. Braço 03, tomotopy DMR. Needs `--extra topics` to reproduce. **k=15 selected by coherence (0.7510)**; the 5,152 groups are identical to braço 02's — the common ground held. |
+| `EBC_dengue_topics_meta.parquet` (+ `.csv.gz`) | ✅ **ready** | 225 rows = 15 topics × 15 terms. What each topic *is*; not optional. |
+| `EBC_dengue_topics_sweep.parquet` (+ `.csv.gz`) | ✅ **ready** | 5 rows, one per candidate k with its coherence and `ll_per_word`. The evidence for choosing 15. |
 
-Tests: `uv run pytest` → 148 passed, 4 failed, 0 skipped. The 4 failures are all in
+Tests: `uv run pytest` → 266 passed, 4 failed, 0 skipped. The 4 failures are all in
 `tests/pipeline/sinan/test_integrity.py` and are pre-existing: the on-disk SINAN
 series covers 2014–2026, while those tests assert ≥15 complete years from 2010.
 They read a generated artefact and no news module is involved — re-run
@@ -301,7 +309,9 @@ the same two variables, or it will fail the same way.
 
 The canonical collection entry point is `notebooks/data_collection.ipynb`. Run cells top to bottom:
 
-Each transform also has a required walkthrough notebook under `notebooks/` that unrolls the Python steps on fixtures and documents literature alignment: `sinan_pipeline.ipynb`, `climate_pipeline.ipynb`, `gtrends_pipeline.ipynb`, `gtrends_related_pipeline.ipynb`.
+Each transform also has a required walkthrough notebook under `notebooks/` that unrolls the Python steps on fixtures and documents literature alignment: `sinan_pipeline.ipynb`, `climate_pipeline.ipynb`, `gtrends_pipeline.ipynb`, `gtrends_related_pipeline.ipynb`, `news_pipeline.ipynb` (corpus + braço 01), `news_embeddings_pipeline.ipynb` (braço 02), `news_topics_pipeline.ipynb` (braço 03). The three news notebooks are dev artifacts for the comparison — their closing sections are explicitly **not** the protocol-00 result.
+
+All notebooks declare `metadata.kernelspec.name = "arboili"`. Run `scripts/install_kernel.sh` once after `uv sync` to register it — the `kernel.json` that ships inside the ipykernel wheel uses a bare `python` in `argv`, which editors cannot resolve, so the kernel appears in the picker and immediately disappears. Re-run the script after `uv sync --reinstall-package ipykernel`.
 
 1. **Setup** — creates `data/` subdirectories
 2. **SINAN** — downloads yearly dengue CSVs
@@ -329,8 +339,10 @@ uv run arboili transform gtrends         # GT search → EW-keyed table (alias: 
 uv run arboili transform gt-related      # GT related topics/queries → monthly (partial OK)
 uv run arboili transform news-text       # EBC article HTML → the frozen news corpus
 uv run arboili transform news-lexicon    # braço 01: lexicon + rules → EW × (BR + UF)
-uv run arboili transform news-embeddings # braço 02: stub, exits 1 (see below)
-uv run arboili transform news-topics     # braço 03: stub, exits 1 (see below)
+uv run arboili transform news-embeddings # braço 02: BERTimbau → per-article + pooled tables
+                                         #   needs the optional extra: uv sync --extra embeddings
+uv run arboili transform news-topics     # braço 03: DMR topics → EW × (BR + UF) × topic
+                                         #   needs the optional extra: uv sync --extra topics
 ```
 
 Shared calendar helper: `src/pipeline/epiweek.py` (`floor_to_sunday`). SINAN
@@ -404,9 +416,26 @@ measured corpus facts and declared limitations: `src/pipeline/news/README.md`.
   965 weeks × 28 locations (BR + 27 UFs), 6 s. The lexicon is versioned at
   `data/news/reference/lexico_dengue.yaml`; **editing a term or weight invalidates
   the comparison with braços 02 and 03.**
-- `news-embeddings` (02) and `news-topics` (03) carry their schema and refuse to
-  run — the missing piece is a research decision (which encoder; how many topics),
-  not code. Both exit 1 with a one-paragraph message naming the decision.
+- `news-embeddings` is braço 02: a **frozen** BERTimbau
+  (`neuralmind/bert-base-portuguese-cased`, revision pinned to the commit sha
+  `94d69c95f98f7d5b2a8700c420230ae10def0baa`) → masked-mean, L2-normalized
+  per-article vectors, then mean + dispersion per (EW, location). Writes **two**
+  tables, because re-encoding is the whole cost and re-pooling is seconds. It needs
+  the optional extra `embeddings` (`torch` + `transformers`, ~800 MB) — without it
+  the stage exits 1 telling you to `uv sync --extra embeddings`; the unit tests run
+  either way, because the encoder is injectable. The article set is **braço 01's**:
+  same language gate, same disease-term gate, same `UfMatcher`.
+- `news-topics` (03) fits **tomotopy's DMR** (Mimno & McCallum 2012 — the mechanism
+  STM extends) over the frozen corpus with the **period as the document covariate**,
+  then publishes the mean topic mixture of each (EW, location). `k` is **selected, not
+  configured**: the `k_range` sweep is scored by `c_v` coherence (never perplexity)
+  and the whole sweep is written out so the choice is auditable. Writes **three**
+  tables — shares, the topic→term meta table that says what a topic *is*, and the
+  sweep. It needs the optional extra `topics` (`tomotopy`); without it the stage
+  exits 1 telling you to `uv sync --extra topics`, and the unit tests run either way
+  because the model is injectable. The article set and geo scoping are **braços
+  01/02's**, imported from `news.corpus` — braços must not import each other, so the
+  shared gate sits above all three.
 - Braços 04/05 (LLM extraction, LLM forecaster) are *corredores por fora*: same
   corpus, different output kind. Notes only, no code. See `notes/04`/`notes/05`.
 
