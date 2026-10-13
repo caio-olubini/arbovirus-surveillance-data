@@ -1,0 +1,8 @@
+{
+  // The Python Environments extension (ms-python.vscode-python-envs) discovers
+  // this project's .venv and then drops it again, so the kernel flashes in the
+  // "Python Environments" section of the picker and vanishes. Falling back to
+  // the classic Python extension discovery lets the registered `arboili`
+  // kernelspec show up under "Jupyter Kernels" like every other project.
+  "python.useEnvironmentsExtension": false
+}
