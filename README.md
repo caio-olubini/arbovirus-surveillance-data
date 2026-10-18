@@ -34,7 +34,7 @@ Google Trends *related* extract is ~7% complete. See
 | `gt-related` | monthly related topics/queries | 🟡 partial (~7% collected) |
 | `news-text` | frozen news corpus — 4,569 articles, 973 weeks | ✅ ready |
 | `news-lexicon` | braço 01 features — 5,152 rows, 965 weeks × 28 locations | ✅ ready |
-| `news-embeddings` | braço 02 — BERTimbau vectors, per article + pooled — 5,152 rows, 965 weeks × 28 locations | ✅ ready |
+| `news-embeddings` | braço 02 — dense embeddings, a bracket of 6 configurations — 5,152 rows each, 965 weeks × 28 locations | ✅ ready |
 | `news-topics` | braço 03 — temporal topics (DMR), 15 topics — 77,280 rows, 965 weeks × 28 locations | ✅ ready |
 
 Braços 02 and 03 need an optional extra each: `uv sync --extra embeddings` for
@@ -48,7 +48,7 @@ Braços 02 and 03 need an optional extra each: `uv sync --extra embeddings` for
 - [ ] Final merge: join all series into one `Arbo_SARI_disease_table`
 - [ ] Protocol-00 comparison: braços 01 / 02 / 03 under one model and one set of metrics
 
-Tests: `uv run pytest` → **266 passed, 4 failed**. The four failures are
+Tests: `uv run pytest` → **286 passed, 4 failed**. The four failures are
 pre-existing and confined to `tests/pipeline/sinan/test_integrity.py`: the
 on-disk SINAN series covers 2014–2026, while those tests assert ≥15 complete
 years from 2010.
@@ -74,7 +74,7 @@ years from 2010.
 │   │       ├── common.py  ← shared extraction + normalization
 │   │       ├── text/      ← frozen corpus: HTML → text + Sunday EW
 │   │       ├── lexicon/   ← braço 01: PT-BR lexicon + rules → EW × (BR + UF)
-│   │       ├── embeddings/← braço 02: BERTimbau → per-article + EW × (BR + UF)
+│   │       ├── embeddings/← braço 02: 6 frozen encoders → per-article + EW × (BR + UF)
 │   │       └── topics/    ← braço 03: tomotopy DMR → EW × (BR + UF) × topic
 │   │
 │   ├── config.py          ← config.yml loader, shared by collection & pipeline
@@ -173,7 +173,7 @@ uv run arboili --list
 | `uv run arboili transform gt-related` | Related topics/queries → monthly tables (partial OK) | seconds |
 | `uv run arboili transform news-text` | EBC article HTML → frozen news corpus | ~45 s |
 | `uv run arboili transform news-lexicon` | Corpus → braço 01 EW × (BR + UF) features | ~6 s |
-| `uv run arboili transform news-embeddings` | Braço 02 — BERTimbau → per-article + pooled tables | ~575 s (CPU) |
+| `uv run arboili transform news-embeddings --variant all` | Braço 02 — the 6-configuration bracket → per-article + pooled tables each | ~92 min for all six (~30 s to ~35 min each) |
 | `uv run arboili transform news-topics` | Braço 03 — DMR topics → shares + meta + sweep tables | ~221 s (CPU) |
 
 `all` deliberately excludes `gt-related`, which is an ~25-hour job better started on its own. Within `all`, a source that fails is logged and the run continues to the next one.

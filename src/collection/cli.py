@@ -312,8 +312,16 @@ def run_transform_news_lexicon(cfg: Config, args: Namespace) -> "NewsLexiconTran
 
 
 def run_transform_news_embeddings(cfg: Config, args: Namespace) -> "NewsEmbeddingsTransformResult":
-    """Braço 02 — dense BERTimbau embeddings → per-article + pooled weekly tables."""
-    from ..pipeline.news.embeddings import transform
+    """Braço 02 — dense sentence embeddings → per-article + pooled weekly tables.
+
+    One configuration of the bracket per call, or the whole bracket with
+    `--variant all`. The encoder, pooling, window, input and whitening all come
+    from the variant registry rather than from flags: they are the design being
+    compared, and a flag that silently overrode one would make a published table
+    describe a configuration that is nowhere written down.
+    """
+    from ..pipeline.news.embeddings import transform, transform_bracket
+    from ..pipeline.news.embeddings.spec import BASE_VARIANT_ID
     from ..pipeline.news.embeddings.steps import DEFAULT_BATCH_SIZE, MissingExtraError
 
     settings = cfg.pipeline("news_embeddings")
@@ -322,25 +330,30 @@ def run_transform_news_embeddings(cfg: Config, args: Namespace) -> "NewsEmbeddin
 
     portuguese_only = pick(settings.get("portuguese_only"), True)
     require = pick(settings.get("require_disease_term"), True)
+    variant_id = pick(args.variant, settings.get("variant"), BASE_VARIANT_ID)
+
+    common = dict(
+        corpus_path=cfg.resolve(
+            pick(args.corpus_path, settings.get("corpus_path"), default_corpus)
+        ),
+        fu_path=cfg.reference("federative_units"),
+        lexicon_path=cfg.resolve(
+            pick(args.lexicon, settings.get("lexicon"), cfg.reference("news_lexicon"))
+        ),
+        out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
+        batch_size=pick(args.batch_size, settings.get("batch_size"), DEFAULT_BATCH_SIZE),
+        portuguese_only=bool(portuguese_only),
+        require_disease_term=bool(require),
+        # `None` means "let the variant decide", which is what every variant wants.
+        # The config key survives only as an explicit override for an experiment.
+        normalize=pick(settings.get("normalize"), None),
+        formats=pick(args.formats, settings.get("formats"), ["parquet"]),
+    )
 
     try:
-        return transform(
-            corpus_path=cfg.resolve(
-                pick(args.corpus_path, settings.get("corpus_path"), default_corpus)
-            ),
-            fu_path=cfg.reference("federative_units"),
-            lexicon_path=cfg.resolve(
-                pick(args.lexicon, settings.get("lexicon"), cfg.reference("news_lexicon"))
-            ),
-            out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
-            model_name=pick(args.model_name, settings.get("model_name")),
-            model_revision=pick(args.model_revision, settings.get("model_revision")),
-            batch_size=pick(args.batch_size, settings.get("batch_size"), DEFAULT_BATCH_SIZE),
-            portuguese_only=bool(portuguese_only),
-            require_disease_term=bool(require),
-            normalize=bool(pick(settings.get("normalize"), True)),
-            formats=pick(args.formats, settings.get("formats"), ["parquet"]),
-        )
+        if variant_id == "all":
+            return transform_bracket(**common)
+        return transform(variant_id=variant_id, **common)
     except MissingExtraError as error:
         raise SystemExit(str(error)) from None
 
@@ -589,9 +602,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_tf_nlex.add_argument("--formats", nargs="+", choices=["parquet", "csv_gz"],
                            help="Output formats to write")
 
+    # Imported here rather than at module scope: `spec` is light (no torch), but
+    # the parser is built on every CLI invocation, including the ones that never
+    # touch braço 02, and the variant list belongs to the braço.
+    from ..pipeline.news.embeddings.spec import BASE_VARIANT_ID, VARIANT_ORDER
+
     p_tf_nemb = transform_sub.add_parser(
         "news-embeddings",
-        help="Braço 02 — dense BERTimbau embeddings → per-article + pooled weekly tables",
+        help="Braço 02 — dense sentence embeddings → per-article + pooled weekly tables",
     )
     p_tf_nemb.add_argument("--corpus-path", type=Path,
                            help="Path to EBC_dengue_text.parquet")
@@ -599,8 +617,9 @@ def build_parser() -> argparse.ArgumentParser:
                            help="Lexicon YAML supplying the shared disease-term gate")
     p_tf_nemb.add_argument("--output-dir", type=Path,
                            help="Where to write the embeddings tables")
-    p_tf_nemb.add_argument("--model-name", help="Hugging Face encoder id")
-    p_tf_nemb.add_argument("--model-revision", help="Pinned checkpoint revision (commit sha)")
+    p_tf_nemb.add_argument("--variant", choices=[*VARIANT_ORDER, "all"],
+                           help="Bracket configuration to run, or 'all' for the whole bracket "
+                                f"(default: {BASE_VARIANT_ID})")
     p_tf_nemb.add_argument("--batch-size", type=int, help="Articles per forward pass")
     p_tf_nemb.add_argument("--formats", nargs="+", choices=["parquet"],
                            help="Output formats to write (parquet only)")
@@ -643,7 +662,7 @@ def _defaults_for(command: str, args: Namespace) -> Namespace:
         "topics_path", "queries_path", "keep_empty",
         "corpus_path", "lexicon", "require_disease_term",
         "keep_all_articles", "include_non_portuguese",
-        "model_name", "model_revision", "batch_size",
+        "variant", "batch_size",
         "k_range", "grain", "family", "seed", "iterations", "top_terms",
     }
     flags_false = {

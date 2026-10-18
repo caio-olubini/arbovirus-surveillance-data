@@ -19,15 +19,20 @@ from src.pipeline.news.embeddings.integrity import (
     check_national_row_per_week,
     check_token_counts,
     check_unique_keys,
+    check_variant_consistent,
     run_all,
 )
 from src.pipeline.news.embeddings.spec import (
+    BASE_VARIANT_ID,
     EMB_MEAN,
     EMBEDDING,
     EMBEDDING_DIM,
+    MODEL_NAME,
+    MODEL_REVISION_SHA,
     N_TOKENS,
     NATIONAL_LOCATION,
     OUTPUT_COLUMNS,
+    VARIANT,
 )
 
 SUNDAY = date(2011, 1, 9)
@@ -40,8 +45,9 @@ def _articles(rows: list[dict]) -> pl.DataFrame:
         "article_id": "a",
         "ew": SUNDAY,
         "embedding": np.zeros(DIM, dtype=np.float32),
-        "model_id": "test/fake-encoder",
-        "model_revision": "0" * 40,
+        "variant": BASE_VARIANT_ID,
+        "model_id": MODEL_NAME,
+        "model_revision": MODEL_REVISION_SHA,
         "dim": EMBEDDING_DIM,
         "n_tokens": 42,
     }
@@ -51,6 +57,7 @@ def _articles(rows: list[dict]) -> pl.DataFrame:
             "article_id": pl.String,
             "ew": pl.Date,
             "embedding": pl.Array(pl.Float32, DIM),
+            "variant": pl.String,
             "model_id": pl.String,
             "model_revision": pl.String,
             "dim": pl.Int64,
@@ -64,7 +71,6 @@ def _pooled(rows: list[dict]) -> pl.DataFrame:
         "ew": SUNDAY,
         "location": NATIONAL_LOCATION,
         "emb_mean": np.zeros(DIM, dtype=np.float32),
-        "emb_std": 0.5,
         "n_articles": 3,
     }
     return pl.DataFrame(
@@ -73,7 +79,6 @@ def _pooled(rows: list[dict]) -> pl.DataFrame:
             "ew": pl.Date,
             "location": pl.String,
             "emb_mean": pl.Array(pl.Float32, DIM),
-            "emb_std": pl.Float32,
             "n_articles": pl.Int64,
         },
     ).select(OUTPUT_COLUMNS)
@@ -120,18 +125,91 @@ def test_dim_must_match_the_pooled_table_too() -> None:
             "ew": [SUNDAY],
             "location": [NATIONAL_LOCATION],
             "emb_mean": [np.zeros(4, dtype=np.float32)],
-            "emb_std": [0.0],
             "n_articles": [1],
         },
         schema={
             "ew": pl.Date,
             "location": pl.String,
             "emb_mean": pl.Array(pl.Float32, 4),
-            "emb_std": pl.Float32,
             "n_articles": pl.Int64,
         },
     )
     assert not check_dim_consistent(_articles([{}]), wrong).passed
+
+
+def test_a_wide_encoder_is_not_rejected_for_being_wide() -> None:
+    """The bracket spans 768-wide and 1024-wide encoders.
+
+    The expected width is read off the table rather than fixed at 768, so a
+    BGE-M3 run must not fail the check that exists to catch raggedness.
+    """
+    wide = pl.DataFrame(
+        {
+            "article_id": ["a"],
+            "ew": [SUNDAY],
+            "embedding": [np.zeros(1024, dtype=np.float32)],
+            "variant": ["bge-m3"],
+            "model_id": ["BAAI/bge-m3"],
+            "model_revision": ["0" * 40],
+            "dim": [1024],
+            "n_tokens": [10],
+        },
+        schema={
+            "article_id": pl.String,
+            "ew": pl.Date,
+            "embedding": pl.Array(pl.Float32, 1024),
+            "variant": pl.String,
+            "model_id": pl.String,
+            "model_revision": pl.String,
+            "dim": pl.Int64,
+            "n_tokens": pl.Int64,
+        },
+    )
+    pooled = pl.DataFrame(
+        {
+            "ew": [SUNDAY],
+            "location": [NATIONAL_LOCATION],
+            "emb_mean": [np.zeros(1024, dtype=np.float32)],
+            "n_articles": [1],
+        },
+        schema={
+            "ew": pl.Date,
+            "location": pl.String,
+            "emb_mean": pl.Array(pl.Float32, 1024),
+            "n_articles": pl.Int64,
+        },
+    )
+    assert check_dim_consistent(wide, pooled).passed
+
+
+def test_a_table_may_carry_only_one_variant() -> None:
+    """Two configurations concatenated into one file would make every number read
+    off it a blend of two encoders."""
+    assert check_variant_consistent(_articles([{}])).passed
+    mixed = check_variant_consistent(_articles([{}, {"variant": "e5-large"}]))
+    assert not mixed.passed
+    assert "e5-large" in mixed.detail
+
+
+def test_an_unknown_variant_is_not_a_configuration() -> None:
+    """The variant id is a key into `spec.VARIANTS`; an id that is not in there
+    describes a run nobody wrote down, which is the thing the bracket exists to
+    prevent."""
+    unknown = check_variant_consistent(_articles([{"variant": "bertimbau-mean-x"}]))
+    assert not unknown.passed
+    assert "unknown variant" in unknown.detail
+
+
+def test_the_declared_model_must_be_the_variants_model() -> None:
+    """The provenance guard: a file named for one encoder must not hold another.
+
+    This is the failure that survives every other check — the vectors are finite,
+    the width is consistent, the keys are unique — and only the model column says
+    the table is not what its name claims.
+    """
+    swapped = check_variant_consistent(_articles([{"model_id": "BAAI/bge-m3"}]))
+    assert not swapped.passed
+    assert MODEL_NAME in swapped.detail
 
 
 def test_a_nan_vector_fails_the_finite_check() -> None:
@@ -146,8 +224,13 @@ def test_a_nan_vector_fails_the_finite_check() -> None:
     assert not check_finite(_articles([{"embedding": poisoned}]), _pooled([{}])).passed
 
 
-def test_a_negative_dispersion_fails() -> None:
-    assert not check_finite(_articles([{}]), _pooled([{"emb_std": -0.1}])).passed
+def test_an_infinite_pooled_vector_fails() -> None:
+    """The whitened variant is why this is load-bearing: it multiplies by the
+    inverse square root of a near-singular covariance, and an unfloored
+    eigenvalue there produces infinities that look like large numbers."""
+    infinite = np.zeros(DIM, dtype=np.float32)
+    infinite[0] = np.inf
+    assert not check_finite(_articles([{}]), _pooled([{"emb_mean": infinite}])).passed
 
 
 def test_a_pooled_row_must_pool_at_least_one_article() -> None:
@@ -181,5 +264,6 @@ def test_a_non_sunday_week_fails() -> None:
 def test_the_published_columns_are_in_order(news_embedding_tables) -> None:
     articles, pooled = news_embedding_tables
     assert tuple(pooled.columns) == OUTPUT_COLUMNS
-    assert EMB_MEAN in articles.columns or EMBEDDING in articles.columns
+    assert EMB_MEAN in pooled.columns
     assert N_TOKENS in articles.columns
+    assert VARIANT in articles.columns

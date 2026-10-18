@@ -173,16 +173,18 @@ pipeline:
     corpus_path: data/pipeline/news/EBC_dengue_text.parquet
     lexicon: data/news/reference/lexico_dengue.yaml
     out_dir: data/pipeline/news
-    model_name: neuralmind/bert-base-portuguese-cased
-    model_revision: 94d69c95f98f7d5b2a8700c420230ae10def0baa
+    # Which configuration of the bracket to run, or `all`. The encoder and its
+    # pinned revision, the pooling, the token window, the input field and the
+    # whitening all live in `spec.VARIANTS` rather than here: they are the design
+    # being compared, and a config key that silently overrode one would make a
+    # published table describe a configuration written down nowhere.
+    #   uv run arboili transform news-embeddings --variant all
+    variant: bertimbau-mean
     batch_size: 16
     # Same gates as braço 01 — protocol 00 fixes the article set as common
     # ground, so the comparison isolates the representation, not the filter.
     require_disease_term: true
     portuguese_only: true
-    # L2-normalize each article vector so a week's mean is a centroid on the unit
-    # sphere and emb_std reads as angular spread. Changing it changes the numbers.
-    normalize: true
     formats: [parquet]          # a 768-float column does not survive csv text form
 
   # Braço 03 — temporal topic modeling, pooled by (epi week, location).

@@ -105,17 +105,29 @@ class FakeEncoder:
 
     The stage's real dependency is a 400 MB checkpoint and a network fetch, and
     neither belongs in the unit suite. What the tests actually exercise is the
-    aggregation — masking, scoping, pooling, dispersion — so the encoder only has
+    aggregation — masking, scoping, pooling, whitening — so the encoder only has
     to be *some* deterministic function from text to unit vector. Seeding it from
     a CRC of the text (rather than `hash`, which is salted per process) keeps the
     vectors identical across runs and machines.
+
+    It carries the **base variant's** model id and revision rather than an
+    obviously-fake pair, because `check_variant_consistent` ties a table's
+    provenance columns to the variant it claims to be: a stand-in that announced
+    itself as `test/fake-encoder` would make every fixture table fail its own
+    integrity check, and the check would have to be weakened to let the tests
+    through — which is the wrong way round. The vectors are still fake; only the
+    label is borrowed.
     """
 
-    model_id = "test/fake-encoder"
-    model_revision = "0" * 40
-
     def __init__(self, dim: int | None = None):
-        from src.pipeline.news.embeddings.spec import EMBEDDING_DIM
+        from src.pipeline.news.embeddings.spec import (
+            EMBEDDING_DIM,
+            MODEL_NAME,
+            MODEL_REVISION_SHA,
+        )
+
+        self.model_id = MODEL_NAME
+        self.model_revision = MODEL_REVISION_SHA
 
         # The real width by default: the integrity checks assert the published
         # tables against the pinned model's 768, so a narrower fake would make

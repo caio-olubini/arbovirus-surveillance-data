@@ -4,6 +4,12 @@ Structural invariants only, plus one numerical one: `check_finite`. Whether the
 vectors *mean* anything is a modelling question, not something a check can assert
 — but a NaN that reaches the forecaster does not fail loudly, it quietly
 propagates, and that is the failure worth mechanising against.
+
+The checks are variant-agnostic: they assert that whatever configuration produced
+a table produced it consistently, not that the configuration was the right one.
+That matters more now than it did when the braço had a single encoder, because the
+bracket means a table can be self-consistent and still be the wrong width for the
+file it is in.
 """
 
 from __future__ import annotations
@@ -20,15 +26,16 @@ from .spec import (
     DIM,
     EMBEDDING,
     EMB_MEAN,
-    EMB_STD,
-    EMBEDDING_DIM,
     EW,
     GROUP_KEYS,
     LOCATION,
+    MODEL_ID,
     N_ARTICLES,
     N_TOKENS,
     NATIONAL_LOCATION,
     OUTPUT_COLUMNS,
+    VARIANT,
+    VARIANTS,
 )
 
 SUNDAY = 7
@@ -89,31 +96,75 @@ def check_locations_known(pooled: pl.DataFrame, fu_path: Path) -> Check:
 
 
 def check_dim_consistent(articles: pl.DataFrame, pooled: pl.DataFrame) -> Check:
-    """Every embedding is the model's width, in both tables.
+    """Every embedding is as wide as its own `dim` column says, in both tables.
 
     The column is a fixed-width `Array` precisely so this can fail loudly: a
     ragged or truncated vector would otherwise reach the forecaster as a
     differently-shaped row that nothing downstream expects.
+
+    The expected width is read from the table rather than fixed at 768, because
+    the bracket spans 768-wide and 1024-wide encoders and a hardcoded width would
+    silently reject half of it.
     """
-    for frame, column, label in (
-        (articles, EMBEDDING, "article"),
-        (pooled, EMB_MEAN, "pooled"),
-    ):
-        if frame.height == 0:
-            continue
-        dtype = frame.schema[column]
-        if dtype != pl.Array(pl.Float32, EMBEDDING_DIM):
+    if articles.height == 0 and pooled.height == 0:
+        return Check("dim_consistent", True, "empty tables")
+
+    if articles.height:
+        declared = set(articles[DIM].unique().to_list())
+        if len(declared) != 1:
+            return Check("dim_consistent", False, f"article table declares several widths: {sorted(declared)}")
+        width = declared.pop()
+        if articles.schema[EMBEDDING] != pl.Array(pl.Float32, width):
             return Check(
-                "dim_consistent", False, f"{label} {column} is {dtype}, expected 768-wide"
+                "dim_consistent",
+                False,
+                f"article {EMBEDDING} is {articles.schema[EMBEDDING]}, declared {width}",
             )
-    declared = set(articles[DIM].unique().to_list()) if articles.height else set()
-    if declared - {EMBEDDING_DIM}:
-        return Check("dim_consistent", False, f"dim column says {sorted(declared)}")
-    return Check("dim_consistent", True, f"{EMBEDDING_DIM}-wide vectors throughout")
+    else:
+        width = pooled.schema[EMB_MEAN].size
+
+    if pooled.height and pooled.schema[EMB_MEAN] != pl.Array(pl.Float32, width):
+        return Check(
+            "dim_consistent",
+            False,
+            f"pooled {EMB_MEAN} is {pooled.schema[EMB_MEAN]}, article width is {width}",
+        )
+    return Check("dim_consistent", True, f"{width}-wide vectors throughout")
+
+
+def check_variant_consistent(articles: pl.DataFrame) -> Check:
+    """One table, one configuration.
+
+    The braço now publishes a table per variant. A table carrying two variant ids
+    would mean two configurations were concatenated, and every number read off it
+    afterwards would be a blend of two encoders.
+    """
+    if articles.height == 0:
+        return Check("variant_consistent", True, "0 rows")
+    seen = set(articles[VARIANT].unique().to_list())
+    if len(seen) != 1:
+        return Check("variant_consistent", False, f"several variants in one table: {sorted(seen)}")
+    name = seen.pop()
+    if name not in VARIANTS:
+        return Check("variant_consistent", False, f"unknown variant {name!r}")
+    declared = set(articles[MODEL_ID].unique().to_list())
+    expected = {VARIANTS[name].model_name}
+    if declared != expected:
+        return Check(
+            "variant_consistent",
+            False,
+            f"variant {name!r} should carry {expected}, table carries {sorted(declared)}",
+        )
+    return Check("variant_consistent", True, f"{name} · {sorted(declared)[0]}")
 
 
 def check_finite(articles: pl.DataFrame, pooled: pl.DataFrame) -> Check:
-    """No NaN or infinity anywhere — masked pooling can fail quietly."""
+    """No NaN or infinity anywhere — masked pooling can fail quietly.
+
+    The whitened variant makes this check load-bearing rather than ceremonial: it
+    multiplies by the inverse square root of a near-singular covariance, and an
+    unfloored eigenvalue there produces infinities that look like large numbers.
+    """
     for frame, column, label in (
         (articles, EMBEDDING, "article"),
         (pooled, EMB_MEAN, "pooled"),
@@ -123,11 +174,7 @@ def check_finite(articles: pl.DataFrame, pooled: pl.DataFrame) -> Check:
         bad = int((~np.isfinite(frame[column].to_numpy())).sum())
         if bad:
             return Check("finite", False, f"{bad:,} non-finite values in {label} {column}")
-    if pooled.height and pooled.filter(
-        ~pl.col(EMB_STD).is_finite() | (pl.col(EMB_STD) < 0)
-    ).height:
-        return Check("finite", False, "emb_std has non-finite or negative values")
-    return Check("finite", True, "all vectors and dispersions are finite")
+    return Check("finite", True, "all vectors are finite")
 
 
 def check_article_counts(pooled: pl.DataFrame) -> Check:
@@ -183,6 +230,7 @@ def run_all(
         check_weeks_start_on_sunday(pooled, "pooled"),
         check_locations_known(pooled, fu_path),
         check_dim_consistent(articles, pooled),
+        check_variant_consistent(articles),
         check_finite(articles, pooled),
         check_article_counts(pooled),
         check_token_counts(articles),
@@ -201,6 +249,7 @@ __all__ = [
     "check_pooled_schema",
     "check_token_counts",
     "check_unique_keys",
+    "check_variant_consistent",
     "check_weeks_start_on_sunday",
     "run_all",
 ]

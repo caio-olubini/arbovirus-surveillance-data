@@ -14,7 +14,7 @@ result, so the ground under it has to be fixed. See
 |---|---|---|---|
 | Text corpus | `arboili transform news-text` | article × Sunday epi-week | **complete** |
 | Braço 01 — lexicon + rules | `arboili transform news-lexicon` | EW × (BR + UF) | **complete** |
-| Braço 02 — dense embeddings | `arboili transform news-embeddings` | EW × (BR + UF) | **complete** |
+| Braço 02 — dense embeddings (a bracket of 6) | `arboili transform news-embeddings --variant all` | EW × (BR + UF) | **complete** |
 | Braço 03 — temporal topics | `arboili transform news-topics` | EW × (BR + UF) | **complete** |
 
 Braços 04 and 05 (LLM extraction, LLM forecaster) are not here. They are
@@ -25,7 +25,7 @@ representation exist.
 ```bash
 uv run arboili transform news-text
 uv run arboili transform news-lexicon
-uv sync --extra embeddings && uv run arboili transform news-embeddings
+uv sync --extra embeddings && uv run arboili transform news-embeddings --variant all
 uv sync --extra topics && uv run arboili transform news-topics
 ```
 
@@ -231,40 +231,84 @@ comparable across units.
 
 ---
 
-## 3. Braço 02 — dense BERTimbau embeddings
+## 3. Braço 02 — dense sentence embeddings, as a bracket
 
-`uv sync --extra embeddings && uv run arboili transform news-embeddings`
+`uv sync --extra embeddings && uv run arboili transform news-embeddings --variant all`
 
 The competing hypothesis to §2: a pre-trained encoder reads the whole article, so
 it keeps the paraphrase, the hedge and the indirect mention that a lexicon drops,
 and the mean of a week's vectors is a representation of "the informative week" that
 a model can consume as a dense covariate.
 
-### The encoder is frozen, and pinned by commit
+### One configuration is not enough to test that
+
+A single dense configuration makes a null result **uninterpretable**: "the
+representation lost" cannot be told apart from "this particular encoder was too
+weak". The braço therefore publishes a *bracket* — six unsupervised, no-training
+configurations of the same representation, read as a range rather than as a point.
+
+Everything in the bracket is untrained and unlabelled, which is the footing §2's
+hand-built lexicon is already on. Nothing is fine-tuned: fine-tuning would make the
+encoder a trained model of dengue news, and it would give braço 02 a supervision
+the other two braços do not have.
+
+| variant | encoder | pooling | window | input | whitening |
+|---|---|---|---|---|---|
+| `bertimbau-mean` | BERTimbau (base) | masked mean | 512 | title + body | no |
+| `bertimbau-whitening` | BERTimbau | masked mean | 512 | title + body | **yes** |
+| `e5-large` | multilingual E5-large | masked mean | 512 | title + body | no |
+| `bge-m3` | BGE-M3 | **[CLS]** | 512 | title + body | no |
+| `title-only` | BERTimbau | masked mean | 512 | **title only** | no |
+| `serafim-title` | Serafim PT (100M) | masked mean | **128** | title + lead | no |
+
+The variant registry (`spec.VARIANTS`) is the only place these are named, and the
+config file carries a single `variant:` key rather than one key per parameter: they
+are the design being compared, and a config key that silently overrode one would
+make a published table describe a configuration written down nowhere.
+
+Three things vary, and each is declared per variant rather than fixed in code:
+
+- **The pooling is not a free parameter held constant.** BGE-M3's dense embedding
+  *is* its `[CLS]` token — its `1_Pooling/config.json` says
+  `pooling_mode_cls_token: true` — so reading it with a mean would measure a
+  configuration nobody uses and would make a weak BGE-M3 uninterpretable. Each
+  encoder is read the way its authors published it.
+- **The window is 512 for every model that can take it**, so a gain cannot come
+  from one encoder quietly reading more text than another. Serafim's 128 is the
+  declared exception: it reads title and lead, and that structural disadvantage is
+  stated rather than smoothed over.
+- **Whitening** is the one documented weakness of mean pooling without fine-tuning.
+  A vanilla encoder is anisotropic — token vectors crowd into a narrow cone, so
+  unrelated sentences look alike ([Ethayarajh 2019](https://doi.org/10.18653/v1/D19-1006))
+  — and the post-hoc linear correction ([Su 2021](https://arxiv.org/abs/2103.15316);
+  [WhiteningBERT](https://doi.org/10.18653/v1/2021.findings-emnlp.23)) needs no
+  labels and no training, so it stays inside the bracket's footing.
+
+**Two risks are declared rather than hidden.** E5-large and BGE-M3 do not document
+their pretraining cutoff, and protocol 00 asks for open weights *with a known
+cutoff* — they enter with the leakage risk recorded and temporal validation, not as
+if the problem did not exist. And whitening is *fitted on the corpus*: fitting it on
+the whole corpus sees the period being predicted, which in a forecasting problem is
+the future. `transform(..., whitening_fit_until=...)` makes the fit window an
+explicit argument, and the `None` default (fit on everything) is correct only for
+the descriptive reading this braço currently does; protocol 00's rolling origin must
+pass an origin.
+
+### The encoders are frozen, and pinned by commit
 
 `neuralmind/bert-base-portuguese-cased`
-([Souza 2020](https://doi.org/10.1007/978-3-030-61377-8_28)), 768-wide, revision
+([Souza 2020](https://doi.org/10.1007/978-3-030-61377-8_28)), revision
 `94d69c95f98f7d5b2a8700c420230ae10def0baa`. The revision is a commit sha and not a
 branch, for the same reason the lexicon is versioned: a branch moves under the
-artifact, and "which BERTimbau?" would stop having an answer.
-
-No fine-tuning, on purpose. Fine-tuning changes what the braço *is*, so it is a
-sub-experiment that has to be decided before the comparison rather than during it.
+artifact, and "which BERTimbau?" would stop having an answer. Every variant carries
+its own pinned sha, and `check_variant_consistent` refuses a table whose `model_id`
+is not the model its variant declares — a file named for one encoder must not hold
+another.
 
 `torch` and `transformers` are an **optional extra**, not core dependencies —
 together they are ~800 MB and nothing else in the repository imports them. The
 encoder is injectable (`transform(..., encoder=...)`), which is what lets the whole
 unit suite and the notebook run without the download.
-
-### Pooling is the masked mean, not `[CLS]`
-
-Averaging `last_hidden_state` over the real tokens, masked by `attention_mask`, then
-L2-normalized. `[CLS]` is the next-sentence-prediction signal and the pooler head is
-discarded by every sentence-embedding recipe; neither is a summary of the article.
-
-"Masked" is load-bearing: averaging over `[PAD]` positions would make a vector depend
-on what it was batched with. `tests/pipeline/news/test_embeddings_steps.py` pins that
-down by encoding one sentence alone and again beside a shorter one.
 
 ### The article set is braço 01's, deliberately
 
@@ -274,60 +318,131 @@ re-implemented. Protocol 00 fixes the corpus as common ground: if one braço see
 the representation. `lexicon.steps.mentions_disease` was extracted out of braço 01's
 `analyse()` so both braços run the *same function* rather than two copies of it.
 
-### Two tables
+### Two tables per variant
 
-| Table | Grain | Rows | Size |
-|---|---|---|---|
-| `EBC_dengue_embeddings_article.parquet` | one row per article | 4,369 | 12.6 MB |
-| `EBC_dengue_embeddings_EW.parquet` | EW × (BR + UF) | 5,152 | 8.7 MB |
+| Table | Grain |
+|---|---|
+| `EBC_dengue_embeddings[_<variant>]_article.parquet` | one row per article, with `n_tokens` |
+| `EBC_dengue_embeddings[_<variant>]_EW.parquet` | EW × (BR + UF), pooled |
 
 Both are written because pooling is lossy and re-encoding is the entire cost:
 re-pooling, re-scoping or chunking from the article table takes seconds, while the
-run that produced it took 574.6 s. Parquet only — a 768-float column does not
-survive csv text form, and the stage refuses `--formats csv_gz` rather than writing
-something lossy.
+run that produced it takes minutes. The base configuration keeps the historical
+unsuffixed names — it is the published braço-02 artefact — and every other variant
+is suffixed, so a directory listing shows the whole bracket. Parquet only: a
+768-float column does not survive csv text form, and the stage refuses
+`--formats csv_gz` rather than writing something lossy.
 
-`emb_std` is the **norm** of the per-dimension standard deviation, not the vector: a
-768-wide std column would double the table to say one number the norm already
-carries. It is the population std, so a single-article week is exactly 0.
+### `emb_std` was removed, not repaired
+
+The dispersion column is gone from the schema. The reason is not the "undefined on
+59.8% of rows" that this section used to report — that was a **symptom**.
+
+For L2-normalized article vectors the parallel-axis identity on the unit sphere
+gives
+
+    ‖std‖² = (1/n) Σᵢ ‖vᵢ − m‖² = 1 − ‖m‖²
+
+so the published scalar was an exact deterministic function of `emb_mean`, a column
+the table already carried: measured at a maximum deviation of **1.6e-06** over the
+2,073 real rows with n > 1. One article gives ‖m‖ = 1 and therefore exactly 0, which
+is the "59.8% undefined" read from the other side. No scalar dispersion of unit
+vectors escapes this — mean pairwise cosine distance is 1 − ‖m‖² too — so the column
+was deleted rather than repaired, and the dispersion hypothesis is now read as
+absorbed by the mean. Its reported +0.233 correlation with cases was largely volume
+in disguise: `corr(n_articles, emb_std) = +0.432` on the real tables.
 
 ### Measured output
 
-4,369 of the 4,569 articles (the 200 dropped are the same ones §2 drops), 5,152 rows
-over 965 weeks × 28 locations, 574.6 s on CPU (M1, batch 16, no GPU). The week range
-(2002-02-17 → 2026-09-13), the 874 weeks carrying at least one UF row, and the
-per-UF article counts (RJ 1,636, SP 863, DF 388, PR 353, MG 346) are all **identical
-to braço 01's** — which is the check that the common ground actually held.
+The whole bracket, run on 2026-10-14 over the frozen corpus (M1, CPU, batch 16,
+no GPU). Every configuration sees the same 4,369 of 4,569 articles and produces the
+same 5,152 pooled rows over 965 weeks × 28 locations — which is the check that the
+common ground held across six different encoders.
 
-| | |
-|---|---|
-| articles encoded | 4,369 / 4,569 |
-| pooled rows | 5,152 = 965 weeks × 28 locations |
-| vectors | 768-wide, L2-normalized |
-| elapsed | 574.6 s (CPU) |
-| **truncated at 512 tokens** | **1,704 / 4,369 (39.0%)**, longest 7,624 tokens |
-| token percentiles | p50 438 · p75 637 · p90 895 · p99 1,965 |
-| rows pooling one article | 3,079 / 5,152 (59.8%) |
+| variant | dim | pooling | window | whitening | truncated | longest | `‖mean‖` | elapsed | size |
+|---|---|---|---|---|---|---|---|---|---|
+| `bertimbau-mean` | 768 | mean | 512 | no | 1,704 (39.0%) | 7,624 | 0.987 | 654.9 s | 12.6 + 8.7 MB |
+| `bertimbau-whitening` | 768 | mean | 512 | yes | 1,704 (39.0%) | 7,624 | 0.854 | 570.5 s | 12.6 + 8.7 MB |
+| `e5-large` | 1024 | mean | 512 | no | 1,781 (40.8%) | 8,397 | 0.983 | 2,105.0 s | 16.7 + 11.4 MB |
+| `bge-m3` | 1024 | **cls** | 512 | no | 1,767 (40.4%) | 8,395 | 0.948 | 2,029.1 s | 16.7 + 11.4 MB |
+| `title-only` | 768 | mean | 512 | no | **0 (0.0%)** | 35 | 0.962 | **29.8 s** | 12.5 + 8.6 MB |
+| `serafim-title` | 768 | mean | **128** | no | **4,142 (94.8%)** | 7,624 | 0.962 | 136.5 s | 12.6 + 8.6 MB |
+
+92.1 minutes of inference for the six, and ~5 GB of checkpoint downloads on a cold
+cache. Token percentiles of the base configuration: p50 438, p75 637, p90 895,
+p99 1,965 — so the 512 window cuts the tail of a large minority of articles, and
+`serafim-title`'s 128 cuts nearly all of them.
+
+`‖mean‖` is the average norm of the weekly centroid. It is a **reading of the
+table, not a feature**: like `emb_std`, it is a function of `emb_mean`. It is here
+because it separates the configurations at a glance — the whitened variant drops to
+0.854, and BGE-M3's `[CLS]` vectors sit at 0.948 against the means' 0.98.
+
+### Does the bracket change the answer?
+
+This is the reason the bracket exists. On the same 481 national weeks with a
+matching case series, the leading component of each configuration's weekly means
+correlates with weekly cases as follows (Spearman):
+
+| variant | PC1 explains | PC1 vs cases | `n_articles` vs cases |
+|---|---|---|---|
+| `bertimbau-mean` | 20.8% | +0.119 | +0.347 |
+| `bertimbau-whitening` | 1.1% | +0.188 | +0.347 |
+| `e5-large` | 6.9% | +0.243 | +0.347 |
+| `bge-m3` | 7.8% | +0.282 | +0.347 |
+| `title-only` | 9.8% | +0.178 | +0.347 |
+| `serafim-title` | 7.6% | +0.219 | +0.347 |
+
+Three readings, and the first is the one that matters:
+
+1. **The spread is 2.4×, and none of it reaches the count.** "Dense embeddings
+   correlate +0.12 with cases" would have been a statement about BERTimbau with
+   masked mean, not about dense embeddings: BGE-M3 nearly doubles it. A single
+   configuration could not have told the two apart. And the count of articles in
+   the week (+0.347) still beats every one of them — braço 01's `news_volume` under
+   another name.
+2. **Reading the body *hurt*.** `title-only` (+0.178) beats the full-text base
+   (+0.119) while truncating nothing at all. The 512-token window is therefore not
+   what limits the base configuration, and "the articles are too long" is not
+   available as an explanation.
+3. **Whitening does what it says to the geometry and not much to the correlation.**
+   Mean pairwise cosine over a 1,000-article sample falls from **+0.8792** to
+   **−0.0002** — the cone is gone. But spreading the variance evenly also removes
+   the dominant direction, so PC1 drops to 1.1% of the variance and its +0.188 is
+   the correlation of a direction that is no longer a summary of anything. This is
+   the clearest case in the bracket where a single scalar reading is the wrong
+   instrument.
+
+None of this is protocol 00. The protocol's metric is the forecaster's error under
+a rolling origin with a shuffled-text negative control; these are contemporaneous
+rank correlations of one scalar reduction each, and they are not a result about
+predictive value.
 
 ### What this braço cannot claim
 
-1. **39% of articles lose their tail.** The 512-token limit is BERT's, not a choice.
-   `n_tokens` is carried per article precisely so this is visible instead of silent —
-   a 34,960-character era-B piece and a 163-character era-C note both become one
-   768-vector, and only that column says which of them was cut.
-2. **`emb_std` is undefined for 59.8% of rows.** A row that pools one article has no
-   dispersion, not low dispersion. The feature is live on the busy weeks and constant
-   on the quiet ones — usually where a covariate is wanted. This is the strongest
-   argument so far for pooling at a coarser grain.
-3. **The content axis is weak.** In the exploratory reading in
-   `notebooks/news_embeddings_pipeline.ipynb`, PC1 of the national weekly means
-   explains 20.8% of its own variance and correlates +0.119 with weekly cases, while
-   `n_articles` — braço 01's `news_volume` — reaches +0.347. That is the pattern
-   [Tan 2024](https://arxiv.org/abs/2406.16964) predicts, and the reason protocol 00
-   mandates a shuffled-text negative control. It is **not** the protocol-00 result.
-4. **768 dimensions is a lot of covariate.** No reduction is applied; whether the
-   forecaster takes the vector whole or a PCA of it (and the variance that keeps) is
-   a modelling decision left open in `notes/02`.
+1. **Up to 39% of articles lose their tail** in the 512-token configurations. The
+   limit is BERT's, not a choice. `n_tokens` is carried per article precisely so
+   this is visible instead of silent — a 34,960-character era-B piece and a
+   163-character era-C note both become one vector, and only that column says which
+   of them was cut. `serafim-title` truncates far more and is declared as such.
+2. **No configuration's content axis beats the count of articles.** The bracket's
+   range is +0.119 to +0.282 against `n_articles`' +0.347, so the best dense
+   configuration still loses to braço 01's `news_volume` on this descriptive
+   metric. That is the pattern [Tan 2024](https://arxiv.org/abs/2406.16964)
+   predicts, and the reason protocol 00 mandates a shuffled-text negative control.
+   It is **not** the protocol-00 result, and the bracket is what makes it a
+   statement about the representation rather than about one encoder.
+3. **Two variants have an undocumented pretraining cutoff**, so their apparent
+   performance may be leakage. They cannot be quoted as evidence that a
+   *trainable-from-scratch* pipeline would do as well. The two that gain the most
+   over the base — BGE-M3 and E5-large — are exactly those two, which is the
+   uncomfortable version of this limitation rather than the comfortable one.
+4. **768 (or 1024) dimensions is a lot of covariate.** No reduction is applied;
+   whether the forecaster takes the vector whole or a PCA of it (and the variance
+   that keeps) is a modelling decision left open in `notes/02`. The whitened
+   variant shows how much the answer depends on that choice: its PC1 explains 1.1%
+   of the variance, so "use the leading component" is not a reduction that
+   transfers across the bracket.
 5. Everything §6 declares about single-source, national-news-versus-UF-target and
    mention-based scoping applies here unchanged. The scoping is literally the same
    code.
