@@ -1,8 +1,9 @@
 # Claude Code / Cursor local
-# `.claude/*` (not `.claude/`) so the repo-local skills below stay versioned
-# while settings.local.json and the rest of the local state do not.
+# `.claude/*` (not `.claude/`) so the repo-local skills and workflows below stay
+# versioned while settings.local.json and the rest of the local state do not.
 .claude/*
 !.claude/skills/
+!.claude/workflows/
 .cursor/
 
 # Downloaded & generated data
