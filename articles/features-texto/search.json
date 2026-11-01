@@ -1,0 +1,1320 @@
+{
+  "family": {
+    "slug": "features-texto",
+    "label": "Features manuais de texto: léxico, regras e contagens"
+  },
+  "as_of_year": 2026,
+  "generated": "2026-11-01",
+  "gates": {
+    "as_of_year": 2026,
+    "min_year": 2005,
+    "citations": {
+      "mature_age_years": 2,
+      "mature_min": 10,
+      "recent_min": 3
+    },
+    "venue": {
+      "min_h_index": 30,
+      "allow_any_of": [
+        "ACL",
+        "EMNLP",
+        "NAACL",
+        "EACL",
+        "COLING",
+        "TACL",
+        "NeurIPS",
+        "ICLR",
+        "ICML",
+        "AAAI",
+        "JMLR"
+      ]
+    },
+    "require_pdf": true
+  },
+  "citations_per_year_formula": "cited_by_count / max(1, as_of_year - publication_year)",
+  "sources": [
+    {
+      "name": "OpenAlex",
+      "url_base": "https://api.openalex.org",
+      "role": "backbone: works, venue h-index, best OA pdf"
+    },
+    {
+      "name": "Semantic Scholar",
+      "url_base": "https://api.semanticscholar.org/graph/v1",
+      "role": "cross-check of citation counts for the 35 selected (per-DOI lookups, HTTP 200; nn=25 returned 404)"
+    },
+    {
+      "name": "Web/Wayback Machine",
+      "url_base": "https://web.archive.org",
+      "role": "gap-filling for selected PDFs blocked by publisher bot challenges (OUP, HAL, ScienceDirect)"
+    }
+  ],
+  "notes": [
+    "OpenAlex \"search\" faz match em texto completo, entao varias queries trazem obras fora da familia (visao computacional, series temporais numericas); o julgamento esta em selected / considered_not_selected, nao na contagem bruta de hits.",
+    "Candidatos foram deduplicados por titulo/DOI entre as 12 queries; total_unique_hits (434) e menor que a soma bruta dos hits.",
+    "O h-index do venue nao vem em primary_location.source.summary_stats no resultado de works; foi buscado a parte em /sources?filter=openalex_id:S...|S... em lotes de 50.",
+    "2 selecionados (06 Valentin PADI-web 3.0, 36 Gritta) NAO tinham pdf_url no OpenAlex; os PDFs foram obtidos no repositorio/editora (HAL via Wayback; Springer content/pdf) e verificados com `file` = \"PDF document\" — por isso contam como selected.",
+    "Muitos PDFs de editoras (OUP/JAMIA, ScienceDirect, Wiley, Lancet, ACM, JMIR, tandfonline) devolveram 403/HTML para download automatizado; foram recuperados via ACL Anthology, Springer, DLR elib, medRxiv e Wayback Machine (snapshots if_).",
+    "O paper 10.1016/j.jbi.2020.103374 (\"Disease surveillance using online news: Dengue and zika in tropical countries\") tinha pdf_url no OpenAlex mas o download nunca virou PDF valido; ficou como reprovado no gate pdf (rejected_by_gate.pdf) e NAO esta em selected.",
+    "Semantic Scholar: o endpoint de busca retornou 429 sem chave; os lookups por DOI funcionaram. As contagens do S2 divergem do OpenAlex (ex.: HealthMap S2=38 vs OpenAlex=500; Pitler S2=562 vs OpenAlex=375) — o valor reportado em articles[] e o do OpenAlex.",
+    "GRANULARIDADE: todo candidato que passou nas regras objetivas e nao foi selecionado tem linha propria em considered_not_selected com o motivo escrito (142). Quem reprovou numa regra objetiva aparece so como contagem em rejected_by_gate.",
+    "O funil fecha: 177 mechanical passers = 35 selected + 142 considered; 257 reprovados = 434 - 177.",
+    "Library Catalog das linhas do references.csv esta como \"OpenAlex\" porque foi de onde os metadados (ano, venue, DOI, citacoes) foram medidos.",
+    "OpenAlex devolve alguns nomes de autor com inicial final espuria (\"Mikaela Keller A\", \"Mathieu A\"); foram normalizados para \"Mikaela Keller\" e \"Mathieu Roche\" nos autores de references.csv.",
+    "Para o artigo 36 (10.1007/s10579-019-09475-3) o primary_location.source do OpenAlex e o repositorio \"PubMed Central\" (h=440); o venue real e o periodico Springer \"Language Resources and Evaluation\" (OpenAlex S4306424877, h-index 68), confirmado pelo Semantic Scholar. O venue e o h-index em selected[] usam o periodico."
+  ],
+  "counts": {
+    "total_unique_hits": 434,
+    "mechanical_gate_passers": 177,
+    "selected_with_pdf": 35
+  },
+  "queries": [
+    {
+      "source": "OpenAlex",
+      "query": "event-based surveillance news articles dictionary rules outbreak detection",
+      "url": "https://api.openalex.org/works?search=event-based%20surveillance%20news%20articles%20dictionary%20rules%20outbreak%20detection&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 809
+    },
+    {
+      "source": "OpenAlex",
+      "query": "news media dengue surveillance Brazil text mining",
+      "url": "https://api.openalex.org/works?search=news%20media%20dengue%20surveillance%20Brazil%20text%20mining&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 307
+    },
+    {
+      "source": "OpenAlex",
+      "query": "automated extraction of case counts from news reports epidemic",
+      "url": "https://api.openalex.org/works?search=automated%20extraction%20of%20case%20counts%20from%20news%20reports%20epidemic&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 3433
+    },
+    {
+      "source": "OpenAlex",
+      "query": "disease surveillance gazetteer geolocation news articles",
+      "url": "https://api.openalex.org/works?search=disease%20surveillance%20gazetteer%20geolocation%20news%20articles&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 29
+    },
+    {
+      "source": "OpenAlex",
+      "query": "evaluation timeliness healthmap biocaster PADI-web outbreak detection",
+      "url": "https://api.openalex.org/works?search=evaluation%20timeliness%20healthmap%20biocaster%20PADI-web%20outbreak%20detection&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 10
+    },
+    {
+      "source": "OpenAlex",
+      "query": "text surface features readability news article classification",
+      "url": "https://api.openalex.org/works?search=text%20surface%20features%20readability%20news%20article%20classification&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 6439
+    },
+    {
+      "source": "OpenAlex",
+      "query": "HealthMap global infectious disease outbreak monitoring news",
+      "url": "https://api.openalex.org/works?search=HealthMap%20global%20infectious%20disease%20outbreak%20monitoring%20news&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 726
+    },
+    {
+      "source": "OpenAlex",
+      "query": "BioCaster text mining ontology outbreak detection news",
+      "url": "https://api.openalex.org/works?search=BioCaster%20text%20mining%20ontology%20outbreak%20detection%20news&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 77
+    },
+    {
+      "source": "OpenAlex",
+      "query": "ProMED GPHIN epidemic intelligence early warning open source",
+      "url": "https://api.openalex.org/works?search=ProMED%20GPHIN%20epidemic%20intelligence%20early%20warning%20open%20source&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 141
+    },
+    {
+      "source": "OpenAlex",
+      "query": "dengue news articles Portuguese Brazil surveillance text",
+      "url": "https://api.openalex.org/works?search=dengue%20news%20articles%20Portuguese%20Brazil%20surveillance%20text&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 228
+    },
+    {
+      "source": "OpenAlex",
+      "query": "event extraction epidemic news named entity recognition temporal",
+      "url": "https://api.openalex.org/works?search=event%20extraction%20epidemic%20news%20named%20entity%20recognition%20temporal&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 1720
+    },
+    {
+      "source": "OpenAlex",
+      "query": "case counts extraction newspaper epidemic surveillance",
+      "url": "https://api.openalex.org/works?search=case%20counts%20extraction%20newspaper%20epidemic%20surveillance&filter=from_publication_date:2005-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+      "hits": 976
+    }
+  ],
+  "selected": [
+    {
+      "key": "freifeld2007healthmap",
+      "file": "articles/features-texto/01_freifeld_2007_healthmap_global_media_monitoring.pdf",
+      "title": "HealthMap: Global Infectious Disease Monitoring through Automated Classification and Visualization of Internet Media Reports",
+      "year": 2007,
+      "venue": "Journal of the American Medical Informatics Association",
+      "venue_h_index": 232,
+      "doi": "10.1197/jamia.m2544",
+      "citations": 500,
+      "citations_per_year": 26.32,
+      "pdf": "https://academic.oup.com/jamia/article-pdf/15/2/150/2086063/15-2-150.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "brownstein2008surveillance",
+      "file": "articles/features-texto/02_brownstein_2008_surveillance_sans_frontieres_healthmap.pdf",
+      "title": "Surveillance Sans Frontières: Internet-Based Emerging Infectious Disease Intelligence and the HealthMap Project",
+      "year": 2008,
+      "venue": "PLoS Medicine",
+      "venue_h_index": 351,
+      "doi": "10.1371/journal.pmed.0050151",
+      "citations": 403,
+      "citations_per_year": 22.39,
+      "pdf": "https://journals.plos.org/plosmedicine/article/file?id=10.1371/journal.pmed.0050151&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "collier2008biocaster",
+      "file": "articles/features-texto/03_collier_2008_biocaster_text_mining_rumors.pdf",
+      "title": "BioCaster: detecting public health rumors with a Web-based text mining system",
+      "year": 2008,
+      "venue": "Bioinformatics",
+      "venue_h_index": 560,
+      "doi": "10.1093/bioinformatics/btn534",
+      "citations": 240,
+      "citations_per_year": 13.33,
+      "pdf": "https://academic.oup.com/bioinformatics/article-pdf/24/24/2940/494009/btn534.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "meng2022biocaster",
+      "file": "articles/features-texto/04_meng_2022_biocaster_2021_news_outbreaks.pdf",
+      "title": "BioCaster in 2021: automatic disease outbreaks detection from global news media",
+      "year": 2022,
+      "venue": "Bioinformatics",
+      "venue_h_index": 560,
+      "doi": "10.1093/bioinformatics/btac497",
+      "citations": 10,
+      "citations_per_year": 2.5,
+      "pdf": "https://academic.oup.com/bioinformatics/article-pdf/38/18/4446/45878238/btac497.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "valentin2020padi",
+      "file": "articles/features-texto/05_valentin_2020_padi_web_multilingual_ebs.pdf",
+      "title": "PADI-web: A multilingual event-based surveillance system for monitoring animal infectious diseases",
+      "year": 2020,
+      "venue": "Computers and Electronics in Agriculture",
+      "venue_h_index": 225,
+      "doi": "10.1016/j.compag.2019.105163",
+      "citations": 37,
+      "citations_per_year": 6.17,
+      "pdf": "https://www.sciencedirect.com/science/article/am/pii/S0168169919310646?via%3Dihub",
+      "decision": "selected"
+    },
+    {
+      "key": "valentin2021padi",
+      "file": "articles/features-texto/06_valentin_2021_padi_web_3_fine_grained_news.pdf",
+      "title": "PADI-web 3.0: A new framework for extracting and disseminating fine-grained information from the news for animal disease surveillance",
+      "year": 2021,
+      "venue": "One Health",
+      "venue_h_index": 67,
+      "doi": "10.1016/j.onehlt.2021.100357",
+      "citations": 30,
+      "citations_per_year": 6.0,
+      "pdf": "https://web.archive.org/web/20240130210812if_/https://hal.inrae.fr/hal-03506702v1/file/1-s2.0-S2352771421001476-main.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "keller2009unstructured",
+      "file": "articles/features-texto/07_keller_2009_unstructured_event_reports_ebs.pdf",
+      "title": "Use of Unstructured Event-Based Reports for Global Infectious Disease Surveillance",
+      "year": 2009,
+      "venue": "Emerging infectious diseases",
+      "venue_h_index": 327,
+      "doi": "10.3201/eid1505.081114",
+      "citations": 205,
+      "citations_per_year": 12.06,
+      "pdf": "https://wwwnc.cdc.gov/eid/article/15/5/pdfs/08-1114.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "collier2011cross",
+      "file": "articles/features-texto/08_collier_2011_cross_lingual_alerting_epidemic.pdf",
+      "title": "Towards cross-lingual alerting for bursty epidemic events",
+      "year": 2011,
+      "venue": "Journal of Biomedical Semantics",
+      "venue_h_index": 57,
+      "doi": "10.1186/2041-1480-2-s5-s10",
+      "citations": 17,
+      "citations_per_year": 1.13,
+      "pdf": "https://jbiomedsem.biomedcentral.com/track/pdf/10.1186/2041-1480-2-S5-S10",
+      "decision": "selected"
+    },
+    {
+      "key": "collier2010unusual",
+      "file": "articles/features-texto/09_collier_2010_unusual_online_outbreak_news.pdf",
+      "title": "What's unusual in online disease outbreak news?",
+      "year": 2010,
+      "venue": "Journal of Biomedical Semantics",
+      "venue_h_index": 57,
+      "doi": "10.1186/2041-1480-1-2",
+      "citations": 21,
+      "citations_per_year": 1.31,
+      "pdf": "https://jbiomedsem.biomedcentral.com/counter/pdf/10.1186/2041-1480-1-2",
+      "decision": "selected"
+    },
+    {
+      "key": "ng2020nlp",
+      "file": "articles/features-texto/10_ng_2020_nlp_extract_news_event_based.pdf",
+      "title": "Application of natural language processing algorithms for extracting information from news articles in event-based surveillance",
+      "year": 2020,
+      "venue": "Canada Communicable Disease Report",
+      "venue_h_index": 44,
+      "doi": "10.14745/ccdr.v46i06a06",
+      "citations": 20,
+      "citations_per_year": 3.33,
+      "pdf": "https://doi.org/10.14745/ccdr.v46i06a06",
+      "decision": "selected"
+    },
+    {
+      "key": "ganser2022global",
+      "file": "articles/features-texto/11_ganser_2022_global_variations_event_based.pdf",
+      "title": "Global Variations in Event-Based Surveillance for Disease Outbreak Detection: Time Series Analysis",
+      "year": 2022,
+      "venue": "JMIR Public Health and Surveillance",
+      "venue_h_index": 88,
+      "doi": "10.2196/36211",
+      "citations": 23,
+      "citations_per_year": 5.75,
+      "pdf": "https://publichealth.jmir.org/2022/10/e36211/PDF",
+      "decision": "selected"
+    },
+    {
+      "key": "barboza2013evaluation",
+      "file": "articles/features-texto/12_barboza_2013_evaluation_epidemic_intelligence_systems.pdf",
+      "title": "Evaluation of Epidemic Intelligence Systems Integrated in the Early Alerting and Reporting Project for the Detection of A/H5N1 Influenza Events",
+      "year": 2013,
+      "venue": "PLoS ONE",
+      "venue_h_index": 594,
+      "doi": "10.1371/journal.pone.0057252",
+      "citations": 91,
+      "citations_per_year": 7.0,
+      "pdf": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0057252&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "barboza2014performance",
+      "file": "articles/features-texto/13_barboza_2014_performance_internet_biosurveillance.pdf",
+      "title": "Factors Influencing Performance of Internet-Based Biosurveillance Systems Used in Epidemic Intelligence for Early Detection of Infectious Diseases Outbreaks",
+      "year": 2014,
+      "venue": "PLoS ONE",
+      "venue_h_index": 594,
+      "doi": "10.1371/journal.pone.0090536",
+      "citations": 67,
+      "citations_per_year": 5.58,
+      "pdf": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0090536&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "bahk2015timeliness",
+      "file": "articles/features-texto/14_bahk_2015_timeliness_formal_informal_reporting.pdf",
+      "title": "Comparing timeliness, content, and disease severity of formal and informal source outbreak reporting",
+      "year": 2015,
+      "venue": "BMC Infectious Diseases",
+      "venue_h_index": 176,
+      "doi": "10.1186/s12879-015-0885-0",
+      "citations": 28,
+      "citations_per_year": 2.55,
+      "pdf": "https://bmcinfectdis.biomedcentral.com/counter/pdf/10.1186/s12879-015-0885-0",
+      "decision": "selected"
+    },
+    {
+      "key": "arsevska2018web",
+      "file": "articles/features-texto/15_arsevska_2018_web_monitoring_animal_diseases.pdf",
+      "title": "Web monitoring of emerging animal infectious diseases integrated in the French Animal Health Epidemic Intelligence System",
+      "year": 2018,
+      "venue": "PLoS ONE",
+      "venue_h_index": 594,
+      "doi": "10.1371/journal.pone.0199960",
+      "citations": 64,
+      "citations_per_year": 8.0,
+      "pdf": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0199960&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "you2021text",
+      "file": "articles/features-texto/16_you_2021_text_mining_promed_mail.pdf",
+      "title": "Using Text Mining to Track Outbreak Trends in Global Surveillance of Emerging Diseases: ProMED-mail",
+      "year": 2021,
+      "venue": "Journal of the Royal Statistical Society Series A (Statistics in Society)",
+      "venue_h_index": 181,
+      "doi": "10.1111/rssa.12721",
+      "citations": 11,
+      "citations_per_year": 2.2,
+      "pdf": "https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/rssa.12721",
+      "decision": "selected"
+    },
+    {
+      "key": "milinovich2013internet",
+      "file": "articles/features-texto/17_milinovich_2013_internet_based_surveillance_review.pdf",
+      "title": "Internet-based surveillance systems for monitoring emerging infectious diseases",
+      "year": 2013,
+      "venue": "The Lancet Infectious Diseases",
+      "venue_h_index": 373,
+      "doi": "10.1016/s1473-3099(13)70244-5",
+      "citations": 306,
+      "citations_per_year": 23.54,
+      "pdf": "http://www.thelancet.com/article/S1473309913702445/pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "carlson2023who",
+      "file": "articles/features-texto/18_carlson_2023_who_disease_outbreak_news_database.pdf",
+      "title": "The World Health Organization’s Disease Outbreak News: A retrospective database",
+      "year": 2023,
+      "venue": "PLOS Global Public Health",
+      "venue_h_index": 52,
+      "doi": "10.1371/journal.pgph.0001083",
+      "citations": 35,
+      "citations_per_year": 11.67,
+      "pdf": "https://journals.plos.org/globalpublichealth/article/file?id=10.1371/journal.pgph.0001083&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "consoli2025knowledge",
+      "file": "articles/features-texto/19_consoli_2025_knowledge_graph_who_don.pdf",
+      "title": "An epidemiological knowledge graph extracted from the World Health Organization’s Disease Outbreak News",
+      "year": 2025,
+      "venue": "Scientific Data",
+      "venue_h_index": 215,
+      "doi": "10.1038/s41597-025-05276-2",
+      "citations": 10,
+      "citations_per_year": 10.0,
+      "pdf": "https://www.nature.com/articles/s41597-025-05276-2.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "madoff2011monitoring",
+      "file": "articles/features-texto/20_madoff_2011_monitoring_dengue_activity.pdf",
+      "title": "A New Approach to Monitoring Dengue Activity",
+      "year": 2011,
+      "venue": "PLoS neglected tropical diseases",
+      "venue_h_index": 217,
+      "doi": "10.1371/journal.pntd.0001215",
+      "citations": 35,
+      "citations_per_year": 2.33,
+      "pdf": "https://journals.plos.org/plosntds/article/file?id=10.1371/journal.pntd.0001215&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "pitler2008revisiting",
+      "file": "articles/features-texto/21_pitler_2008_revisiting_readability_text_quality.pdf",
+      "title": "Revisiting readability",
+      "year": 2008,
+      "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+      "venue_h_index": 277,
+      "doi": "10.3115/1613715.1613742",
+      "citations": 375,
+      "citations_per_year": 20.83,
+      "pdf": "https://dl.acm.org/doi/pdf/10.5555/1613715.1613742",
+      "decision": "selected"
+    },
+    {
+      "key": "lee2021text",
+      "file": "articles/features-texto/22_lee_2021_text_readability_handcrafted_features.pdf",
+      "title": "Pushing on Text Readability Assessment: A Transformer Meets Handcrafted Linguistic Features",
+      "year": 2021,
+      "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+      "venue_h_index": 277,
+      "doi": "10.18653/v1/2021.emnlp-main.834",
+      "citations": 52,
+      "citations_per_year": 10.4,
+      "pdf": "https://aclanthology.org/2021.emnlp-main.834.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "chae2009fluency",
+      "file": "articles/features-texto/23_chae_2009_fluency_shallow_structural_features.pdf",
+      "title": "Predicting the fluency of text with shallow structural features",
+      "year": 2009,
+      "venue": "Conference of the European Chapter of the Association for Computational Linguistics",
+      "venue_h_index": 103,
+      "doi": "10.3115/1609067.1609082",
+      "citations": 37,
+      "citations_per_year": 2.18,
+      "pdf": "https://dl.acm.org/doi/pdf/10.5555/1609067.1609082",
+      "decision": "selected"
+    },
+    {
+      "key": "crossley2011readability",
+      "file": "articles/features-texto/24_crossley_2011_readability_formulas_simplification.pdf",
+      "title": "Text readability and intuitive simplification: A comparison of readability formulas",
+      "year": 2011,
+      "venue": "Reading in a Foreign Language",
+      "venue_h_index": 65,
+      "doi": "10.64152/10125/66657",
+      "citations": 183,
+      "citations_per_year": 12.2,
+      "pdf": "https://scholarspace.manoa.hawaii.edu/bitstreams/1d202826-86fa-40a3-8b4a-465c710a8df4/download",
+      "decision": "selected"
+    },
+    {
+      "key": "neto2016digital",
+      "file": "articles/features-texto/26_neto_2016_digital_disease_detection_brazil.pdf",
+      "title": "Digital disease detection and participatory surveillance: overview and perspectives for Brazil",
+      "year": 2016,
+      "venue": "Revista de Saúde Pública",
+      "venue_h_index": 142,
+      "doi": "10.1590/s1518-8787.2016050006201",
+      "citations": 25,
+      "citations_per_year": 2.5,
+      "pdf": "https://www.scielo.br/j/rsp/a/KD4GHtfsN6jzBSpWwC4735p/?lang=en&format=pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "melo2021news",
+      "file": "articles/features-texto/27_melo_2021_news_tweets_covid_brazil.pdf",
+      "title": "Comparing News Articles and Tweets About COVID-19 in Brazil: Sentiment Analysis and Topic Modeling Approach",
+      "year": 2021,
+      "venue": "JMIR Public Health and Surveillance",
+      "venue_h_index": 88,
+      "doi": "10.2196/24585",
+      "citations": 86,
+      "citations_per_year": 17.2,
+      "pdf": "https://publichealth.jmir.org/2021/2/e24585/PDF",
+      "decision": "selected"
+    },
+    {
+      "key": "schwind2014local",
+      "file": "articles/features-texto/28_schwind_2014_local_media_surveillance_hotspots.pdf",
+      "title": "Evaluation of Local Media Surveillance for Improved Disease Recognition and Monitoring in Global Hotspot Regions",
+      "year": 2014,
+      "venue": "PLoS ONE",
+      "venue_h_index": 594,
+      "doi": "10.1371/journal.pone.0110236",
+      "citations": 26,
+      "citations_per_year": 2.17,
+      "pdf": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0110236&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "kriesch2025geolocated",
+      "file": "articles/features-texto/29_kriesch_2025_geolocated_german_news_dataset.pdf",
+      "title": "A geolocated dataset of German news articles",
+      "year": 2025,
+      "venue": "Scientific Data",
+      "venue_h_index": 215,
+      "doi": "10.1038/s41597-025-05422-w",
+      "citations": 5,
+      "citations_per_year": 5.0,
+      "pdf": "https://www.nature.com/articles/s41597-025-05422-w.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "conway2010disease",
+      "file": "articles/features-texto/30_conway_2010_disease_outbreak_event_corpus.pdf",
+      "title": "Developing a Disease Outbreak Event Corpus",
+      "year": 2010,
+      "venue": "Journal of Medical Internet Research",
+      "venue_h_index": 286,
+      "doi": "10.2196/jmir.1323",
+      "citations": 17,
+      "citations_per_year": 1.06,
+      "pdf": "https://www.jmir.org/2010/3/e43/PDF",
+      "decision": "selected"
+    },
+    {
+      "key": "chanlekha2010spatial",
+      "file": "articles/features-texto/31_chanlekha_2010_spatial_temporal_granularity_reports.pdf",
+      "title": "A framework for enhancing spatial and temporal granularity in report-based health surveillance systems",
+      "year": 2010,
+      "venue": "BMC Medical Informatics and Decision Making",
+      "venue_h_index": 145,
+      "doi": "10.1186/1472-6947-10-1",
+      "citations": 108,
+      "citations_per_year": 6.75,
+      "pdf": "https://bmcmedinformdecismak.biomedcentral.com/counter/pdf/10.1186/1472-6947-10-1",
+      "decision": "selected"
+    },
+    {
+      "key": "keller2009vocabulary",
+      "file": "articles/features-texto/32_keller_2009_vocabulary_discovery_geoparsing.pdf",
+      "title": "Automated vocabulary discovery for geo-parsing online epidemic intelligence",
+      "year": 2009,
+      "venue": "BMC Bioinformatics",
+      "venue_h_index": 306,
+      "doi": "10.1186/1471-2105-10-385",
+      "citations": 18,
+      "citations_per_year": 1.06,
+      "pdf": "https://bmcbioinformatics.biomedcentral.com/counter/pdf/10.1186/1471-2105-10-385",
+      "decision": "selected"
+    },
+    {
+      "key": "hu2023location",
+      "file": "articles/features-texto/33_hu_2023_location_reference_recognition.pdf",
+      "title": "Location Reference Recognition from Texts: A Survey and Comparison",
+      "year": 2023,
+      "venue": "ACM Computing Surveys",
+      "venue_h_index": 342,
+      "doi": "10.1145/3625819",
+      "citations": 70,
+      "citations_per_year": 23.33,
+      "pdf": "https://dl.acm.org/doi/pdf/10.1145/3625819",
+      "decision": "selected"
+    },
+    {
+      "key": "syed2023geospatre",
+      "file": "articles/features-texto/34_syed_2023_geospatre_spatial_relation_geocoding.pdf",
+      "title": "GeospatRE: extraction and geocoding of spatial relation entities in textual documents",
+      "year": 2023,
+      "venue": "Cartography and Geographic Information Science",
+      "venue_h_index": 77,
+      "doi": "10.1080/15230406.2023.2264753",
+      "citations": 13,
+      "citations_per_year": 4.33,
+      "pdf": "https://www.tandfonline.com/doi/pdf/10.1080/15230406.2023.2264753?needAccess=true",
+      "decision": "selected"
+    },
+    {
+      "key": "mutuvi2020multilingual",
+      "file": "articles/features-texto/35_mutuvi_2020_multilingual_epidemiological_classification.pdf",
+      "title": "Multilingual Epidemiological Text Classification: A Comparative Study",
+      "year": 2020,
+      "venue": "International Conference on Computational Linguistics",
+      "venue_h_index": 148,
+      "doi": "10.18653/v1/2020.coling-main.543",
+      "citations": 26,
+      "citations_per_year": 4.33,
+      "pdf": "https://www.aclweb.org/anthology/2020.coling-main.543.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "gritta2020pragmatic",
+      "file": "articles/features-texto/36_gritta_2020_pragmatic_guide_geoparsing_evaluation.pdf",
+      "title": "A pragmatic guide to geoparsing evaluation: Toponyms, Named Entity Recognition and pragmatics.",
+      "year": 2020,
+      "venue": "Language Resources and Evaluation",
+      "venue_h_index": 68,
+      "doi": "10.1007/s10579-019-09475-3",
+      "citations": 61,
+      "citations_per_year": 10.17,
+      "pdf": "https://link.springer.com/content/pdf/10.1007/s10579-019-09475-3.pdf",
+      "decision": "selected"
+    }
+  ],
+  "rejected_by_gate": {
+    "year": 0,
+    "citations": 227,
+    "venue": 13,
+    "pdf": 17
+  },
+  "considered_not_selected": [
+    {
+      "title": "Fake news, disinformation and misinformation in social media: a review",
+      "gate": "relevance",
+      "detail": "Revisao de desinformacao/fake news em redes sociais; nao trata de extracao por dicionario/regra de noticia para vigilancia nem de contagem de casos."
+    },
+    {
+      "title": "Sentence Fusion for Multidocument News Summarization",
+      "gate": "relevance",
+      "detail": "Sumarizacao de noticias (fusao de sentencas); tarefa de resumo, nao extracao de eventos/contagens para vigilancia."
+    },
+    {
+      "title": "Conspiracy in the time of corona: automatic detection of emerging COVID-19 conspiracy theories in social media and the news",
+      "gate": "relevance",
+      "detail": "Deteccao de teorias da conspiracoa em redes sociais e noticia; tema de desinformacao, fora do escopo de features lexicais de vigilancia."
+    },
+    {
+      "title": "Assessing the Relationship between Vector Indices and Dengue Transmission: A Systematic Review of the Evidence",
+      "gate": "relevance",
+      "detail": "Revisao sobre indices de vetor e transmissao de dengue; entomologia/epidemiologia, sem features de texto."
+    },
+    {
+      "title": "Using Social Media for Actionable Disease Surveillance and Outbreak Management: A Systematic Literature Review",
+      "gate": "relevance",
+      "detail": "Revisao de vigilancia acionavel por redes sociais; foco em midia social, nao em extracao de texto de noticia por lexico/regra."
+    },
+    {
+      "title": "Early detection of disease outbreaks using the Internet",
+      "gate": "relevance",
+      "detail": "Comentario sobre deteccao precoce de surtos pela internet; panorama editorial, sem sistema de extracao lexica nem avaliacao de campos."
+    },
+    {
+      "title": "Big Data for Infectious Disease Surveillance and Modeling",
+      "gate": "relevance",
+      "detail": "Panorama de big data em vigilancia e modelagem; generico, sem features de texto mensuradas."
+    },
+    {
+      "title": "Epidemiological Trends of Dengue Disease in Brazil (2000–2010): A Systematic Literature Search and Analysis",
+      "gate": "relevance",
+      "detail": "Epidemiologia descritiva da dengue no Brasil por revisao de literatura; nao usa texto de noticia."
+    },
+    {
+      "title": "Yellow fever outbreak in Brazil: the puzzle of rapid viral spread and challenges for immunisation",
+      "gate": "relevance",
+      "detail": "Revisao clinico-epidemiologica da febre amarela no Brasil; sem processamento de texto."
+    },
+    {
+      "title": "Global Disease Outbreaks Associated with the 2015–2016 El Niño Event",
+      "gate": "relevance",
+      "detail": "Associacao entre El Nino e surtos globais; clima-epidemiologia, sem features de texto."
+    },
+    {
+      "title": "Explainable Automated Fact-Checking for Public Health Claims",
+      "gate": "relevance",
+      "detail": "Verificacao de fatos de saude publica; tarefa de fact-checking, nao extracao de contagens/eventos de noticia para vigilancia."
+    },
+    {
+      "title": "Global Disease Monitoring and Forecasting with Wikipedia",
+      "gate": "relevance",
+      "detail": "Wikipedia como fonte de sinal de doenca; usa acessos/paginas como serie, nao features lexicais de noticia."
+    },
+    {
+      "title": "Forecasting Zika Incidence in the 2016 Latin America Outbreak Combining Traditional Disease Surveillance with Search, Social Media, and News Report Data",
+      "gate": "relevance",
+      "detail": "Previsao de zika combinando multiplas fontes; a noticia entra so como contagem de artigos, nao como feature de texto."
+    },
+    {
+      "title": "The Past, Present, and Future of Public Health Surveillance",
+      "gate": "relevance",
+      "detail": "Panorama historico de vigilancia em saude publica; sem sistema de extracao de texto."
+    },
+    {
+      "title": "From natural language to simulations: applying AI to automate simulation modelling of logistics systems",
+      "gate": "relevance",
+      "detail": "Simulacao logistica a partir de linguagem natural; dominio industrial, fora do escopo."
+    },
+    {
+      "title": "Health Economics of Dengue: A Systematic Literature Review and Expert Panel's Assessment",
+      "gate": "relevance",
+      "detail": "Economia da saude da dengue; revisao economica, sem features de texto."
+    },
+    {
+      "title": "Using Twitter for Public Health Surveillance from Monitoring and Prediction to Public Response",
+      "gate": "relevance",
+      "detail": "Vigilancia por Twitter; midia social, nao extracao de noticia por lexico/regra."
+    },
+    {
+      "title": "Scoping Review on Search Queries and Social Media for Disease Surveillance: A Chronology of Innovation",
+      "gate": "relevance",
+      "detail": "Revisao sobre consultas de busca e midia social para vigilancia; foco em busca/social, nao em features lexicais de noticia."
+    },
+    {
+      "title": "Natural Language Processing methods and systems for biomedical ontology learning",
+      "gate": "relevance",
+      "detail": "Aprendizado de ontologia biomedica; construcao de ontologia, nao extracao de contagens de noticia."
+    },
+    {
+      "title": "Effectiveness of early warning systems in the detection of infectious diseases outbreaks: a systematic review",
+      "gate": "relevance",
+      "detail": "Revisao de efetividade de sistemas de alerta precoce; panorama de EWS, sem medicao de extracao de texto."
+    },
+    {
+      "title": "Identifying Fake News on Social Networks Based on Natural Language Processing: Trends and Challenges",
+      "gate": "relevance",
+      "detail": "Deteccao de fake news em redes sociais; desinformacao, fora do escopo."
+    },
+    {
+      "title": "A global compendium of human dengue virus occurrence",
+      "gate": "relevance",
+      "detail": "Compendio de ocorrencia do virus dengue (dados geograficos); gazetteer de ocorrencia, nao extracao de texto de noticia."
+    },
+    {
+      "title": "Precision epidemiology for infectious disease control",
+      "gate": "relevance",
+      "detail": "Epidemiologia de precisao; panorama de modelagem e dados, sem features de texto."
+    },
+    {
+      "title": "Infectious Disease Ontology",
+      "gate": "relevance",
+      "detail": "Ontologia de doencas infecciosas; recurso ontologico, nao extracao de texto de noticia."
+    },
+    {
+      "title": "Scoping review on vector-borne diseases in urban areas: transmission dynamics, vectorial capacity and co-infection",
+      "gate": "relevance",
+      "detail": "Revisao de doencas vetoriais urbanas; epidemiologia, sem features de texto."
+    },
+    {
+      "title": "Trends and Directions of Global Public Health Surveillance",
+      "gate": "relevance",
+      "detail": "Tendencias da vigilancia global em saude publica; panorama, sem sistema de extracao lexica."
+    },
+    {
+      "title": "Automatic Caption Generation for News Images",
+      "gate": "relevance",
+      "detail": "Legendagem automatica de imagens de noticia; visao computacional, fora do escopo."
+    },
+    {
+      "title": "Real-time processing of social media with SENTINEL: A syndromic surveillance system incorporating deep learning for health classification",
+      "gate": "relevance",
+      "detail": "Vigilancia sindromica em midia social com deep learning (SENTINEL); foco em midia social, nao em features lexicais de noticia."
+    },
+    {
+      "title": "A critical content analysis of media reporting on opioids: The social construction of an epidemic",
+      "gate": "relevance",
+      "detail": "Analise de conteudo qualitativa da cobertura de opioides; sem features de texto mensuradas nem doencas infecciosas."
+    },
+    {
+      "title": "The Application of Internet-Based Sources for Public Health Surveillance (Infoveillance): Systematic Review",
+      "gate": "relevance",
+      "detail": "Revisao bibliometrica de fontes baseadas na internet (infoveillance); panorama, sem medicao de extracao por campo."
+    },
+    {
+      "title": "Artificial intelligence in early warning systems for infectious disease surveillance: a systematic review",
+      "gate": "relevance",
+      "detail": "Revisao de IA em sistemas de alerta precoce; panorama recente, sem features lexicais/regra mensuradas."
+    },
+    {
+      "title": "Revisiting Readability: A Unified Framework for Predicting Text Quality",
+      "gate": "relevance",
+      "detail": "Duplicata do registro EMNLP 2008 de Pitler & Nenkova (Pitler, 2008) ja selecionado como 21; copia de repositorio do mesmo artigo."
+    },
+    {
+      "title": "The impact of the novel coronavirus disease (COVID-19) pandemic on drug overdose-related deaths in the United States and Canada: a systematic review of observational studies and analysis of public health surveillance data",
+      "gate": "relevance",
+      "detail": "Revisao sobre mortes por overdose na COVID; vigilancia de dados de saude tabulares, sem texto."
+    },
+    {
+      "title": "Spatiotemporal event detection: a review",
+      "gate": "relevance",
+      "detail": "Revisao de deteccao de eventos espaco-temporais; metodos gerais (sensores/series), nao extracao lexica de noticia."
+    },
+    {
+      "title": "Lessons from the Ebola Outbreak: Action Items for Emerging Infectious Disease Preparedness and Response",
+      "gate": "relevance",
+      "detail": "Licoes de preparacao e resposta ao Ebola; gestao de resposta, sem features de texto."
+    },
+    {
+      "title": "Epidemic model for information diffusion in web forums: experiments in marketing exchange and political dialog",
+      "gate": "relevance",
+      "detail": "Modelo epidemiologico de difusao de informacao em foruns; modelagem, nao extracao de texto."
+    },
+    {
+      "title": "#swineflu",
+      "gate": "relevance",
+      "detail": "Estudo de midia social (#swineflu) sobre H1N1; midia social, nao features lexicais de noticia."
+    },
+    {
+      "title": "Data and Digital Solutions to Support Surveillance Strategies in the Context of the COVID-19 Pandemic",
+      "gate": "relevance",
+      "detail": "Panorama de solucoes digitais de vigilancia na COVID; generico, sem features de texto."
+    },
+    {
+      "title": "A Text Mining Technique Using Association Rules Extraction",
+      "gate": "relevance",
+      "detail": "Extracao de regras de associacao em texto generico; metodo de mineracao sem alvo de vigilancia nem contagens de surto."
+    },
+    {
+      "title": "Data-driven methods for dengue prediction and surveillance using real-world and Big Data: A systematic review",
+      "gate": "relevance",
+      "detail": "Revisao de metodos data-driven para previsao de dengue; modelagem de previsao, nao features lexicais de noticia."
+    },
+    {
+      "title": "Using digital surveillance tools for near real-time mapping of the risk of infectious disease spread",
+      "gate": "relevance",
+      "detail": "Mapeamento de risco com ferramentas digitais; modelagem espacial, sem extracao de texto."
+    },
+    {
+      "title": "Influenza A (H1N1) Virus, 2009 — Online Monitoring",
+      "gate": "relevance",
+      "detail": "Comentario sobre monitoramento online da H1N1; panorama editorial, sem sistema de extracao."
+    },
+    {
+      "title": "Transformer-Based Named Entity Recognition in Construction Supply Chain Risk Management in Australia",
+      "gate": "relevance",
+      "detail": "NER com transformers em risco de cadeia de suprimentos; dominio de construcao civil, fora do escopo."
+    },
+    {
+      "title": "Outbreak science: recent progress in the detection and response to outbreaks of infectious diseases",
+      "gate": "relevance",
+      "detail": "Panorama clinico de deteccao e resposta a surtos; sem features de texto."
+    },
+    {
+      "title": "Global networks and global change-induced tipping points",
+      "gate": "relevance",
+      "detail": "Redes globais e pontos de inflexao da mudanca ambiental; fora do escopo de vigilancia de texto."
+    },
+    {
+      "title": "Comparing human papillomavirus vaccine concerns on Twitter: a cross-sectional study of users in Australia, Canada and the UK",
+      "gate": "relevance",
+      "detail": "Preocupacoes sobre vacina HPV no Twitter; analise de midia social sobre vacina, fora do escopo."
+    },
+    {
+      "title": "A multilingual ontology for infectious disease surveillance: rationale, design and challenges",
+      "gate": "relevance",
+      "detail": "Ontologia multilingue para vigilancia de doencas; recurso ontologico, nao extracao de contagens de noticia."
+    },
+    {
+      "title": "A Systematic Review of Mathematical Models of Dengue Transmission and Vector Control: 2010–2020",
+      "gate": "relevance",
+      "detail": "Revisao de modelos matematicos de transmissao de dengue; modelagem, sem texto."
+    },
+    {
+      "title": "Dengue Early Warning System as Outbreak Prediction Tool: A Systematic Review",
+      "gate": "relevance",
+      "detail": "Revisao de sistemas de alerta precoce de dengue; panorama de EWS, sem medicao de extracao lexica."
+    },
+    {
+      "title": "A Review on Electronic Health Record Text-Mining for Biomedical Name Entity Recognition in Healthcare Domain",
+      "gate": "relevance",
+      "detail": "Revisao de NER em prontuarios eletronicos; dominio clinico (EHR), nao noticia."
+    },
+    {
+      "title": "The Language of Fake News",
+      "gate": "relevance",
+      "detail": "Livro sobre a linguagem de fake news; desinformacao, fora do escopo."
+    },
+    {
+      "title": "Dengue hemorrhagic fever: a growing global menace",
+      "gate": "relevance",
+      "detail": "Revisao clinica da dengue hemorragica; sem features de texto."
+    },
+    {
+      "title": "A Unified Review of Deep Learning for Automated Medical Coding",
+      "gate": "relevance",
+      "detail": "Revisao de codificacao medica automatica com deep learning; dominio clinico, fora do escopo."
+    },
+    {
+      "title": "Harnessing artificial intelligence for enhanced public health surveillance: a narrative review",
+      "gate": "relevance",
+      "detail": "Revisao narrativa de IA em vigilancia em saude; panorama, sem features lexicais mensuradas."
+    },
+    {
+      "title": "A global compendium of human Crimean-Congo haemorrhagic fever virus occurrence",
+      "gate": "relevance",
+      "detail": "Compendio de ocorrencia do virus CCHF (dados); dados geograficos, nao extracao de texto."
+    },
+    {
+      "title": "The Landscape of Participatory Surveillance Systems Across the One Health Spectrum: Systematic Review",
+      "gate": "relevance",
+      "detail": "Revisao de sistemas de vigilancia participativa; foco em participacao, nao extracao de noticia."
+    },
+    {
+      "title": "Changes to Public Health Surveillance Methods Due to the COVID-19 Pandemic: Scoping Review",
+      "gate": "relevance",
+      "detail": "Revisao de mudancas em metodos de vigilancia na COVID; panorama, sem features de texto."
+    },
+    {
+      "title": "Temporal Topic Modeling to Assess Associations between News Trends and Infectious Disease Outbreaks",
+      "gate": "relevance",
+      "detail": "Modelagem de topicos (LDA) ligando tendencias de noticia a surtos; topicos, que e a familia `topic-modeling`, fora do escopo."
+    },
+    {
+      "title": "Mission Creep: Public Health Surveillance and Medical Privacy",
+      "gate": "relevance",
+      "detail": "Discussao juridica sobre privacidade e vigilancia em saude publica; fora do escopo."
+    },
+    {
+      "title": "Predicting dengue importation into Europe, using machine learning and model-agnostic methods",
+      "gate": "relevance",
+      "detail": "Previsao de importacao de dengue com aprendizado de maquina; modelagem, sem features de texto."
+    },
+    {
+      "title": "Weekly dengue forecasts in Iquitos, Peru; San Juan, Puerto Rico; and Singapore",
+      "gate": "relevance",
+      "detail": "Previsao semanal de dengue com clima; modelagem de serie temporal, nao features de texto."
+    },
+    {
+      "title": "AI-driven epidemic intelligence: the future of outbreak detection and response",
+      "gate": "relevance",
+      "detail": "Panorama de IA para inteligencia epidemica; visao geral, sem medicao de extracao por campo."
+    },
+    {
+      "title": "Forecasting dengue and influenza incidences using a sparse representation of Google trends, electronic health records, and time series data",
+      "gate": "relevance",
+      "detail": "Previsao de dengue/influenza com Google Trends e EHR; series temporais, nao features lexicais."
+    },
+    {
+      "title": "Classifying and Summarizing Information from Microblogs During Epidemics",
+      "gate": "relevance",
+      "detail": "Classificacao e resumo de microblogs em epidemias; midia social, nao noticia nem extracao por lexico/regra."
+    },
+    {
+      "title": "A Heuristic Indication and Warning Staging Model for Detection and Assessment of Biological Events",
+      "gate": "relevance",
+      "detail": "Modelo heuristico de estagios de indicacao e alerta de eventos biologicos; modelagem de sinal, sem extracao de texto de noticia."
+    },
+    {
+      "title": "Text Simplification Tools: Using Machine Learning to Discover Features that Identify Difficult Text",
+      "gate": "relevance",
+      "detail": "Descoberta de features para simplificacao de texto (dominio educacional); nao e noticia nem vigilancia."
+    },
+    {
+      "title": "From Spin to Swindle: Identifying Falsification in Financial Text",
+      "gate": "relevance",
+      "detail": "Deteccao de falsificacao em texto financeiro; dominio financeiro, fora do escopo."
+    },
+    {
+      "title": "Automated monitoring of tweets for early detection of the 2014 Ebola epidemic",
+      "gate": "relevance",
+      "detail": "Monitoramento automatizado de tweets para Ebola; midia social, nao noticia."
+    },
+    {
+      "title": "Information Extraction and Named Entity Recognition Supported Social Media Sentiment Analysis during the COVID-19 Pandemic",
+      "gate": "relevance",
+      "detail": "Extracao de informacao e NER para analise de sentimento em midia social na COVID; sentimento, fora do escopo de contagem de casos."
+    },
+    {
+      "title": "A reference set of curated biomedical data and metadata from clinical case reports",
+      "gate": "relevance",
+      "detail": "Conjunto curado de dados/metadados de relatos de caso clinico; dados clinicos, nao noticia."
+    },
+    {
+      "title": "Evaluation Metrics for Machine Reading Comprehension: Prerequisite Skills and Readability",
+      "gate": "relevance",
+      "detail": "Metricas de compreensao de leitura e legibilidade; tarefa de QA, nao features de texto de noticia para vigilancia."
+    },
+    {
+      "title": "Predicting social response to infectious disease outbreaks from internet-based news streams",
+      "gate": "relevance",
+      "detail": "Previsao de resposta social a partir de fluxos de noticia; alvo e resposta social, nao extracao de contagens de surto."
+    },
+    {
+      "title": "Risk assessment strategies for early detection and prediction of infectious disease outbreaks associated with climate change",
+      "gate": "relevance",
+      "detail": "Estrategias de avaliacao de risco de surtos associados a mudanca climatica; sem features de texto."
+    },
+    {
+      "title": "Timeliness of Nongovernmental versus Governmental Global Outbreak Communications",
+      "gate": "relevance",
+      "detail": "Comparacao de prontidao entre comunicacoes governamentais e nao governamentais de surtos; foco em timeliness institucional, nao em features lexicais."
+    },
+    {
+      "title": "Intelligence and global health: assessing the role of open source and social media intelligence analysis in infectious disease outbreaks",
+      "gate": "relevance",
+      "detail": "Analise de inteligencia de fontes abertas e midia social em surtos; panorama de OSINT, sem medicao de extracao por campo."
+    },
+    {
+      "title": "GeMInA, Genomic Metadata for Infectious Agents, a geospatial surveillance pathogen database",
+      "gate": "relevance",
+      "detail": "Banco de dados genomico/geoespacial GeMInA; recurso de dados, nao extracao de texto."
+    },
+    {
+      "title": "Epidemic Intelligence for the Crowd, by the Crowd",
+      "gate": "relevance",
+      "detail": "Inteligencia epidemica por multidão (crowdsourcing); nao e extracao lexica de noticia."
+    },
+    {
+      "title": "Surveillance of communicable diseases using social media: A systematic review",
+      "gate": "relevance",
+      "detail": "Revisao de vigilancia de doencas comunicaveis por midia social; foco em midia social."
+    },
+    {
+      "title": "Enhanced surveillance during a public health emergency in a resource-limited setting: Experience from a large dengue outbreak in Solomon Islands, 2016-17",
+      "gate": "relevance",
+      "detail": "Relato operacional de vigilancia reforcada em surto de dengue nas Ilhas Salomao; sem features de texto."
+    },
+    {
+      "title": "SourceSeer: Forecasting Rare Disease Outbreaks Using Multiple Data Sources",
+      "gate": "relevance",
+      "detail": "Previsao de surtos raros de doencas com multiplas fontes (SourceSeer); modelagem, nao features de texto."
+    },
+    {
+      "title": "Vision-Based Human Detection Techniques: A Descriptive Review",
+      "gate": "relevance",
+      "detail": "Deteccao de humanos por visao computacional; fora do escopo."
+    },
+    {
+      "title": "Public Opinions Toward Diseases: Infodemiological Study on News Media Data",
+      "gate": "relevance",
+      "detail": "Opinoes publicas sobre doencas em dados de noticia (infodemiologia); sentimento/opiniao, nao extracao de eventos/contagens."
+    },
+    {
+      "title": "Early Warning of Infectious Disease Outbreaks Using Social Media and Digital Data: A Scoping Review",
+      "gate": "relevance",
+      "detail": "Revisao de escopo de alerta precoce por midia social e dados digitais; foco em midia social."
+    },
+    {
+      "title": "Prevalence of Chikungunya, Dengue and Zika viruses in blood donors: a systematic literature review and meta-analysis.",
+      "gate": "relevance",
+      "detail": "Prevalencia de chikungunya/dengue/zika em doadores de sangue; sorologia, sem texto."
+    },
+    {
+      "title": "Readability-based Sentence Ranking for Evaluating Text Simplification",
+      "gate": "relevance",
+      "detail": "Ranking de sentencas por legibilidade para simplificacao de texto; dominio de simplificacao, nao vigilancia de noticia."
+    },
+    {
+      "title": "Structuring an event ontology for disease outbreak detection",
+      "gate": "relevance",
+      "detail": "Estruturacao de ontologia de eventos para deteccao de surtos; recurso ontologico, nao avaliacao de extracao de noticia."
+    },
+    {
+      "title": "An ontology-driven system for detecting global health events",
+      "gate": "relevance",
+      "detail": "Sistema guiado por ontologia para eventos globais de saude; construcao de ontologia, sem medicao de extracao lexica de noticia."
+    },
+    {
+      "title": "Assembling European health security: Epidemic intelligence and the hunt for cross-border health threats",
+      "gate": "relevance",
+      "detail": "Estudo de seguranca sanitaria europeia (ciencia politica); fora do escopo."
+    },
+    {
+      "title": "Giveme5W1H: A Universal System for Extracting Main Events from News Articles",
+      "gate": "relevance",
+      "detail": "Extracao das 5W1H de noticia (eventos genericos); nao e vigilancia de doenca nem extracao de contagens."
+    },
+    {
+      "title": "Modeling Provincial Covid-19 Epidemic Data Using an Adjusted Time-Dependent SIRD Model",
+      "gate": "relevance",
+      "detail": "Modelo SIRD ajustado de epidemia de COVID; modelagem, sem texto."
+    },
+    {
+      "title": "A machine learning method to monitor China’s AIDS epidemics with data from Baidu trends",
+      "gate": "relevance",
+      "detail": "Monitoramento de AIDS na China com tendencias do Baidu; series de busca, nao features lexicais."
+    },
+    {
+      "title": "A Methodology for Open Information Extraction and Representation from Large Scientific Corpora: The CORD-19 Data Exploration Use Case",
+      "gate": "relevance",
+      "detail": "Extracao de informacao aberta de corpus cientifico (CORD-19); dominio cientifico, nao noticia de surto."
+    },
+    {
+      "title": "Machine Learning-Based Text Classification Comparison: Turkish Language Context",
+      "gate": "relevance",
+      "detail": "Comparacao de classificacao de texto em turco; metodo generico, sem alvo de vigilancia."
+    },
+    {
+      "title": "NEREL-BIO: a dataset of biomedical abstracts annotated with nested named entities",
+      "gate": "relevance",
+      "detail": "Dataset de NER biomedico (NEREL-BIO); anotacao de artigos biomedicos, nao noticia de surto."
+    },
+    {
+      "title": "Innovations in public health surveillance: An overview of novel use of data and analytic methods",
+      "gate": "relevance",
+      "detail": "Panorama de inovacoes em vigilancia em saude publica; sem features de texto."
+    },
+    {
+      "title": "Intense and Mild First Epidemic Wave of Coronavirus Disease, The Gambia",
+      "gate": "relevance",
+      "detail": "Relato epidemiologico da primeira onda de COVID na Gambia; sem texto."
+    },
+    {
+      "title": "How Do the First Days Count? A Case Study of Qatar Experience in Emergency Risk Communication during the MERS-CoV Outbreak",
+      "gate": "relevance",
+      "detail": "Comunicacao de risco no surto de MERS-CoV no Catar; comunicacao, nao extracao de texto."
+    },
+    {
+      "title": "Semi-Supervised Text Classification Framework: An Overview of Dengue Landscape Factors and Satellite Earth Observation",
+      "gate": "relevance",
+      "detail": "Classificacao semissupervisionada ligando dengue a fatores de paisagem/satelite; usa texto como rotulo de paisagem, nao extrai contagens de noticia."
+    },
+    {
+      "title": "Implementing epidemic intelligence in the WHO African region for early detection and response to acute public health events",
+      "gate": "relevance",
+      "detail": "Implementacao operacional de inteligencia epidemica na regiao africana da OMS; relato operacional, sem medicao de extracao por campo."
+    },
+    {
+      "title": "Emerging zoonoses : Early warning and surveillance in the Netherlands",
+      "gate": "relevance",
+      "detail": "Relatorio institucional de alerta precoce de zoonoses na Holanda; sem features de texto."
+    },
+    {
+      "title": "A Hybrid Approach for Drug Abuse Events Extraction from Twitter",
+      "gate": "relevance",
+      "detail": "Extracao de eventos de abuso de drogas em Twitter; dominio de drogas e midia social."
+    },
+    {
+      "title": "Bibliometric analysis of Oropouche research: impact on the surveillance of emerging arboviruses in Latin America",
+      "gate": "relevance",
+      "detail": "Analise bibliometrica de pesquisa sobre Oropouche; bibliometria, sem texto."
+    },
+    {
+      "title": "Twitter vs. Zika—The role of social media in epidemic outbreaks surveillance",
+      "gate": "relevance",
+      "detail": "Papel do Twitter na vigilancia de zika; midia social, nao noticia."
+    },
+    {
+      "title": "Optimizing readability using genetic algorithms",
+      "gate": "relevance",
+      "detail": "Otimizacao de legibilidade por algoritmos geneticos; geracao/otimizacao de texto, nao feature de classificacao de noticia."
+    },
+    {
+      "title": "Identifying potential emerging threats through epidemic intelligence activities—looking for the needle in the haystack?",
+      "gate": "relevance",
+      "detail": "Triagem de ameacas emergentes por atividades de inteligencia epidemica; foco operacional de triagem, sem medicao de extracao lexica por campo."
+    },
+    {
+      "title": "Revealing Media Bias in News Articles",
+      "gate": "relevance",
+      "detail": "Deteccao de vies de midia em noticia; vies editorial, nao vigilancia de doenca."
+    },
+    {
+      "title": "Climate-related health impact indicators for public health surveillance in a changing climate: a systematic review and local suitability analysis",
+      "gate": "relevance",
+      "detail": "Revisao de indicadores de saude ligados ao clima; indicadores climaticos, sem features de texto."
+    },
+    {
+      "title": "Multimodal news analytics using measures of cross-modal entity and context consistency",
+      "gate": "relevance",
+      "detail": "Analise multimodal de noticia (entidade/contexto cross-modal); foco multimodal, nao lexico."
+    },
+    {
+      "title": "TextEE: Benchmark, Reevaluation, Reflections, and Future Challenges in Event Extraction",
+      "gate": "relevance",
+      "detail": "Benchmark de extracao de eventos genericos (TextEE); nao e vigilancia de doenca nem extracao de contagens."
+    },
+    {
+      "title": "Making Things Stick: Surveillance Technologies and Mexico’s War on Crime",
+      "gate": "relevance",
+      "detail": "Livro sobre tecnologias de vigilancia policial no Mexico; fora do escopo."
+    },
+    {
+      "title": "Readability of web content",
+      "gate": "relevance",
+      "detail": "Legibilidade de conteudo web (em portugues); medida de legibilidade generica, sem aplicacao a noticia de vigilancia nem a contagens."
+    },
+    {
+      "title": "The Development of a Schema for the Annotation of Terms in the Biocaster Disease Detecting/Tracking System.",
+      "gate": "relevance",
+      "detail": "Esquema de anotacao de termos do BioCaster; recurso de anotacao, nao avaliacao de extracao (o sistema BioCaster esta selecionado em 03/04)."
+    },
+    {
+      "title": "Using internet intelligence to manage biosecurity risks: a case study for aquatic animal health",
+      "gate": "relevance",
+      "detail": "Inteligencia de internet para biosseguranca de animais aquaticos; dominio aquicola, sem features lexicais mensuradas."
+    },
+    {
+      "title": "Surveillance of public health pathogens in Lagos wastewater canals: a cross-sectional study",
+      "gate": "relevance",
+      "detail": "Vigilancia em aguas residuais de Lagos; amostragem ambiental, sem texto."
+    },
+    {
+      "title": "Early-stage spatial disease surveillance of novel SARS-CoV-2 variants of concern in Germany with crowdsourced data",
+      "gate": "relevance",
+      "detail": "Vigilancia espacial de variantes SARS-CoV-2 com dados crowdsourced; modelagem espacial, sem features de texto."
+    },
+    {
+      "title": "Frontiers in Operations: News Event-Driven Forecasting of Commodity Prices",
+      "gate": "relevance",
+      "detail": "Previsao de precos de commodities a partir de noticia; dominio financeiro, fora do escopo."
+    },
+    {
+      "title": "HealthMap: the future of infectious diseases surveillance?",
+      "gate": "relevance",
+      "detail": "Editorial sobre o HealthMap; o sistema esta selecionado (01/02), o editorial nao traz extracao mensurada."
+    },
+    {
+      "title": "News Text Mining-Based Business Sentiment Analysis and Its Significance in Economy",
+      "gate": "relevance",
+      "detail": "Analise de sentimento de negocios a partir de noticia; dominio economico, fora do escopo."
+    },
+    {
+      "title": "The role of roles in classifying annotated biomedical text",
+      "gate": "relevance",
+      "detail": "Classificacao de texto biomedico anotado (papeis semanticos); anotacao biomedica, nao noticia."
+    },
+    {
+      "title": "Development Innovation to Predict Dengue Affected Area and Alert People with Smartphones",
+      "gate": "relevance",
+      "detail": "App de smartphone para prever area afetada por dengue; aplicacao movel, sem features de texto."
+    },
+    {
+      "title": "AI-based Automated Extraction of Location-Oriented COVID-19 Sentiments",
+      "gate": "relevance",
+      "detail": "Extracao de localizacao para sentimento de COVID; analise de sentimento, nao extracao de contagens/eventos."
+    },
+    {
+      "title": "What makes an epidemic a disaster: the future of epidemics within the EM-DAT International Disaster Database",
+      "gate": "relevance",
+      "detail": "Classificacao de epidemias na base EM-DAT; banco de desastres, sem texto."
+    },
+    {
+      "title": "Automated Travel History Extraction From Clinical Notes for Informing the Detection of Emergent Infectious Disease Events: Algorithm Development and Validation",
+      "gate": "relevance",
+      "detail": "Extracao de historico de viagem de notas clinicas; dominio clinico (notas), nao noticia."
+    },
+    {
+      "title": "Constructing a Syndromic Terminology Resource for Veterinary Text Mining",
+      "gate": "relevance",
+      "detail": "Recurso terminologico sindromico veterinario; recurso de terminologia, nao extracao de noticia."
+    },
+    {
+      "title": "Epidemics for all? Governing Health in a Global Age",
+      "gate": "relevance",
+      "detail": "Estudo de governanca global da saude; ciencia politica, fora do escopo."
+    },
+    {
+      "title": "A survey of data element perspective: Application of artificial intelligence in health big data",
+      "gate": "relevance",
+      "detail": "Panorama de IA em big data de saude; generico, sem features de texto."
+    },
+    {
+      "title": "The 2013–2016 Ebola epidemic: evaluating communication strategies between two affected countries in West Africa",
+      "gate": "relevance",
+      "detail": "Avaliacao de estrategias de comunicacao durante o Ebola na Africa Ocidental; comunicacao, nao extracao de texto."
+    },
+    {
+      "title": "Text Mining Approach to Analyze Coronavirus Impact: Mexico City as Case of Study",
+      "gate": "relevance",
+      "detail": "Mineracao de texto sobre COVID na Cidade do Mexico (medRxiv); analise tematica, sem extracao de contagens nem avaliacao por campo."
+    },
+    {
+      "title": "Towards Predicting Post-editing Effort with Source Text Readability",
+      "gate": "relevance",
+      "detail": "Legibilidade de texto-fonte para esforco de pos-edicao; dominio de traducao, nao vigilancia."
+    },
+    {
+      "title": "GENI-DB: a database of global events for epidemic intelligence",
+      "gate": "relevance",
+      "detail": "Banco de eventos globais para inteligencia epidemica (GENI-DB); banco curado, sem features lexicas."
+    },
+    {
+      "title": "Using Twitter data to provide qualitative insights into pandemics and epidemics",
+      "gate": "relevance",
+      "detail": "Tese sobre Twitter para insights qualitativos de pandemias; midia social e abordagem qualitativa."
+    },
+    {
+      "title": "Governance by Pilot Projects: Experimenting with Surveillance in Dutch Crime Control",
+      "gate": "relevance",
+      "detail": "Estudo de governanca de projetos-piloto de vigilancia criminal; fora do escopo."
+    },
+    {
+      "title": "Social Media-Based Surveillance Systems for Health Informatics Using Machine and Deep Learning Techniques: A Comprehensive Review and Open Challenges",
+      "gate": "relevance",
+      "detail": "Revisao de vigilancia baseada em midia social com ML/DL; foco em midia social."
+    },
+    {
+      "title": "Geosocial Media as a Proxy for Security: A Review",
+      "gate": "relevance",
+      "detail": "Revisao de midia geossocial como proxy de seguranca; seguranca publica, fora do escopo."
+    },
+    {
+      "title": "PEACOCK: A Map-Based Multitype Infectious Disease Outbreak Information System",
+      "gate": "relevance",
+      "detail": "Sistema de informacao de surtos em mapa (PEACOCK); agregacao/visualizacao, sem extracao de texto mensurada."
+    },
+    {
+      "title": "Surveillance and Control of Dengue Vectors in the United States and Territories",
+      "gate": "relevance",
+      "detail": "Controle de vetores da dengue nos EUA e territorios; entomologia, sem texto."
+    },
+    {
+      "title": "Fighting antimicrobial resistance in Brazil: strengthening diagnostic stewardship, antimicrobial stewardship, and policies for a healthier future",
+      "gate": "relevance",
+      "detail": "Resistencia antimicrobiana no Brasil; saude clinica, fora do escopo."
+    },
+    {
+      "title": "Epidemiological and digital syndromic surveillance data on dengue, chikungunya, and SARI in Brazil",
+      "gate": "relevance",
+      "detail": "Data descriptor de dados de vigilancia sindromica (SINAN + dados digitais) no Brasil; dados tabulares, nao features de texto de noticia (e o artigo de referencia do proprio repo)."
+    },
+    {
+      "title": "Exploring 97 Years of Aedes aegypti as the Vector for Dengue, Yellow Fever, Zika, and Chikungunya (Diptera: Culicidae): Scientometric Analysis",
+      "gate": "relevance",
+      "detail": "Analise cienciometrica de 97 anos sobre Aedes aegypti; bibliometria, sem texto."
+    },
+    {
+      "title": "Role of artificial intelligence in public health",
+      "gate": "relevance",
+      "detail": "Panorama do papel da IA na saude publica; generico, fora do escopo."
+    },
+    {
+      "title": "Global estimation of dengue disability weights based on clinical manifestations data",
+      "gate": "relevance",
+      "detail": "Estimativa de pesos de incapacidade da dengue a partir de manifestacoes clinicas; dados clinicos, sem texto."
+    },
+    {
+      "title": "Attention-Driven Deep Learning for News-Based Prediction of Disease Outbreaks",
+      "gate": "relevance",
+      "detail": "Modelo de atencao profunda para prever surtos a partir de noticia; abordagem densa de rede neural, nao features manuais lexicais/regra (e ja coberto na familia `embeddings`)."
+    }
+  ]
+}

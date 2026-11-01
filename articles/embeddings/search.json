@@ -1,0 +1,2572 @@
+{
+ "family": {
+  "slug": "embeddings",
+  "label": "Embeddings densos como features de notícia"
+ },
+ "as_of_year": 2026,
+ "generated": "2026-10-21",
+ "gates": {
+  "as_of_year": 2026,
+  "min_year": 2015,
+  "citations": {
+   "mature_age_years": 2,
+   "mature_min": 10,
+   "recent_min": 3
+  },
+  "venue": {
+   "min_h_index": 30,
+   "allow_any_of": [
+    "ACL",
+    "EMNLP",
+    "NAACL",
+    "EACL",
+    "COLING",
+    "TACL",
+    "NeurIPS",
+    "ICLR",
+    "ICML",
+    "AAAI",
+    "JMLR"
+   ]
+  },
+  "require_pdf": true
+ },
+ "citations_per_year_formula": "cited_by_count / max(1, as_of_year - publication_year)",
+ "sources": [
+  {
+   "name": "OpenAlex",
+   "url_base": "https://api.openalex.org",
+   "role": "backbone: works, venue h-index, best OA pdf"
+  },
+  {
+   "name": "Semantic Scholar",
+   "url_base": "https://api.semanticscholar.org/graph/v1",
+   "role": "cross-check of citation counts for the 23 selected (HTTP 429 on the search endpoint; DOI lookups worked after spacing)"
+  },
+  {
+   "name": "Web/Wayback Machine",
+   "url_base": "https://web.archive.org",
+   "role": "gap-filling for two selected PDFs with no OA link in OpenAlex (Arora SIF, Jang)"
+  }
+ ],
+ "notes": [
+  "OpenAlex now enforces a shared free daily budget ($0.10, no API key). The run used ~35 requests (25 search queries + batched /sources h-index lookups + 2 targeted lookups) and stayed inside it.",
+  "OpenAlex nested primary_location.source does NOT carry summary_stats.h_index; the venue h-index was fetched separately via /sources?filter=openalex_id:S...|S... in batches of 50 (393 sources resolved).",
+  "For Sentence-BERT (10.18653/v1/d19-1410) OpenAlex returns source=null (ACL metadata gap). Resolved per the task rule: the venue is EMNLP-IJCNLP 2019, which matches the 'EMNLP' allow-list entry; h-index shown (252) is the EMNLP source h-index.",
+  "Jang 2019 (10.1371/journal.pone.0220976) and Arora 2017 (SIF, no DOI in OpenAlex) have NO OA pdf link in OpenAlex. Both PDFs were obtained from their publisher/repository (PLoS ONE, OpenReview) and verified with `file` = PDF; they count as selected.",
+  "Semantic Scholar search endpoint returned HTTP 429 throughout (no key); per-DOI lookups worked after ~12 s spacing. S2 citation counts are systematically higher than OpenAlex (e.g. SBERT 21496 vs 12583; SimCSE 4887 vs 2838) - OpenAlex is the value reported in articles[], S2 is the cross-check. 4 arXiv DOIs are not indexed by S2 (HTTP 404).",
+  "The 4 seed queries return many off-family works (vision transformers, numeric time-series forecasting) because OpenAlex 'search' matches full text; the family evaluation is in selected / considered_not_selected, not in the raw hit count.",
+  "Records were de-duplicated by title (arXiv preprint vs published version); the version with the most citations was kept. This is why total_unique_hits (1057) is below the raw 25x50 fetch.",
+  "arXiv source h-index is 760 in OpenAlex, so any arXiv-hosted paper passes the venue gate on h-index alone; this admits preprints (Yin 2018, Mu 2017, Su 2021, Wieting 2015).",
+  "GRANULARIDADE (ponto 2): every one of the 429 candidates that passed the objective rules is accounted for - 23 selected with a verified PDF, and 406 in considered_not_selected with an individual written reason. Candidates rejected by an objective rule appear only as a count in rejected_by_gate, since the rule number is the reason.",
+  "The funnel closes: 429 mechanical passers = 23 selected + 406 considered; 628 gate-rejected = 1057 - 429."
+ ],
+ "counts": {
+  "total_unique_hits": 1057,
+  "mechanical_gate_passers": 429,
+  "selected_with_pdf": 23
+ },
+ "queries": [
+  {
+   "source": "OpenAlex",
+   "query": "sentence embeddings as features time series forecasting",
+   "url": "https://api.openalex.org/works?search=sentence%20embeddings%20as%20features%20time%20series%20forecasting&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 18756
+  },
+  {
+   "source": "OpenAlex",
+   "query": "text embeddings news articles disease surveillance",
+   "url": "https://api.openalex.org/works?search=text%20embeddings%20news%20articles%20disease%20surveillance&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 10526
+  },
+  {
+   "source": "OpenAlex",
+   "query": "sentence transformer pooling strategies comparison",
+   "url": "https://api.openalex.org/works?search=sentence%20transformer%20pooling%20strategies%20comparison&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 29473
+  },
+  {
+   "source": "OpenAlex",
+   "query": "multilingual sentence embeddings Portuguese",
+   "url": "https://api.openalex.org/works?search=multilingual%20sentence%20embeddings%20Portuguese&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 12845
+  },
+  {
+   "source": "OpenAlex",
+   "query": "Sentence-BERT sentence embeddings Siamese BERT networks",
+   "url": "https://api.openalex.org/works?search=Sentence-BERT%20sentence%20embeddings%20Siamese%20BERT%20networks&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 25884
+  },
+  {
+   "source": "OpenAlex",
+   "query": "SimCSE simple contrastive learning of sentence embeddings",
+   "url": "https://api.openalex.org/works?search=SimCSE%20simple%20contrastive%20learning%20of%20sentence%20embeddings&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 3506
+  },
+  {
+   "source": "OpenAlex",
+   "query": "simple tough-to-beat baseline for sentence embeddings",
+   "url": "https://api.openalex.org/works?search=simple%20tough-to-beat%20baseline%20for%20sentence%20embeddings&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 1626
+  },
+  {
+   "source": "OpenAlex",
+   "query": "whitening sentence representations semantics retrieval",
+   "url": "https://api.openalex.org/works?search=whitening%20sentence%20representations%20semantics%20retrieval&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 538
+  },
+  {
+   "source": "OpenAlex",
+   "query": "on the dimensionality of word embedding principal component",
+   "url": "https://api.openalex.org/works?search=on%20the%20dimensionality%20of%20word%20embedding%20principal%20component&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 75032
+  },
+  {
+   "source": "OpenAlex",
+   "query": "universal sentence encoder multilingual",
+   "url": "https://api.openalex.org/works?search=universal%20sentence%20encoder%20multilingual&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 24070
+  },
+  {
+   "source": "OpenAlex",
+   "query": "text embedding features disease outbreak prediction news",
+   "url": "https://api.openalex.org/works?search=text%20embedding%20features%20disease%20outbreak%20prediction%20news&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 4098
+  },
+  {
+   "source": "OpenAlex",
+   "query": "Portuguese BERT sentence embeddings semantic textual similarity",
+   "url": "https://api.openalex.org/works?search=Portuguese%20BERT%20sentence%20embeddings%20semantic%20textual%20similarity&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 4090
+  },
+  {
+   "source": "OpenAlex",
+   "query": "news articles influenza prediction word embeddings",
+   "url": "https://api.openalex.org/works?search=news%20articles%20influenza%20prediction%20word%20embeddings&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 873
+  },
+  {
+   "source": "OpenAlex",
+   "query": "document embeddings as features regression",
+   "url": "https://api.openalex.org/works?search=document%20embeddings%20as%20features%20regression&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 184640
+  },
+  {
+   "source": "OpenAlex",
+   "query": "A simple but tough-to-beat baseline for sentence embeddings SIF",
+   "url": "https://api.openalex.org/works?search=A%20simple%20but%20tough-to-beat%20baseline%20for%20sentence%20embeddings%20SIF&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 262
+  },
+  {
+   "source": "OpenAlex",
+   "query": "principal component removal word embeddings anisotropy",
+   "url": "https://api.openalex.org/works?search=principal%20component%20removal%20word%20embeddings%20anisotropy&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 398
+  },
+  {
+   "source": "OpenAlex",
+   "query": "supervised learning of universal sentence representations from natural language inference",
+   "url": "https://api.openalex.org/works?search=supervised%20learning%20of%20universal%20sentence%20representations%20from%20natural%20language%20inference&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 24567
+  },
+  {
+   "source": "OpenAlex",
+   "query": "universal language model fine-tuning text classification",
+   "url": "https://api.openalex.org/works?search=universal%20language%20model%20fine-tuning%20text%20classification&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 57892
+  },
+  {
+   "source": "OpenAlex",
+   "query": "infoveillance dengue zika news surveillance text",
+   "url": "https://api.openalex.org/works?search=infoveillance%20dengue%20zika%20news%20surveillance%20text&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 69
+  },
+  {
+   "source": "OpenAlex",
+   "query": "newspaper text features forecasting disease incidence",
+   "url": "https://api.openalex.org/works?search=newspaper%20text%20features%20forecasting%20disease%20incidence&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 1417
+  },
+  {
+   "source": "OpenAlex",
+   "query": "embedding features for tabular regression sentence representations",
+   "url": "https://api.openalex.org/works?search=embedding%20features%20for%20tabular%20regression%20sentence%20representations&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 3054
+  },
+  {
+   "source": "OpenAlex",
+   "query": "language-agnostic bert sentence embedding",
+   "url": "https://api.openalex.org/works?search=language-agnostic%20bert%20sentence%20embedding&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 19031
+  },
+  {
+   "source": "OpenAlex",
+   "query": "sentence-t5 scalable sentence encoders text-to-text",
+   "url": "https://api.openalex.org/works?search=sentence-t5%20scalable%20sentence%20encoders%20text-to-text&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 14899
+  },
+  {
+   "source": "OpenAlex",
+   "query": "sentence embeddings pretrained language models normalizing flow",
+   "url": "https://api.openalex.org/works?search=sentence%20embeddings%20pretrained%20language%20models%20normalizing%20flow&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 13368
+  },
+  {
+   "source": "OpenAlex",
+   "query": "attention news outbreak prediction deep learning",
+   "url": "https://api.openalex.org/works?search=attention%20news%20outbreak%20prediction%20deep%20learning&filter=from_publication_date:2015-01-01,is_oa:true&per-page=50&mailto=arboili@example.org",
+   "hits": 12725
+  },
+  {
+   "source": "OpenAlex",
+   "query": "DOI resolution for the 17 selected candidates that carry a DOI",
+   "url": "https://api.openalex.org/works?filter=doi:10.18653/v1/d19-1410|...&per-page=50&mailto=arboili@example.org",
+   "hits": 17
+  },
+  {
+   "source": "OpenAlex",
+   "query": "A Simple but Tough-to-Beat Baseline for Sentence Embeddings (title lookup; no DOI in OpenAlex)",
+   "url": "https://api.openalex.org/works?search=A%20Simple%20but%20Tough-to-Beat%20Baseline%20for%20Sentence%20Embeddings&per-page=5&mailto=arboili@example.org",
+   "hits": 5
+  }
+ ],
+ "selected": [
+  {
+   "key": "reimers2019sbert",
+   "file": "articles/embeddings/01_reimers_2019_sentence_bert.pdf",
+   "title": "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks",
+   "year": 2019,
+   "venue": "Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Processing (EMNLP-IJCNLP)",
+   "venue_h_index": 252,
+   "doi": "10.18653/v1/d19-1410",
+   "citations": 12631,
+   "citations_per_year": 1804.43,
+   "pdf": "https://www.aclweb.org/anthology/D19-1410.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "gao2021simcse",
+   "file": "articles/embeddings/02_gao_2021_simcse.pdf",
+   "title": "SimCSE: Simple Contrastive Learning of Sentence Embeddings",
+   "year": 2021,
+   "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+   "venue_h_index": 252,
+   "doi": "10.18653/v1/2021.emnlp-main.552",
+   "citations": 2838,
+   "citations_per_year": 567.6,
+   "pdf": "https://aclanthology.org/2021.emnlp-main.552.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "conneau2017infersent",
+   "file": "articles/embeddings/03_conneau_2017_infersent.pdf",
+   "title": "Supervised Learning of Universal Sentence Representations from Natural Language Inference Data",
+   "year": 2017,
+   "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+   "venue_h_index": 252,
+   "doi": "10.18653/v1/d17-1070",
+   "citations": 2049,
+   "citations_per_year": 227.67,
+   "pdf": "https://www.aclweb.org/anthology/D17-1070.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "cer2018use",
+   "file": "articles/embeddings/04_cer_2018_universal_sentence_encoder.pdf",
+   "title": "Universal Sentence Encoder for English",
+   "year": 2018,
+   "venue": "Conference on Empirical Methods in Natural Language Processing: System Demonstrations (EMNLP)",
+   "venue_h_index": 34,
+   "doi": "10.18653/v1/d18-2029",
+   "citations": 1325,
+   "citations_per_year": 165.62,
+   "pdf": "https://www.aclweb.org/anthology/D18-2029.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "feng2022labse",
+   "file": "articles/embeddings/05_feng_2022_labse.pdf",
+   "title": "Language-agnostic BERT Sentence Embedding",
+   "year": 2022,
+   "venue": "Annual Meeting of the Association for Computational Linguistics (ACL)",
+   "venue_h_index": 303,
+   "doi": "10.18653/v1/2022.acl-long.62",
+   "citations": 752,
+   "citations_per_year": 188.0,
+   "pdf": "https://aclanthology.org/2022.acl-long.62.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "reimers2020multilingual",
+   "file": "articles/embeddings/06_reimers_2020_multilingual_distillation.pdf",
+   "title": "Making Monolingual Sentence Embeddings Multilingual using Knowledge Distillation",
+   "year": 2020,
+   "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+   "venue_h_index": 252,
+   "doi": "10.18653/v1/2020.emnlp-main.365",
+   "citations": 880,
+   "citations_per_year": 146.67,
+   "pdf": "https://www.aclweb.org/anthology/2020.emnlp-main.365.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "ni2022sentencet5",
+   "file": "articles/embeddings/07_ni_2022_sentence_t5.pdf",
+   "title": "Sentence-T5: Scalable Sentence Encoders from Pre-trained Text-to-Text Models",
+   "year": 2022,
+   "venue": "Findings of the Association for Computational Linguistics: ACL 2022",
+   "venue_h_index": 44,
+   "doi": "10.18653/v1/2022.findings-acl.146",
+   "citations": 356,
+   "citations_per_year": 89.0,
+   "pdf": "https://aclanthology.org/2022.findings-acl.146.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "yin2018dimensionality",
+   "file": "articles/embeddings/08_yin_2018_dimensionality_word_embedding.pdf",
+   "title": "On the Dimensionality of Word Embedding",
+   "year": 2018,
+   "venue": "arXiv (Cornell University)",
+   "venue_h_index": 760,
+   "doi": "10.48550/arxiv.1812.04224",
+   "citations": 179,
+   "citations_per_year": 22.38,
+   "pdf": "https://arxiv.org/pdf/1812.04224",
+   "decision": "selected"
+  },
+  {
+   "key": "mu2018allbutthetop",
+   "file": "articles/embeddings/09_mu_2017_all_but_the_top.pdf",
+   "title": "All-but-the-Top: Simple and Effective Postprocessing for Word Representations",
+   "year": 2017,
+   "venue": "arXiv (Cornell University)",
+   "venue_h_index": 760,
+   "doi": "10.48550/arxiv.1702.01417",
+   "citations": 141,
+   "citations_per_year": 15.67,
+   "pdf": "https://arxiv.org/pdf/1702.01417",
+   "decision": "selected"
+  },
+  {
+   "key": "su2021whitening",
+   "file": "articles/embeddings/10_su_2021_whitening_sentence_representations.pdf",
+   "title": "Whitening Sentence Representations for Better Semantics and Faster Retrieval",
+   "year": 2021,
+   "venue": "arXiv (Cornell University)",
+   "venue_h_index": 760,
+   "doi": "10.48550/arxiv.2103.15316",
+   "citations": 207,
+   "citations_per_year": 41.4,
+   "pdf": "https://arxiv.org/pdf/2103.15316",
+   "decision": "selected"
+  },
+  {
+   "key": "arora2017sif",
+   "file": "articles/embeddings/11_arora_2017_sif_sentence_embeddings.pdf",
+   "title": "A Simple but Tough-to-Beat Baseline for Sentence Embeddings",
+   "year": 2017,
+   "venue": "International Conference on Learning Representations",
+   "venue_h_index": 85,
+   "doi": "",
+   "citations": 1075,
+   "citations_per_year": 119.44,
+   "pdf": "https://openreview.net/pdf?id=SyK00v5xx",
+   "decision": "selected"
+  },
+  {
+   "key": "li2020bertflow",
+   "file": "articles/embeddings/12_li_2020_bert_flow_sentence_embeddings.pdf",
+   "title": "On the Sentence Embeddings from Pre-trained Language Models",
+   "year": 2020,
+   "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+   "venue_h_index": 252,
+   "doi": "10.18653/v1/2020.emnlp-main.733",
+   "citations": 593,
+   "citations_per_year": 98.83,
+   "pdf": "https://www.aclweb.org/anthology/2020.emnlp-main.733.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "pires2019mbert",
+   "file": "articles/embeddings/13_pires_2019_how_multilingual_mbert.pdf",
+   "title": "How Multilingual is Multilingual BERT?",
+   "year": 2019,
+   "venue": "Annual Meeting of the Association for Computational Linguistics (ACL)",
+   "venue_h_index": 303,
+   "doi": "10.18653/v1/p19-1493",
+   "citations": 1344,
+   "citations_per_year": 192.0,
+   "pdf": "https://www.aclweb.org/anthology/P19-1493.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "yang2020multilingualuse",
+   "file": "articles/embeddings/14_yang_2020_multilingual_use.pdf",
+   "title": "Multilingual Universal Sentence Encoder for Semantic Retrieval",
+   "year": 2020,
+   "venue": "Annual Meeting of the Association for Computational Linguistics: System Demonstrations (ACL Demo)",
+   "venue_h_index": 30,
+   "doi": "10.18653/v1/2020.acl-demos.12",
+   "citations": 411,
+   "citations_per_year": 68.5,
+   "pdf": "https://www.aclweb.org/anthology/2020.acl-demos.12.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "kim2019weeklyili",
+   "file": "articles/embeddings/15_kim_2019_weekly_ili_news.pdf",
+   "title": "Weekly ILI patient ratio change prediction using news articles with support vector machine",
+   "year": 2019,
+   "venue": "BMC Bioinformatics",
+   "venue_h_index": 306,
+   "doi": "10.1186/s12859-019-2894-2",
+   "citations": 15,
+   "citations_per_year": 2.14,
+   "pdf": "https://bmcbioinformatics.biomedcentral.com/counter/pdf/10.1186/s12859-019-2894-2",
+   "decision": "selected"
+  },
+  {
+   "key": "kim2021outbreakmedia",
+   "file": "articles/embeddings/16_kim_2021_outbreak_media_ml.pdf",
+   "title": "Infectious disease outbreak prediction using media articles with machine learning models",
+   "year": 2021,
+   "venue": "Scientific Reports",
+   "venue_h_index": 462,
+   "doi": "10.1038/s41598-021-83926-2",
+   "citations": 59,
+   "citations_per_year": 11.8,
+   "pdf": "https://www.nature.com/articles/s41598-021-83926-2.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "gautam2025attention",
+   "file": "articles/embeddings/17_gautam_2025_attention_news_outbreak.pdf",
+   "title": "Attention-Driven Deep Learning for News-Based Prediction of Disease Outbreaks",
+   "year": 2025,
+   "venue": "Big Data and Cognitive Computing",
+   "venue_h_index": 70,
+   "doi": "10.3390/bdcc9110291",
+   "citations": 3,
+   "citations_per_year": 3.0,
+   "pdf": "https://www.mdpi.com/2504-2289/9/11/291/pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "jang2019word2vec",
+   "file": "articles/embeddings/18_jang_2019_word2vec_cnn_news.pdf",
+   "title": "Word2vec convolutional neural networks for classification of news articles and tweets",
+   "year": 2019,
+   "venue": "PLoS ONE",
+   "venue_h_index": 594,
+   "doi": "10.1371/journal.pone.0220976",
+   "citations": 195,
+   "citations_per_year": 27.86,
+   "pdf": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0220976&type=printable",
+   "decision": "selected"
+  },
+  {
+   "key": "shen2018baseline",
+   "file": "articles/embeddings/19_shen_2018_baseline_needs_more_love_pooling.pdf",
+   "title": "Baseline Needs More Love: On Simple Word-Embedding-Based Models and Associated Pooling Mechanisms",
+   "year": 2018,
+   "venue": "Annual Meeting of the Association for Computational Linguistics (ACL)",
+   "venue_h_index": 303,
+   "doi": "10.18653/v1/p18-1041",
+   "citations": 328,
+   "citations_per_year": 41.0,
+   "pdf": "https://www.aclweb.org/anthology/P18-1041.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "pagliardini2018sent2vec",
+   "file": "articles/embeddings/20_pagliardini_2018_sent2vec_compositional_ngram.pdf",
+   "title": "Unsupervised Learning of Sentence Embeddings Using Compositional n-Gram Features",
+   "year": 2018,
+   "venue": "Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (NAACL-HLT)",
+   "venue_h_index": 162,
+   "doi": "10.18653/v1/n18-1049",
+   "citations": 697,
+   "citations_per_year": 87.12,
+   "pdf": "https://www.aclweb.org/anthology/N18-1049.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "wieting2015paraphrastic",
+   "file": "articles/embeddings/21_wieting_2015_universal_paraphrastic_sentence.pdf",
+   "title": "Towards Universal Paraphrastic Sentence Embeddings",
+   "year": 2015,
+   "venue": "arXiv (Cornell University)",
+   "venue_h_index": 760,
+   "doi": "10.48550/arxiv.1511.08198",
+   "citations": 325,
+   "citations_per_year": 29.55,
+   "pdf": "https://arxiv.org/pdf/1511.08198",
+   "decision": "selected"
+  },
+  {
+   "key": "ghosh2017temporal",
+   "file": "articles/embeddings/22_ghosh_2017_temporal_topic_news_disease.pdf",
+   "title": "Temporal Topic Modeling to Assess Associations between News Trends and Infectious Disease Outbreaks",
+   "year": 2017,
+   "venue": "Scientific Reports",
+   "venue_h_index": 462,
+   "doi": "10.1038/srep40841",
+   "citations": 41,
+   "citations_per_year": 4.56,
+   "pdf": "https://www.nature.com/articles/srep40841.pdf",
+   "decision": "selected"
+  },
+  {
+   "key": "huang2018publicopinions",
+   "file": "articles/embeddings/23_huang_2018_public_opinions_diseases_news_media.pdf",
+   "title": "Public Opinions Toward Diseases: Infodemiological Study on News Media Data",
+   "year": 2018,
+   "venue": "Journal of Medical Internet Research",
+   "venue_h_index": 286,
+   "doi": "10.2196/10047",
+   "citations": 28,
+   "citations_per_year": 3.5,
+   "pdf": "https://www.jmir.org/2018/5/e10047/PDF",
+   "decision": "selected"
+  }
+ ],
+ "rejected_by_gate": {
+  "year": 0,
+  "citations": 531,
+  "venue": 60,
+  "pdf": 37
+ },
+ "considered_not_selected": [
+  {
+   "title": "Are Transformers Effective for Time Series Forecasting?",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=305; 3504 citações."
+  },
+  {
+   "title": "PromptCast: A New Prompt-Based Learning Paradigm for Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=272; 306 citações."
+  },
+  {
+   "title": "A Review of Time-Series Forecasting Algorithms for Industrial Manufacturing Systems",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Forecasting Techniques and Applications (Management Science and Operations Research); venue h-index=68; 116 citações."
+  },
+  {
+   "title": "A Time Series is Worth 64 Words: Long-term Forecasting with Transformers",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=760; 548 citações."
+  },
+  {
+   "title": "Evaluating the Effectiveness of Time Series Transformers for Demand Forecasting in Retail",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Forecasting Techniques and Applications (Management Science and Operations Research); venue h-index=113; 74 citações."
+  },
+  {
+   "title": "A Survey on Data Mining Techniques Applied to Electricity-Related Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Energy Load and Power Forecasting (Electrical and Electronic Engineering); venue h-index=232; 158 citações."
+  },
+  {
+   "title": "TSMixer: Lightweight MLP-Mixer Model for Multivariate Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=77; 305 citações."
+  },
+  {
+   "title": "Differential Convolutional Fuzzy Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Forecasting Techniques and Applications (Management Science and Operations Research); venue h-index=256; 15 citações."
+  },
+  {
+   "title": "Learning to Embed Time Series Patches Independently",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=760; 15 citações."
+  },
+  {
+   "title": "TEMPO: Prompt-based Generative Pre-trained Transformer for Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=760; 59 citações."
+  },
+  {
+   "title": "Persistence Initialization: a novel adaptation of the Transformer architecture for time series forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=132; 36 citações."
+  },
+  {
+   "title": "A non-parametric softmax for improving neural attention in time-series forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=258; 30 citações."
+  },
+  {
+   "title": "Pre-training Enhanced Spatial-temporal Graph Neural Network for Multivariate Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Traffic Prediction and Management Techniques (Building and Construction); venue h-index=77; 335 citações."
+  },
+  {
+   "title": "TEST: Text Prototype Aligned Embedding to Activate LLM's Ability for Time Series",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=760; 34 citações."
+  },
+  {
+   "title": "A Survey of Explainable Artificial Intelligence (XAI) in Financial Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Explainable Artificial Intelligence (XAI) (Artificial Intelligence); venue h-index=342; 80 citações."
+  },
+  {
+   "title": "Feature-Based Time-Series Analysis",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=598; 129 citações."
+  },
+  {
+   "title": "Temporal Data Meets LLM -- Explainable Financial Time Series Forecasting",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Stock Market Forecasting Methods (Management Science and Operations Research); venue h-index=414; 47 citações."
+  },
+  {
+   "title": "Interpretable corn future price forecasting with multivariate time series",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Stock Market Forecasting Methods (Management Science and Operations Research); venue h-index=116; 25 citações."
+  },
+  {
+   "title": "Selected Topics in Time Series Forecasting: Statistical Models vs. Machine Learning",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Forecasting Techniques and Applications (Management Science and Operations Research); venue h-index=147; 17 citações."
+  },
+  {
+   "title": "Deep learning and sentence embeddings for detection of clickbait news from online content",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=462; 28 citações."
+  },
+  {
+   "title": "Disease surveillance using online news: Dengue and zika in tropical countries",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=168; 23 citações."
+  },
+  {
+   "title": "EventEpi—A natural language processing framework for event-based surveillance",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=282; 26 citações."
+  },
+  {
+   "title": "Surveillance of communicable diseases using social media: A systematic review",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=594; 31 citações."
+  },
+  {
+   "title": "Location Reference Recognition from Texts: A Survey and Comparison",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=342; 69 citações."
+  },
+  {
+   "title": "Using Text Mining to Track Outbreak Trends in Global Surveillance of Emerging Diseases: ProMED-mail",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=181; 11 citações."
+  },
+  {
+   "title": "Impact of word embedding models on text analytics in deep learning environment: a review",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=202; 272 citações."
+  },
+  {
+   "title": "Twenty years of integrated disease surveillance and response in Sub-Saharan Africa: challenges and opportunities for effective management of infectious disease epidemics",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=30; 104 citações."
+  },
+  {
+   "title": "The Application of Internet-Based Sources for Public Health Surveillance (Infoveillance): Systematic Review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=286; 112 citações."
+  },
+  {
+   "title": "A Survey of Event Extraction From Text",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=378; 197 citações."
+  },
+  {
+   "title": "“Ethically contentious aspects of artificial intelligence surveillance: a social science perspective”",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Ethics and Social Impacts of AI (Safety Research); venue h-index=70; 85 citações."
+  },
+  {
+   "title": "Artificial intelligence in epidemic watch: revolutionizing infectious diseases surveillance",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=66; 7 citações."
+  },
+  {
+   "title": "Social media based surveillance systems for healthcare using machine learning: A systematic review",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=168; 203 citações."
+  },
+  {
+   "title": "Technological trends in epidemic intelligence for infectious disease surveillance: a systematic literature review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=88; 15 citações."
+  },
+  {
+   "title": "Harnessing artificial intelligence for enhanced public health surveillance: a narrative review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=174; 45 citações."
+  },
+  {
+   "title": "Advancing Public Health Surveillance With Artificial Intelligence: A Systematic Review of Real‐Time Data Analytics and Disease Prediction",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=36; 3 citações."
+  },
+  {
+   "title": "Effective Training Data Extraction Method to Improve Influenza Outbreak Prediction from Online News Articles: Deep Learning Model Study",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=81; 10 citações."
+  },
+  {
+   "title": "An epidemiological knowledge graph extracted from the World Health Organization’s Disease Outbreak News",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=214; 9 citações."
+  },
+  {
+   "title": "Transformer in Transformer",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=760; 1394 citações."
+  },
+  {
+   "title": "Representation biases in sentence transformers",
+   "gate": "relevance",
+   "detail": "Análise de viés/ética de embeddings — não é pooling/normalização nem feature. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=72; 11 citações."
+  },
+  {
+   "title": "Scalable Vision Transformers with Hierarchical Pooling",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=327; 146 citações."
+  },
+  {
+   "title": "A Bilingual Generative Transformer for Semantic Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 32 citações."
+  },
+  {
+   "title": "INSET: Sentence Infilling with INter-SEntential Transformer",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 27 citações."
+  },
+  {
+   "title": "Efficient Transformers with Dynamic Token Pooling",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 22 citações."
+  },
+  {
+   "title": "Extracting Sentence Embeddings from Pretrained Transformer Models",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=229; 29 citações."
+  },
+  {
+   "title": "Technological troubleshooting based on sentence embedding with deep transformers",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=140; 25 citações."
+  },
+  {
+   "title": "Performance of 4 Pre-Trained Sentence Transformer Models in the Semantic Query of a Systematic Review Dataset on Peri-Implantitis",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=113; 67 citações."
+  },
+  {
+   "title": "Transformer-Based Neural Network for Answer Selection in Question Answering",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=378; 113 citações."
+  },
+  {
+   "title": "Learning the Best Pooling Strategy for Visual Semantic Embedding",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=766; 311 citações."
+  },
+  {
+   "title": "PCT: Point cloud transformer",
+   "gate": "relevance",
+   "detail": "Embeddings 3D/geometria — fora do escopo (a família é texto). Tópico OpenAlex: 3D Shape Modeling and Analysis (Computational Mechanics); venue h-index=43; 2096 citações."
+  },
+  {
+   "title": "Video Transformers: A Survey",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Human Pose and Action Recognition (Computer Vision and Pattern Recognition); venue h-index=562; 174 citações."
+  },
+  {
+   "title": "iAttention Transformer: An Inter-Sentence Attention Mechanism for Automated Grading",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=113; 3 citações."
+  },
+  {
+   "title": "Audio–visual keyword transformer for unconstrained sentence‐level keyword spotting",
+   "gate": "relevance",
+   "detail": "Embeddings de fala/áudio — fora do escopo (texto). Tópico OpenAlex: Speech and Audio Processing (Signal Processing); venue h-index=60; 12 citações."
+  },
+  {
+   "title": "Max Pooling with Vision Transformers Reconciles Class and Shape in Weakly Supervised Semantic Segmentation",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=721; 80 citações."
+  },
+  {
+   "title": "Transformers in medical imaging: A survey",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Medical Image Segmentation Techniques (Computer Vision and Pattern Recognition); venue h-index=221; 1317 citações."
+  },
+  {
+   "title": "Revisiting Uncertainty-based Query Strategies for Active Learning with Transformers",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Machine Learning and Algorithms (Artificial Intelligence); venue h-index=44; 57 citações."
+  },
+  {
+   "title": "Entangled Transformer for Image Captioning",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=327; 405 citações."
+  },
+  {
+   "title": "Predicting Semantic Similarity Between Clinical Sentence Pairs Using Transformer Models: Evaluation and Representational Analysis",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=81; 38 citações."
+  },
+  {
+   "title": "BAM-DETR: Boundary-Aligned Moment Detection Transformer for Temporal Sentence Grounding in Videos",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=721; 21 citações."
+  },
+  {
+   "title": "Survey of transformers and towards ensemble learning using transformers for natural language processing",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=124; 139 citações."
+  },
+  {
+   "title": "Vision Transformers for Remote Sensing Image Classification",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Remote-Sensing Image Classification (Media Technology); venue h-index=276; 643 citações."
+  },
+  {
+   "title": "Measurement of Semantic Textual Similarity in Clinical Texts: Comparison of Transformer-Based Models",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=81; 57 citações."
+  },
+  {
+   "title": "Memorizing Transformers",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Domain Adaptation and Few-Shot Learning (Artificial Intelligence); venue h-index=760; 53 citações."
+  },
+  {
+   "title": "Visual Grounding with Transformers",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=103; 79 citações."
+  },
+  {
+   "title": "Higher-order Comparisons of Sentence Encoder Representations",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Explainable Artificial Intelligence (XAI) (Artificial Intelligence); venue h-index=103; 16 citações."
+  },
+  {
+   "title": "DeepGene Transformer: Transformer for the gene expression-based classification of cancer subtypes",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Gene expression and cancer classification (Molecular Biology); venue h-index=352; 83 citações."
+  },
+  {
+   "title": "Captioning Transformer with Stacked Attention Modules",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=229; 102 citações."
+  },
+  {
+   "title": "Transformers in computational visual media: A survey",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=43; 138 citações."
+  },
+  {
+   "title": "Deformable Video Transformer",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Human Pose and Action Recognition (Computer Vision and Pattern Recognition); venue h-index=766; 44 citações."
+  },
+  {
+   "title": "SemEval-2022 Task 2: Multilingual Idiomaticity Detection and Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=80; 34 citações."
+  },
+  {
+   "title": "MUSS: Multilingual Unsupervised Sentence Simplification by Mining Paraphrases",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Text Readability and Simplification (Artificial Intelligence); venue h-index=130; 58 citações."
+  },
+  {
+   "title": "Learning Unsupervised Multilingual Word Embeddings with Incremental Multilingual Hubs",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=162; 24 citações."
+  },
+  {
+   "title": "A Corpus for Multilingual Document Classification in Eight Languages",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=130; 115 citações."
+  },
+  {
+   "title": "Sentence Compression for Arbitrary Languages via Multilingual Pivoting",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=252; 15 citações."
+  },
+  {
+   "title": "Combining Static and Contextualised Multilingual Embeddings",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=44; 10 citações."
+  },
+  {
+   "title": "POLY: Mining Relational Paraphrases from Multilingual Sentences",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=252; 13 citações."
+  },
+  {
+   "title": "Multilingual Translation with Extensible Multilingual Pretraining and Finetuning",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=760; 150 citações."
+  },
+  {
+   "title": "Learning Multilingual Meta-Embeddings for Code-Switching Named Entity Recognition",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 46 citações."
+  },
+  {
+   "title": "Evaluation of BERT and ALBERT Sentence Embedding Performance on Downstream NLP Tasks",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=147; 144 citações."
+  },
+  {
+   "title": "PromptBERT: Improving BERT Sentence Embeddings with Prompts",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 158 citações."
+  },
+  {
+   "title": "Rethinking of BERT sentence embedding for text classification",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=192; 49 citações."
+  },
+  {
+   "title": "SBERT-WK: A Sentence Embedding Method by Dissecting BERT-Based Word Models",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=119; 176 citações."
+  },
+  {
+   "title": "Automatic Grading System Using Sentence-BERT Network",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Educational Technology and Assessment (Information Systems); venue h-index=721; 34 citações."
+  },
+  {
+   "title": "TA-SBERT: Token Attention Sentence-BERT for Improving Sentence Representation",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=378; 43 citações."
+  },
+  {
+   "title": "conSultantBERT: Fine-tuned Siamese Sentence-BERT for Matching Jobs and Job Seekers",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: AI and HR Technologies (Organizational Behavior and Human Resource Management); venue h-index=760; 14 citações."
+  },
+  {
+   "title": "I-BERT: Integer-only BERT Quantization",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=760; 186 citações."
+  },
+  {
+   "title": "Research on Log Anomaly Detection Based on Sentence-BERT",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Software System Performance and Reliability (Computer Networks and Communications); venue h-index=158; 25 citações."
+  },
+  {
+   "title": "Sentence part-enhanced BERT with respect to downstream tasks",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=91; 14 citações."
+  },
+  {
+   "title": "Phrase-BERT: Improved Phrase Embeddings from BERT with an Application to Corpus Exploration",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 57 citações."
+  },
+  {
+   "title": "Sentiment Informed Sentence BERT-Ensemble Algorithm for Depression Detection",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Mental Health via Writing (Social Psychology); venue h-index=70; 25 citações."
+  },
+  {
+   "title": "A Siamese Neural Network for Learning Semantically-Informed Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=352; 28 citações."
+  },
+  {
+   "title": "An Unsupervised Sentence Embedding Method by Mutual Information Maximization",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 144 citações."
+  },
+  {
+   "title": "Exploring the Role of BERT Token Representations to Explain Sentence Probing Results",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 15 citações."
+  },
+  {
+   "title": "A hybrid approach of Weighted Fine-Tuned BERT extraction with deep Siamese Bi – LSTM model for semantic text similarity identification",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=160; 63 citações."
+  },
+  {
+   "title": "A BERT Framework to Sentiment Analysis of Tweets",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=338; 254 citações."
+  },
+  {
+   "title": "Scalable Attentive Sentence Pair Modeling via Distilled Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=107; 31 citações."
+  },
+  {
+   "title": "SimCSE++: Improving Contrastive Learning for Sentence Embeddings from Two Perspectives",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 12 citações."
+  },
+  {
+   "title": "ESimCSE: Enhanced Sample Building Method for Contrastive Learning of Unsupervised Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 92 citações."
+  },
+  {
+   "title": "Smoothed Contrastive Learning for Unsupervised Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 10 citações."
+  },
+  {
+   "title": "SimCSE for Encrypted Traffic Detection and Zero-Day Attack Detection",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Internet Traffic Analysis and Secure E-voting (Artificial Intelligence); venue h-index=378; 18 citações."
+  },
+  {
+   "title": "DiffCSE: Difference-based Contrastive Learning for Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=162; 174 citações."
+  },
+  {
+   "title": "English Contrastive Learning Can Learn Universal Cross-lingual Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 22 citações."
+  },
+  {
+   "title": "Composition-contrastive Learning for Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 15 citações."
+  },
+  {
+   "title": "MCSE: Multimodal Contrastive Learning of Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=162; 28 citações."
+  },
+  {
+   "title": "Instance Smoothed Contrastive Learning for Unsupervised Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=305; 10 citações."
+  },
+  {
+   "title": "EASE: Entity-Aware Contrastive Learning of Sentence Embedding",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=162; 30 citações."
+  },
+  {
+   "title": "DialogueCSE: Dialogue-based Contrastive Learning of Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 28 citações."
+  },
+  {
+   "title": "Contrastive Learning of Sentence Embeddings from Scratch",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 13 citações."
+  },
+  {
+   "title": "WhitenedCSE: Whitening-based Contrastive Learning of Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 22 citações."
+  },
+  {
+   "title": "Unsupervised Random Walk Sentence Embeddings: A Strong but Simple Baseline",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 93 citações."
+  },
+  {
+   "title": "Cosine Meets Softmax: A Tough-to-beat Baseline for Visual Grounding",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=721; 11 citações."
+  },
+  {
+   "title": "Evaluation of sentence embeddings in downstream and linguistic probing tasks",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 128 citações."
+  },
+  {
+   "title": "Exploring Semantic Properties of Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 65 citações."
+  },
+  {
+   "title": "What you can cram into a single $&!#* vector: Probing sentence embeddings for linguistic properties",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 583 citações."
+  },
+  {
+   "title": "Concatenated Power Mean Word Embeddings as Universal Cross-Lingual Sentence Representations",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=72; 77 citações."
+  },
+  {
+   "title": "Strong and Simple Baselines for Multimodal Utterance Embeddings",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=162; 28 citações."
+  },
+  {
+   "title": "Sentence Embedding Models for Similarity Detection of Software Requirements",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=76; 33 citações."
+  },
+  {
+   "title": "Revisiting Recurrent Networks for Paraphrastic Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 76 citações."
+  },
+  {
+   "title": "Sentence Meta-Embeddings for Unsupervised Semantic Textual Similarity",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 21 citações."
+  },
+  {
+   "title": "ParaNMT-50M: Pushing the Limits of Paraphrastic Sentence Embeddings with Millions of Machine Translations",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 318 citações."
+  },
+  {
+   "title": "XNLI: Evaluating Cross-lingual Sentence Representations",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 933 citações."
+  },
+  {
+   "title": "FERMI at SemEval-2019 Task 5: Using Sentence embeddings to Identify Hate Speech Against Immigrants and Women in Twitter",
+   "gate": "relevance",
+   "detail": "Embeddings de fala/áudio — fora do escopo (texto). Tópico OpenAlex: Hate Speech and Cyberbullying Detection (Artificial Intelligence); venue h-index=80; 83 citações."
+  },
+  {
+   "title": "Contrastive Learning Models for Sentence Representations",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=103; 50 citações."
+  },
+  {
+   "title": "Dual-View Whitening on Pre-trained Text Embeddings for Sequential Recommendation",
+   "gate": "relevance",
+   "detail": "Embeddings de usuário/item/produto — explicitamente fora do escopo. Tópico OpenAlex: Recommender Systems and Techniques (Information Systems); venue h-index=305; 12 citações."
+  },
+  {
+   "title": "RankCSE: Unsupervised Sentence Representations Learning via Learning to Rank",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 30 citações."
+  },
+  {
+   "title": "A Contrastive Framework for Learning Sentence Representations from Pairwise and Triple-wise Perspective in Angular Space",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 64 citações."
+  },
+  {
+   "title": "Aligning Cross-lingual Sentence Representations with Dual Momentum Contrast",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 10 citações."
+  },
+  {
+   "title": "Deep image retrieval: a survey",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Image Retrieval and Classification Techniques (Computer Vision and Pattern Recognition); venue h-index=93; 58 citações."
+  },
+  {
+   "title": "Just Rank: Rethinking Evaluation with Word and Sentence Similarities",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 19 citações."
+  },
+  {
+   "title": "SCD: Self-Contrastive Decorrelation of Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 25 citações."
+  },
+  {
+   "title": "Effective Dimensionality Reduction for Word Embeddings",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 118 citações."
+  },
+  {
+   "title": "A novel approach for dimension reduction using word embedding: An enhanced text classification approach",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Text and Document Classification Technologies (Artificial Intelligence); venue h-index=68; 94 citações."
+  },
+  {
+   "title": "Simple and Effective Dimensionality Reduction for Word Embeddings",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 19 citações."
+  },
+  {
+   "title": "A Joint Model for Word Embedding and Word Morphology",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 95 citações."
+  },
+  {
+   "title": "Word Embedding Evaluation and Combination",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=130; 125 citações."
+  },
+  {
+   "title": "Learning Word Meta-Embeddings",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 103 citações."
+  },
+  {
+   "title": "Sparse Principal Component Analysis for Natural Language Processing",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Statistical Methods and Inference (Statistics and Probability); venue h-index=45; 32 citações."
+  },
+  {
+   "title": "Man is to Computer Programmer as Woman is to Homemaker? Debiasing Word Embeddings",
+   "gate": "relevance",
+   "detail": "Análise de viés/ética de embeddings — não é pooling/normalização nem feature. Tópico OpenAlex: Ethics and Social Impacts of AI (Safety Research); venue h-index=760; 1615 citações."
+  },
+  {
+   "title": "Understanding Undesirable Word Embedding Associations",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Ethics and Social Impacts of AI (Safety Research); venue h-index=303; 110 citações."
+  },
+  {
+   "title": "On Measuring and Mitigating Biased Inferences of Word Embeddings",
+   "gate": "relevance",
+   "detail": "Análise de viés/ética de embeddings — não é pooling/normalização nem feature. Tópico OpenAlex: Ethics and Social Impacts of AI (Safety Research); venue h-index=107; 101 citações."
+  },
+  {
+   "title": "Morphological Smoothing and Extrapolation of Word Embeddings",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 59 citações."
+  },
+  {
+   "title": "Unsupervised word embeddings capture latent knowledge from materials science literature",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Machine Learning in Materials Science (Materials Chemistry); venue h-index=1839; 1116 citações."
+  },
+  {
+   "title": "A Correlated Topic Model Using Word Embeddings",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=189; 100 citações."
+  },
+  {
+   "title": "Black is to Criminal as Caucasian is to Police: Detecting and Removing Multiclass Bias in Word Embeddings",
+   "gate": "relevance",
+   "detail": "Análise de viés/ética de embeddings — não é pooling/normalização nem feature. Tópico OpenAlex: Ethics and Social Impacts of AI (Safety Research); venue h-index=162; 262 citações."
+  },
+  {
+   "title": "Word Embeddings for the Construction Domain",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 11 citações."
+  },
+  {
+   "title": "Application of Word Embedding to Drug Repositioning",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Biomedical Text Mining and Ontologies (Molecular Biology); venue h-index=41; 22 citações."
+  },
+  {
+   "title": "subs2vec: Word embeddings from subtitles in 55 languages",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=200; 52 citações."
+  },
+  {
+   "title": "A reproducible survey on word embeddings and ontology-based methods for word similarity: Linear combinations outperform the state of the art",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=187; 88 citações."
+  },
+  {
+   "title": "Universal Dependencies v1: A Multilingual Treebank Collection",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=130; 1031 citações."
+  },
+  {
+   "title": "Learning Joint Multilingual Sentence Representations with Neural Machine Translation",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 200 citações."
+  },
+  {
+   "title": "Is Multilingual BERT Fluent in Language Generation?",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 51 citações."
+  },
+  {
+   "title": "On cross-lingual retrieval with multilingual text encoders",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=80; 65 citações."
+  },
+  {
+   "title": "Finding Universal Grammatical Relations in Multilingual BERT",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=303; 127 citações."
+  },
+  {
+   "title": "SentEval: An Evaluation Toolkit for Universal Sentence Representations",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=130; 477 citações."
+  },
+  {
+   "title": "Language-agnostic Representation from Multilingual Sentence Encoders for Cross-lingual Similarity Estimation",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 18 citações."
+  },
+  {
+   "title": "Probing Multilingual Sentence Representations With X-Probe",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 18 citações."
+  },
+  {
+   "title": "Multilingual Relation Extraction using Compositional Universal Schema",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=162; 100 citações."
+  },
+  {
+   "title": "Fast, Effective, and Self-Supervised: Transforming Masked Language Models into Universal Lexical and Sentence Encoders",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 89 citações."
+  },
+  {
+   "title": "Explicit Alignment Objectives for Multilingual Bidirectional Encoders",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=162; 42 citações."
+  },
+  {
+   "title": "Multilingual Neural Machine Translation With Soft Decoupled Encoding",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=760; 58 citações."
+  },
+  {
+   "title": "Unsupervised Multilingual Sentence Embeddings for Parallel Corpus Mining",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=24; 26 citações."
+  },
+  {
+   "title": "Voicebox: Text-Guided Multilingual Universal Speech Generation at Scale",
+   "gate": "relevance",
+   "detail": "Embeddings de fala/áudio — fora do escopo (texto). Tópico OpenAlex: Speech Recognition and Synthesis (Artificial Intelligence); venue h-index=214; 85 citações."
+  },
+  {
+   "title": "Artificial Intelligence-Driven Approaches to Disease Surveillance and Outbreak Prediction",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=41; 3 citações."
+  },
+  {
+   "title": "Epidemic Outbreak Prediction Using Artificial Intelligence",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=41; 10 citações."
+  },
+  {
+   "title": "A Review of Social Media Data Utilization for the Prediction of Disease Outbreaks and Understanding Public Perception",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=70; 23 citações."
+  },
+  {
+   "title": "Disease outbreaks",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Risk Perception and Management (Sociology and Political Science); venue h-index=850; 11 citações."
+  },
+  {
+   "title": "IP Preparedness for Outbreak Diseases",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Intellectual Property Law (Law); venue h-index=107; 12 citações."
+  },
+  {
+   "title": "Retweet Prediction Based on Heterogeneous Data Sources: The Combination of Text and Multilayer Network Features",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Complex Network Analysis Techniques (Statistical and Nonlinear Physics); venue h-index=229; 11 citações."
+  },
+  {
+   "title": "A systematic review on AI/ML approaches against COVID-19 outbreak",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: COVID-19 diagnosis using AI (Radiology, Nuclear Medicine and Imaging); venue h-index=91; 87 citações."
+  },
+  {
+   "title": "Text mining for disease surveillance in veterinary clinical data: part two, training computers to identify features in clinical text",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Biomedical Text Mining and Ontologies (Molecular Biology); venue h-index=122; 11 citações."
+  },
+  {
+   "title": "COVID-19 Outbreak through Tweeters’ Words: Monitoring Italian Social Media Communication about COVID-19 with Text Mining and Word Embeddings",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=61; 16 citações."
+  },
+  {
+   "title": "Evaluating the effectiveness of publishers’ features in fake news detection on social media",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=160; 90 citações."
+  },
+  {
+   "title": "Sentiment-Based Spatiotemporal Prediction Framework for Pandemic Outbreaks Awareness Using Social Networks Data Classification",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=378; 14 citações."
+  },
+  {
+   "title": "Deep learning techniques for detection and prediction of pandemic diseases: a systematic literature review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=160; 129 citações."
+  },
+  {
+   "title": "Prediction of Epidemic Peak and Infected Cases for COVID-19 Disease in Malaysia, 2020",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: COVID-19 epidemiological studies (Modeling and Simulation); venue h-index=320; 77 citações."
+  },
+  {
+   "title": "Fake news propagates differently from real news even at early stages of spreading",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=67; 175 citações."
+  },
+  {
+   "title": "Defending Against Neural Fake News",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=760; 569 citações."
+  },
+  {
+   "title": "News Text Mining-Based Business Sentiment Analysis and Its Significance in Economy",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=313; 13 citações."
+  },
+  {
+   "title": "AI modeling for outbreak prediction: A graph-neural-network approach for identifying vancomycin-resistant enterococcus carriers",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Machine Learning in Healthcare (Artificial Intelligence); venue h-index=54; 10 citações."
+  },
+  {
+   "title": "Predicting food crises using news streams",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Food Security and Socioeconomic Dynamics (General Agricultural and Biological Sciences); venue h-index=378; 32 citações."
+  },
+  {
+   "title": "COVID-19 Outbreak Forecasting Based on Vaccine Rates and Tweets Classification",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=115; 11 citações."
+  },
+  {
+   "title": "Benchmarking Natural Language Inference and Semantic Textual Similarity for Portuguese",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=113; 10 citações."
+  },
+  {
+   "title": "AoE: Angle-optimized Embeddings for Semantic Textual Similarity",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 37 citações."
+  },
+  {
+   "title": "Going Beyond Sentence Embeddings: A Token-Level Matching Algorithm for Calculating Semantic Textual Similarity",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 12 citações."
+  },
+  {
+   "title": "Toward Interpretable Semantic Textual Similarity via Optimal Transport-based Contrastive Sentence Learning",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 22 citações."
+  },
+  {
+   "title": "SupMPN: Supervised Multiple Positives and Negatives Contrastive Learning Model for Semantic Textual Similarity",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=229; 15 citações."
+  },
+  {
+   "title": "Fully Unsupervised Crosslingual Semantic Textual Similarity Metric Based on BERT for Identifying Parallel Data",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=49; 20 citações."
+  },
+  {
+   "title": "Word Embedding based Textual Semantic Similarity Measure in Bengali",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=197; 14 citações."
+  },
+  {
+   "title": "C-STS: Conditional Semantic Textual Similarity",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 13 citações."
+  },
+  {
+   "title": "Shapley Idioms: Analysing BERT Sentence Embeddings for General Idiom Token Identification",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=89; 12 citações."
+  },
+  {
+   "title": "Sentence Embedding Based Semantic Clustering Approach for Discussion Thread Summarization",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Advanced Text Analysis Techniques (Artificial Intelligence); venue h-index=113; 19 citações."
+  },
+  {
+   "title": "Learning Word Embeddings with Chi-Square Weights for Healthcare Tweet Classification",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=229; 34 citações."
+  },
+  {
+   "title": "Detecting Dengue/Flu Infections Based on Tweets Using LSTM and Word Embedding",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=378; 31 citações."
+  },
+  {
+   "title": "Identifying tweets of personal health experience through word embedding and LSTM neural network",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Text and Document Classification Technologies (Artificial Intelligence); venue h-index=306; 46 citações."
+  },
+  {
+   "title": "Polarization and Fake News",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=62; 280 citações."
+  },
+  {
+   "title": "Avian Influenza Risk Surveillance in North America with Online Media",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=594; 33 citações."
+  },
+  {
+   "title": "Conversations and Medical News Frames on Twitter: Infodemiological Study on COVID-19 in South Korea",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Communication and COVID-19 Impact (Communication); venue h-index=286; 252 citações."
+  },
+  {
+   "title": "Event Prediction in the Big Data Era",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Anomaly Detection Techniques and Applications (Artificial Intelligence); venue h-index=342; 135 citações."
+  },
+  {
+   "title": "Frontiers in Operations: News Event-Driven Forecasting of Commodity Prices",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Stock Market Forecasting Methods (Management Science and Operations Research); venue h-index=153; 14 citações."
+  },
+  {
+   "title": "Content and Sentiment Analysis of The New York Times Coronavirus (2019-nCOV) Articles with Natural Language Processing (NLP) and Leximancer",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Communication and COVID-19 Impact (Communication); venue h-index=158; 14 citações."
+  },
+  {
+   "title": "(Almost) 200 Years of News-Based Economic Sentiment",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=483; 27 citações."
+  },
+  {
+   "title": "What Happens Next? Future Subevent Prediction Using Contextual Hierarchical LSTM",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=305; 55 citações."
+  },
+  {
+   "title": "Multimodal Deep Learning Crime Prediction Using Tweets",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Crime Patterns and Interventions (Sociology and Political Science); venue h-index=378; 40 citações."
+  },
+  {
+   "title": "A Machine Learning Technique for Detection of Social Media Fake News",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=48; 19 citações."
+  },
+  {
+   "title": "Transformer-Gated Recurrent Unit Method for Predicting Stock Price Based on News Sentiments and Technical Indicators",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Stock Market Forecasting Methods (Management Science and Operations Research); venue h-index=378; 72 citações."
+  },
+  {
+   "title": "The impact of news exposure on collective attention in the United States during the 2016 Zika epidemic",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=282; 30 citações."
+  },
+  {
+   "title": "Detecting Traffic Information From Social Media Texts With Deep Learning Approaches",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=269; 98 citações."
+  },
+  {
+   "title": "Automatic Text Summarization of COVID-19 Medical Research Articles using BERT and GPT-2",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 81 citações."
+  },
+  {
+   "title": "Event Prediction in the Big Data Era: A Systematic Survey",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Anomaly Detection Techniques and Applications (Artificial Intelligence); venue h-index=760; 14 citações."
+  },
+  {
+   "title": "Constructing co-occurrence network embeddings to assist association extraction for COVID-19 and other coronavirus infectious diseases",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Biomedical Text Mining and Ontologies (Molecular Biology); venue h-index=232; 19 citações."
+  },
+  {
+   "title": "Fake Sentence Detection Based on Transfer Learning: Applying to Korean COVID-19 Fake News",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=229; 13 citações."
+  },
+  {
+   "title": "Crosslingual Document Embedding as Reduced-Rank Ridge Regression",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=141; 13 citações."
+  },
+  {
+   "title": "It’s All in the Embedding! Fake News Detection Using Document Embeddings",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=113; 87 citações."
+  },
+  {
+   "title": "Sentiment Classification Using Document Embeddings Trained with Cosine Similarity",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=24; 126 citações."
+  },
+  {
+   "title": "A Deep-Learned Embedding Technique for Categorical Features Encoding",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Text and Document Classification Technologies (Artificial Intelligence); venue h-index=378; 294 citações."
+  },
+  {
+   "title": "Predicting Machine Translation Adequacy with Document Embeddings",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=52; 13 citações."
+  },
+  {
+   "title": "Generative Topic Embedding: a Continuous Representation of Documents",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 104 citações."
+  },
+  {
+   "title": "WELFake: Word Embedding Over Linguistic Features for Fake News Detection",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=92; 314 citações."
+  },
+  {
+   "title": "Enriching BERT with Knowledge Graph Embeddings for Document Classification",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 62 citações."
+  },
+  {
+   "title": "The Impact of Features Extraction on the Sentiment Analysis",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=197; 328 citações."
+  },
+  {
+   "title": "SciRepEval: A Multi-Format Benchmark for Scientific Document Representations",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 74 citações."
+  },
+  {
+   "title": "Decoding Word Embeddings with Brain-Based Semantic Features",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=137; 47 citações."
+  },
+  {
+   "title": "Topic sentiment analysis based on deep neural network using document embedding technique",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=116; 24 citações."
+  },
+  {
+   "title": "Jointly Learning Topics in Sentence Embedding for Document Summarization",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=272; 31 citações."
+  },
+  {
+   "title": "Leveraging word embeddings for spoken document summarization",
+   "gate": "relevance",
+   "detail": "Embeddings de fala/áudio — fora do escopo (texto). Tópico OpenAlex: Advanced Text Analysis Techniques (Artificial Intelligence); venue h-index=177; 12 citações."
+  },
+  {
+   "title": "Self-Supervised Learning of Visual Features through Embedding Images into Text Topic Spaces",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Domain Adaptation and Few-Shot Learning (Artificial Intelligence); venue h-index=766; 106 citações."
+  },
+  {
+   "title": "Parallel Stylometric Document Embeddings with Deep Learning Based Language Models in Literary Authorship Attribution",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Authorship Attribution and Profiling (Artificial Intelligence); venue h-index=113; 19 citações."
+  },
+  {
+   "title": "Joint embedding of structure and features via graph convolutional networks",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Advanced Graph Neural Networks (Artificial Intelligence); venue h-index=45; 35 citações."
+  },
+  {
+   "title": "Semantic projection recovers rich human knowledge of multiple object features from word embeddings",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=179; 187 citações."
+  },
+  {
+   "title": "Does the Geometry of Word Embeddings Help Document Classification? A Case Study on Persistent Homology-Based Representations",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topological and Geometric Data Analysis (Computational Theory and Mathematics); venue h-index=38; 13 citações."
+  },
+  {
+   "title": "Combining Transformer Embeddings with Linguistic Features for Complex Word Identification",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Text Readability and Simplification (Artificial Intelligence); venue h-index=158; 10 citações."
+  },
+  {
+   "title": "Random Warping Series: A Random Features Method for Time-Series Embedding",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=760; 39 citações."
+  },
+  {
+   "title": "Detecting Depression Using an Ensemble Logistic Regression Model Based on Multiple Speech Features",
+   "gate": "relevance",
+   "detail": "Embeddings de fala/áudio — fora do escopo (texto). Tópico OpenAlex: Emotion and Mood Recognition (Experimental and Cognitive Psychology); venue h-index=100; 107 citações."
+  },
+  {
+   "title": "Video Caption Based Searching Using End-to-End Dense Captioning and Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=126; 12 citações."
+  },
+  {
+   "title": "SIFRank: A New Baseline for Unsupervised Keyphrase Extraction Based on Pre-Trained Language Model",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Advanced Text Analysis Techniques (Artificial Intelligence); venue h-index=378; 151 citações."
+  },
+  {
+   "title": "ACV-tree: A New Method for Sentence Similarity Modeling",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=189; 30 citações."
+  },
+  {
+   "title": "Evaluating sentence representations for biomedical text: Methods and experimental results",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=168; 33 citações."
+  },
+  {
+   "title": "Word Usage Similarity Estimation with Sentence Representations and Automatic Substitutes",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=37; 11 citações."
+  },
+  {
+   "title": "Learning Sentence Representation with Guidance of Human Attention",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=189; 50 citações."
+  },
+  {
+   "title": "Spherical Text Embedding",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 86 citações."
+  },
+  {
+   "title": "Improving a tf-idf weighted document vector embedding",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 22 citações."
+  },
+  {
+   "title": "The left inferior longitudinal fasciculus supports orthographic processing: Evidence from a lesion-behavior mapping analysis",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Reading and Literacy Development (Developmental and Educational Psychology); venue h-index=214; 27 citações."
+  },
+  {
+   "title": "Evaluating Biased Attitude Associations of Language Models in an Intersectional Context",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Ethics and Social Impacts of AI (Safety Research); venue h-index=74; 20 citações."
+  },
+  {
+   "title": "Structural properties of the ventral reading pathways are associated with morphological processing in adult English readers",
+   "gate": "relevance",
+   "detail": "Análise de embeddings de palavra (não de frase/documento como feature). Tópico OpenAlex: Reading and Literacy Development (Developmental and Educational Psychology); venue h-index=202; 43 citações."
+  },
+  {
+   "title": "NT‐proBNP and changes in cognition and global brain structure: The Rotterdam Study",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Dementia and Cognitive Impairment Research (Psychiatry and Mental health); venue h-index=181; 11 citações."
+  },
+  {
+   "title": "InferLite: Simple Universal Sentence Representations from Natural Language Inference Data",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 17 citações."
+  },
+  {
+   "title": "e-SNLI: Natural Language Inference with Natural Language Explanations",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Explainable Artificial Intelligence (XAI) (Artificial Intelligence); venue h-index=760; 359 citações."
+  },
+  {
+   "title": "Pairwise Supervised Contrastive Learning of Sentence Representations",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 49 citações."
+  },
+  {
+   "title": "Universal Sentence Representation Learning with Conditional Masked Language Model",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 48 citações."
+  },
+  {
+   "title": "Collecting Diverse Natural Language Inference Problems for Sentence Representation Evaluation",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 102 citações."
+  },
+  {
+   "title": "Learning Natural Language Inference using Bidirectional LSTM model and Inner-Attention",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 212 citações."
+  },
+  {
+   "title": "Annotation Artifacts in Natural Language Inference Data",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=162; 905 citações."
+  },
+  {
+   "title": "A Multi-Level Supervised Contrastive Learning Framework for Low-Resource Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=119; 28 citações."
+  },
+  {
+   "title": "Lessons from Natural Language Inference in the Clinical Domain",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Machine Learning in Healthcare (Artificial Intelligence); venue h-index=252; 222 citações."
+  },
+  {
+   "title": "Hypothesis Only Baselines in Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=37; 485 citações."
+  },
+  {
+   "title": "Are Natural Language Inference Models IMPPRESsive? Learning IMPlicature and PRESupposition",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 77 citações."
+  },
+  {
+   "title": "Learning Visually Grounded Sentence Representations",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=162; 71 citações."
+  },
+  {
+   "title": "Learning Universal Sentence Representations with Mean-Max Attention Autoencoder",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 29 citações."
+  },
+  {
+   "title": "Discourse Marker Augmented Network with Reinforcement Learning for Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 41 citações."
+  },
+  {
+   "title": "Neural Natural Language Inference Models Enhanced with External Knowledge",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 258 citações."
+  },
+  {
+   "title": "Learning General Purpose Distributed Sentence Representations via Large Scale Multi-task Learning",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 207 citações."
+  },
+  {
+   "title": "Learning to Generate Scene Graph from Natural Language Supervision",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=327; 73 citações."
+  },
+  {
+   "title": "Building Efficient Universal Classifiers with Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 15 citações."
+  },
+  {
+   "title": "Evaluating Deep Learning Techniques for Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=229; 15 citações."
+  },
+  {
+   "title": "On Adversarial Removal of Hypothesis-only Bias in Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Adversarial Robustness in Machine Learning (Artificial Intelligence); venue h-index=37; 56 citações."
+  },
+  {
+   "title": "Ranking Generated Summaries by Correctness: An Interesting but Challenging Application for Natural Language Inference",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 264 citações."
+  },
+  {
+   "title": "Probing Natural Language Inference Models through Semantic Fragments",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=107; 114 citações."
+  },
+  {
+   "title": "Learning Video Representations from Large Language Models",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=766; 159 citações."
+  },
+  {
+   "title": "Learning Cross-Lingual Sentence Representations via a Multi-task Dual-Encoder Model",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=38; 124 citações."
+  },
+  {
+   "title": "Learning Universal Authorship Representations",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Authorship Attribution and Profiling (Artificial Intelligence); venue h-index=252; 25 citações."
+  },
+  {
+   "title": "A Broad-Coverage Challenge Corpus for Sentence Understanding through Inference",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=162; 3339 citações."
+  },
+  {
+   "title": "Unsupervised Natural Language Inference via Decoupled Multimodal Contrastive Learning",
+   "gate": "relevance",
+   "detail": "Avaliação/probing intrínseco de representações — não é uso como feature (S1) nem pooling/normalização (S2). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=252; 17 citações."
+  },
+  {
+   "title": "Universal Language Model Fine-tuning for Text Classification",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 3962 citações."
+  },
+  {
+   "title": "How to Fine-Tune BERT for Text Classification?",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 89 citações."
+  },
+  {
+   "title": "A Novel Machine Learning Approach for Sentiment Analysis on Twitter Incorporating the Universal Language Model Fine-Tuning and SVM",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=56; 144 citações."
+  },
+  {
+   "title": "A Fine-Tuned BERT-Based Transfer Learning Approach for Text Classification",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Text and Document Classification Technologies (Artificial Intelligence); venue h-index=91; 236 citações."
+  },
+  {
+   "title": "PTR: Prompt Tuning with Rules for Text Classification",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=31; 476 citações."
+  },
+  {
+   "title": "Supervised Contrastive Learning for Pre-trained Language Model Fine-tuning",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 296 citações."
+  },
+  {
+   "title": "CyBERT: Cybersecurity Claim Classification by Fine-Tuning the BERT Language Model",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=35; 77 citações."
+  },
+  {
+   "title": "A multilingual offensive language detection method based on transfer learning from transformer fine-tuning model",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Hate Speech and Cyberbullying Detection (Artificial Intelligence); venue h-index=118; 82 citações."
+  },
+  {
+   "title": "Fine-Tuning Transformer Models Using Transfer Learning for Multilingual Threatening Text Identification",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Hate Speech and Cyberbullying Detection (Artificial Intelligence); venue h-index=378; 29 citações."
+  },
+  {
+   "title": "Parameter-efficient fine-tuning of large-scale pre-trained language models",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=154; 1181 citações."
+  },
+  {
+   "title": "Taiyi: a bilingual fine-tuned large language model for diverse biomedical tasks",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Biomedical Text Mining and Ontologies (Molecular Biology); venue h-index=232; 85 citações."
+  },
+  {
+   "title": "AgglutiFiT: Efficient Low-Resource Agglutinative Language Model Fine-Tuning",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=378; 28 citações."
+  },
+  {
+   "title": "Parameter-efficient fine-tuning of large language models using semantic knowledge tuning",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=462; 24 citações."
+  },
+  {
+   "title": "Open-source LLMs for text annotation: a practical guide for model setting and fine-tuning",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Computational and Text Analysis Methods (General Social Sciences); venue h-index=37; 78 citações."
+  },
+  {
+   "title": "Large Dataset and Language Model Fun-Tuning for Humor Recognition",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Humor Studies and Applications (Social Psychology); venue h-index=303; 42 citações."
+  },
+  {
+   "title": "LogFiT: Log Anomaly Detection Using Fine-Tuned Language Models",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Software System Performance and Reliability (Computer Networks and Communications); venue h-index=105; 109 citações."
+  },
+  {
+   "title": "Meta Fine-Tuning Neural Language Models for Multi-Domain Text Mining",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Domain Adaptation and Few-Shot Learning (Artificial Intelligence); venue h-index=252; 21 citações."
+  },
+  {
+   "title": "A Study on Text Classification in the Age of Large Language Models",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=56; 13 citações."
+  },
+  {
+   "title": "A Kernel-Based View of Language Model Fine-Tuning",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 10 citações."
+  },
+  {
+   "title": "Recall and Learn: Fine-tuning Deep Pretrained Language Models with Less Forgetting",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 167 citações."
+  },
+  {
+   "title": "Comparison of Prompt Engineering and Fine-Tuning Strategies in Large Language Models in the Classification of Clinical Notes",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Machine Learning in Healthcare (Artificial Intelligence); venue h-index=115; 37 citações."
+  },
+  {
+   "title": "Data-driven methods for dengue prediction and surveillance using real-world and Big Data: A systematic review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Mosquito-borne diseases and control (Public Health, Environmental and Occupational Health); venue h-index=218; 73 citações."
+  },
+  {
+   "title": "Data Mining and Content Analysis of the Chinese Social Media Platform Weibo During the Early COVID-19 Outbreak: Retrospective Observational Infoveillance Study",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=88; 198 citações."
+  },
+  {
+   "title": "Online Public Attention During the Early Days of the COVID-19 Pandemic: Infoveillance Study Based on Baidu Index",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=88; 46 citações."
+  },
+  {
+   "title": "Harnessing Big Data for Communicable Tropical and Sub-Tropical Disorders: Implications From a Systematic Review of the Literature",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=174; 42 citações."
+  },
+  {
+   "title": "Data and Digital Solutions to Support Surveillance Strategies in the Context of the COVID-19 Pandemic",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=66; 81 citações."
+  },
+  {
+   "title": "Comparing News Articles and Tweets About COVID-19 in Brazil: Sentiment Analysis and Topic Modeling Approach",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=88; 86 citações."
+  },
+  {
+   "title": "Sentiment Analysis and Text Analysis of the Public Discourse on Twitter about COVID-19 and MPox",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=70; 48 citações."
+  },
+  {
+   "title": "Global Research on Syndromic Surveillance from 1993 to 2017: Bibliometric Analysis and Visualization",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: scientometrics and bibliometrics research (Statistics, Probability and Uncertainty); venue h-index=306; 14 citações."
+  },
+  {
+   "title": "Using online social networks to track a pandemic: A systematic review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=168; 165 citações."
+  },
+  {
+   "title": "Epidemic Alert System: A Web-based Grassroots Model",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=50; 11 citações."
+  },
+  {
+   "title": "Early Warning of Infectious Disease Outbreaks Using Social Media and Digital Data: A Scoping Review",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=320; 28 citações."
+  },
+  {
+   "title": "The role of social media in public health crises caused by infectious disease: a scoping review",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Social Media in Health Education (Health); venue h-index=141; 48 citações."
+  },
+  {
+   "title": "Automated Travel History Extraction From Clinical Notes for Informing the Detection of Emergent Infectious Disease Events: Algorithm Development and Validation",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=88; 12 citações."
+  },
+  {
+   "title": "Big Data’s Role in Precision Public Health",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=174; 203 citações."
+  },
+  {
+   "title": "Using geospatial social media data for infectious disease studies: a systematic review",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=88; 37 citações."
+  },
+  {
+   "title": "Machine Learning and Prediction of Infectious Diseases: A Systematic Review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=56; 125 citações."
+  },
+  {
+   "title": "When Infodemic Meets Epidemic: Systematic Literature Review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=88; 6 citações."
+  },
+  {
+   "title": "Using a Machine Learning Approach to Monitor COVID-19 Vaccine Adverse Events (VAE) from Twitter Data",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Pharmacovigilance and Adverse Drug Reactions (Toxicology); venue h-index=135; 34 citações."
+  },
+  {
+   "title": "Detecting Topic and Sentiment Trends in Physician Rating Websites: Analysis of Online Reviews Using 3-Wave Datasets",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Sentiment Analysis and Opinion Mining (Artificial Intelligence); venue h-index=320; 18 citações."
+  },
+  {
+   "title": "A Pipeline to Understand Emerging Illness Via Social Media Data Analysis: Case Study on Breast Implant Illness",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=81; 15 citações."
+  },
+  {
+   "title": "Covid-19 Discourse on Twitter: How the Topics, Sentiments, Subjectivity, and Figurative Frames Changed Over Time",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Discourse Analysis and Cultural Communication (Cultural Studies); venue h-index=57; 70 citações."
+  },
+  {
+   "title": "Infodemics and health misinformation: a systematic review of reviews",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=200; 610 citações."
+  },
+  {
+   "title": "Harnessing Social Media in the Modelling of Pandemics—Challenges and Opportunities",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: COVID-19 epidemiological studies (Modeling and Simulation); venue h-index=166; 22 citações."
+  },
+  {
+   "title": "Text as Data",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Computational and Text Analysis Methods (General Social Sciences); venue h-index=483; 86 citações."
+  },
+  {
+   "title": "Twitter and Research: A Systematic Literature Review Through Text Mining",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Computational and Text Analysis Methods (General Social Sciences); venue h-index=378; 278 citações."
+  },
+  {
+   "title": "Monitoring emotional intensity and variability to forecast depression recurrence in real time in remitted adults.",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Mental Health Research Topics (Experimental and Cognitive Psychology); venue h-index=411; 13 citações."
+  },
+  {
+   "title": "Infodemiological study on the impact of the COVID-19 pandemic on increased headache incidences at the world level",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=462; 12 citações."
+  },
+  {
+   "title": "Modelling the propagation of social response during a disease outbreak",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Mathematical and Theoretical Epidemiology and Ecology Models (Public Health, Environmental and Occupational Health); venue h-index=211; 52 citações."
+  },
+  {
+   "title": "The social amplification of risk on Twitter: the case of ash dieback disease in the United Kingdom",
+   "gate": "relevance",
+   "detail": "Domínio notícia/mídia, mas o trabalho não usa embeddings de texto como feature nem pooling/normalização (S3 exige os dois). Tópico OpenAlex: Risk Perception and Management (Sociology and Political Science); venue h-index=103; 103 citações."
+  },
+  {
+   "title": "Factors Affecting Resilience and Prevention of Alzheimer's Disease and Related Dementias",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Dementia and Cognitive Impairment Research (Psychiatry and Mental health); venue h-index=438; 39 citações."
+  },
+  {
+   "title": "Text mining uncovers the unique dynamics of socio-economic impacts of the 2018–2022 multi-year drought in Germany",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Hydrology and Drought Analysis (Global and Planetary Change); venue h-index=165; 25 citações."
+  },
+  {
+   "title": "Effects and challenges of the COVID-19 pandemic in supply chain management: a text analytics approach",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Supply Chain Resilience and Risk Management (Strategy and Management); venue h-index=49; 18 citações."
+  },
+  {
+   "title": "Utilizing Text Mining, Data Linkage and Deep Learning in Police and Health Records to Predict Future Offenses in Family and Domestic Violence",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Intimate Partner and Family Violence (Health); venue h-index=66; 22 citações."
+  },
+  {
+   "title": "The quality of medical products for cardiovascular diseases: a gap in global cardiac care",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Pharmaceutical Quality and Counterfeiting (Public Health, Environmental and Occupational Health); venue h-index=141; 18 citações."
+  },
+  {
+   "title": "Network Text Analysis of Visitors’ Perception of Multi-Sensory Interactive Experience in Urban Forest Parks in China",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Urban Green Space and Health (Health, Toxicology and Mutagenesis); venue h-index=118; 17 citações."
+  },
+  {
+   "title": "Business Failure Prediction From Textual and Tabular Data With Sentence-Level Interpretations",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Financial Distress and Bankruptcy Prediction (Accounting); venue h-index=186; 9 citações."
+  },
+  {
+   "title": "Transformers for Tabular Data Representation: A Survey of Models and Applications",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=117; 89 citações."
+  },
+  {
+   "title": "Language Models are Realistic Tabular Data Generators",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 68 citações."
+  },
+  {
+   "title": "Learning Semantic Annotations for Tabular Data",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Semantic Web and Ontologies (Artificial Intelligence); venue h-index=189; 46 citações."
+  },
+  {
+   "title": "Explainable Artificial Intelligence for Tabular Data: A Survey",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Explainable Artificial Intelligence (XAI) (Artificial Intelligence); venue h-index=378; 134 citações."
+  },
+  {
+   "title": "Leveraging large language models and embedding representations for enhanced word similarity computation",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=462; 3 citações."
+  },
+  {
+   "title": "AdaVis: Adaptive and Explainable Visualization Recommendation for Tabular Data",
+   "gate": "relevance",
+   "detail": "Embeddings de usuário/item/produto — explicitamente fora do escopo. Tópico OpenAlex: Data Visualization and Analytics (Computer Vision and Pattern Recognition); venue h-index=206; 28 citações."
+  },
+  {
+   "title": "HyTrel: Hypergraph-enhanced Tabular Data Representation Learning",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Advanced Graph Neural Networks (Artificial Intelligence); venue h-index=214; 19 citações."
+  },
+  {
+   "title": "Explainable AI for clinical and remote health applications: a survey on tabular and time series data",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Explainable Artificial Intelligence (XAI) (Artificial Intelligence); venue h-index=202; 215 citações."
+  },
+  {
+   "title": "A Learnable Discrete-Prior Fusion Autoencoder with Contrastive Learning for Tabular Data Synthesis",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Privacy-Preserving Technologies in Data (Artificial Intelligence); venue h-index=305; 10 citações."
+  },
+  {
+   "title": "XTab: Cross-table Pretraining for Tabular Transformers",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Machine Learning and Data Classification (Artificial Intelligence); venue h-index=760; 11 citações."
+  },
+  {
+   "title": "One transformer for all time series: representing and training with time-dependent heterogeneous tabular data",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Time Series Analysis and Forecasting (Signal Processing); venue h-index=256; 13 citações."
+  },
+  {
+   "title": "Tabular Transformers Meet Relational Databases",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Advanced Database Systems and Queries (Computer Networks and Communications); venue h-index=103; 3 citações."
+  },
+  {
+   "title": "PTransformer: A Prompt-Based Multimodal Transformer Architecture For Medical Tabular Data",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Machine Learning in Healthcare (Artificial Intelligence); venue h-index=721; 4 citações."
+  },
+  {
+   "title": "TabLLM: Few-shot Classification of Tabular Data with Large Language Models",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Domain Adaptation and Few-Shot Learning (Artificial Intelligence); venue h-index=760; 83 citações."
+  },
+  {
+   "title": "MobileBERT: a Compact Task-Agnostic BERT for Resource-Limited Devices",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 751 citações."
+  },
+  {
+   "title": "LEALLA: Learning Lightweight Language-agnostic Sentence Embeddings with Knowledge Distillation",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=72; 10 citações."
+  },
+  {
+   "title": "Homepage2Vec: Language-Agnostic Website Embedding and Classification",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Text and Document Classification Technologies (Artificial Intelligence); venue h-index=133; 13 citações."
+  },
+  {
+   "title": "To BERT or Not to BERT: Comparing Task-specific and Task-agnostic Semi-Supervised Approaches for Sequence Tagging",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 16 citações."
+  },
+  {
+   "title": "Natural Language Understanding with Privacy-Preserving BERT",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Privacy-Preserving Technologies in Data (Artificial Intelligence); venue h-index=92; 49 citações."
+  },
+  {
+   "title": "Improving task-agnostic BERT distillation with layer mapping search",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=258; 14 citações."
+  },
+  {
+   "title": "KVL-BERT: Knowledge Enhanced Visual-and-Linguistic BERT for visual commonsense reasoning",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=222; 35 citações."
+  },
+  {
+   "title": "Exploring Transformers in Natural Language Generation: GPT, BERT, and XLNet",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 65 citações."
+  },
+  {
+   "title": "SAMU-XLSR: Semantically-Aligned Multimodal Utterance-Level Cross-Lingual Speech Representation",
+   "gate": "relevance",
+   "detail": "Embeddings de fala/áudio — fora do escopo (texto). Tópico OpenAlex: Speech Recognition and Synthesis (Artificial Intelligence); venue h-index=173; 31 citações."
+  },
+  {
+   "title": "BERT, mBERT, or BiBERT? A Study on Contextualized Embeddings for Neural Machine Translation",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=252; 64 citações."
+  },
+  {
+   "title": "BERT-of-Theseus: Compressing BERT by Progressive Module Replacing",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Advanced Neural Network Applications (Computer Vision and Pattern Recognition); venue h-index=252; 172 citações."
+  },
+  {
+   "title": "Addressing Asymmetry in Contrastive Learning: LLM-Driven Sentence Embeddings with Ranking and Label Smoothing",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=126; 3 citações."
+  },
+  {
+   "title": "Empirical Linguistic Study of Sentence Embeddings",
+   "gate": "relevance",
+   "detail": "Variante de treino/qualidade de encoder de frase (similaridade intrínseca); o escopo pede uso como feature (S1) ou pooling/normalização (S2), já cobertos pela seleção. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 45 citações."
+  },
+  {
+   "title": "Controllable Sentence Simplification with a Unified Text-to-Text Transfer Transformer",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Text Readability and Simplification (Artificial Intelligence); venue h-index=34; 26 citações."
+  },
+  {
+   "title": "mT5: A Massively Multilingual Pre-trained Text-to-Text Transformer",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=162; 1621 citações."
+  },
+  {
+   "title": "RankT5: Fine-Tuning T5 for Text Ranking with Ranking Losses",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Information Retrieval and Search Behavior (Information Systems); venue h-index=238; 83 citações."
+  },
+  {
+   "title": "PEGASUS: Pre-training with Extracted Gap-sentences for Abstractive Summarization",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 1205 citações."
+  },
+  {
+   "title": "Text-to-Text Pre-Training for Data-to-Text Tasks",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=34; 143 citações."
+  },
+  {
+   "title": "LongT5: Efficient Text-To-Text Transformer for Long Sequences",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=40; 229 citações."
+  },
+  {
+   "title": "Studying the Usage of Text-To-Text Transfer Transformer to Support Code-Related Tasks",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Software Engineering Research (Information Systems); venue h-index=92; 265 citações."
+  },
+  {
+   "title": "Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 10929 citações."
+  },
+  {
+   "title": "BARTScore: Evaluating Generated Text as Text Generation",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 353 citações."
+  },
+  {
+   "title": "Ensemble-NQG-T5: Ensemble Neural Question Generation Model Based on Text-to-Text Transfer Transformer",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=229; 25 citações."
+  },
+  {
+   "title": "A Survey on Text Classification Algorithms: From Text to Predictions",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Text and Document Classification Technologies (Artificial Intelligence); venue h-index=113; 255 citações."
+  },
+  {
+   "title": "AraT5: Text-to-Text Transformers for Arabic Language Generation",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 108 citações."
+  },
+  {
+   "title": "A hybrid approach for text summarization using semantic latent Dirichlet allocation and sentence concept mapping with transformer",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=49; 16 citações."
+  },
+  {
+   "title": "A Comparative Study of PEGASUS, BART, and T5 for Text Summarization Across Diverse Datasets",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=110; 14 citações."
+  },
+  {
+   "title": "LinkBERT: Pretraining Language Models with Document Links",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 339 citações."
+  },
+  {
+   "title": "AMMU: A survey of transformer-based biomedical pretrained language models",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=168; 278 citações."
+  },
+  {
+   "title": "Vid2Seq: Large-Scale Pretraining of a Visual Language Model for Dense Video Captioning",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: Multimodal Machine Learning Applications (Computer Vision and Pattern Recognition); venue h-index=766; 254 citações."
+  },
+  {
+   "title": "AMMUS : A Survey of Transformer-based Pretrained Models in Natural Language Processing",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 180 citações."
+  },
+  {
+   "title": "PalmTree: Learning an Assembly Language Model for Instruction Embedding",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Software Engineering Research (Information Systems); venue h-index=172; 187 citações."
+  },
+  {
+   "title": "Large Concept Models: Language Modeling in a Sentence Representation Space",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=760; 10 citações."
+  },
+  {
+   "title": "Deep Generative Modelling: A Comparative Review of VAEs, GANs, Normalizing Flows, Energy-Based and Autoregressive Models",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Generative Adversarial Networks and Image Synthesis (Computer Vision and Pattern Recognition); venue h-index=562; 714 citações."
+  },
+  {
+   "title": "Structural Adapters in Pretrained Language Models for AMR-to-Text Generation",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=252; 51 citações."
+  },
+  {
+   "title": "TaBERT: Pretraining for Joint Understanding of Textual and Tabular Data",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=303; 485 citações."
+  },
+  {
+   "title": "Do Pretrained Language Models Indeed Understand Software Engineering Tasks?",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Software Engineering Research (Information Systems); venue h-index=294; 18 citações."
+  },
+  {
+   "title": "CoditT5: Pretraining for Source Code and Natural Language Editing",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Software Engineering Research (Information Systems); venue h-index=119; 86 citações."
+  },
+  {
+   "title": "Knowledge Graphs and Pretrained Language Models Enhanced Representation Learning for Conversational Recommender Systems",
+   "gate": "relevance",
+   "detail": "Embeddings de grafo — explicitamente fora do escopo. Tópico OpenAlex: Recommender Systems and Techniques (Information Systems); venue h-index=248; 27 citações."
+  },
+  {
+   "title": "Sentence Bottleneck Autoencoders from Transformer Language Models",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 16 citações."
+  },
+  {
+   "title": "TPLLM: A Traffic Prediction Framework Based on Pretrained Large Language Models",
+   "gate": "relevance",
+   "detail": "Série temporal numérica (não texto) — não é embedding de texto usado como feature (S1). Tópico OpenAlex: Traffic Prediction and Management Techniques (Building and Construction); venue h-index=760; 14 citações."
+  },
+  {
+   "title": "Optimus: Organizing Sentences via Pre-trained Modeling of a Latent Space",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 140 citações."
+  },
+  {
+   "title": "Unsupervised Learning of PCFGs with Normalizing Flow",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Natural Language Processing Techniques (Artificial Intelligence); venue h-index=303; 26 citações."
+  },
+  {
+   "title": "Adapting Pretrained Language Models for Citation Classification via Self-Supervised Contrastive Learning",
+   "gate": "relevance",
+   "detail": "Classificação supervisionada de texto (tarefa-alvo específica) — fora do escopo. Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=77; 3 citações."
+  },
+  {
+   "title": "Attention Flows: Analyzing and Comparing Attention Mechanisms in Language Models",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Data Visualization and Analytics (Computer Vision and Pattern Recognition); venue h-index=206; 110 citações."
+  },
+  {
+   "title": "Unsupervised Boundary-Aware Language Model Pretraining for Chinese Sequence Labeling",
+   "gate": "relevance",
+   "detail": "Tarefa de geração/tradução/QA — embeddings não entram como feature (S1). Tópico OpenAlex: Topic Modeling (Artificial Intelligence); venue h-index=252; 14 citações."
+  },
+  {
+   "title": "COVID-19 Outbreak Prediction with Machine Learning",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: COVID-19 epidemiological studies (Modeling and Simulation); venue h-index=76; 427 citações."
+  },
+  {
+   "title": "Deep learning for fake news detection: A comprehensive survey",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=31; 185 citações."
+  },
+  {
+   "title": "Deep Learning for Intelligent Assessment of Financial Investment Risk Prediction",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Evaluation and Optimization Models (Safety, Risk, Reliability and Quality); venue h-index=115; 22 citações."
+  },
+  {
+   "title": "Deep Dive into Fake News Detection: Feature-Centric Classification with Ensemble and Deep Learning Methods",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=76; 23 citações."
+  },
+  {
+   "title": "CEL: A Continual Learning Model for Disease Outbreak Prediction by Leveraging Domain Adaptation via Elastic Weight Consolidation",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Domain Adaptation and Few-Shot Learning (Artificial Intelligence); venue h-index=50; 23 citações."
+  },
+  {
+   "title": "Outbreak COVID-19 in Medical Image Processing Using Deep Learning: A State-of-the-Art Review",
+   "gate": "relevance",
+   "detail": "Embeddings de imagem/visão — fora do escopo (S1-S3 são texto). Tópico OpenAlex: COVID-19 diagnosis using AI (Radiology, Nuclear Medicine and Imaging); venue h-index=153; 12 citações."
+  },
+  {
+   "title": "Early Prediction of the 2019 Novel Coronavirus Outbreak in the Mainland China Based on Simple Mathematical Model",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: COVID-19 epidemiological studies (Modeling and Simulation); venue h-index=378; 223 citações."
+  },
+  {
+   "title": "An Overview of Machine Learning, Deep Learning, and Reinforcement Learning-Based Techniques in Quantitative Finance: Recent Progress and Challenges",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Stock Market Forecasting Methods (Management Science and Operations Research); venue h-index=229; 210 citações."
+  },
+  {
+   "title": "Misinformation and Public Health Messaging in the Early Stages of the Mpox Outbreak: Mapping the Twitter Narrative With Deep Learning",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=286; 66 citações."
+  },
+  {
+   "title": "Meta-Heuristic Optimization of LSTM-Based Deep Network for Boosting the Prediction of Monkeypox Cases",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Stock Market Forecasting Methods (Management Science and Operations Research); venue h-index=113; 95 citações."
+  },
+  {
+   "title": "Deep Learning applications for COVID-19",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: COVID-19 diagnosis using AI (Radiology, Nuclear Medicine and Imaging); venue h-index=124; 349 citações."
+  },
+  {
+   "title": "A cooperative deep learning model for fake news detection in online social networks",
+   "gate": "relevance",
+   "detail": "Detecção de desinformação — classificação supervisionada de notícia (tarefa-alvo específica, fora do escopo). Tópico OpenAlex: Misinformation and Its Impacts (Sociology and Political Science); venue h-index=116; 37 citações."
+  },
+  {
+   "title": "AI-Driven Tools for Coronavirus Outbreak: Need of Active Learning and Cross-Population Train/Test Models on Multitudinal/Multimodal Data",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: COVID-19 diagnosis using AI (Radiology, Nuclear Medicine and Imaging); venue h-index=143; 340 citações."
+  },
+  {
+   "title": "Machine learning in handling disease outbreaks: a comprehensive review",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Data-Driven Disease Surveillance (Epidemiology); venue h-index=42; 13 citações."
+  },
+  {
+   "title": "An Outlook for Deep Learning in Ecosystem Science",
+   "gate": "relevance",
+   "detail": "Sem relação com as três frentes do escopo (encoder-como-feature, pooling/normalização, notícia/PT). Tópico OpenAlex: Artificial Intelligence Applications (Artificial Intelligence); venue h-index=206; 62 citações."
+  },
+  {
+   "title": "Dengue Early Warning System and Outbreak Prediction Tool in Bangladesh Using Interpretable Tree‐Based Machine Learning Model",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Mosquito-borne diseases and control (Public Health, Environmental and Occupational Health); venue h-index=46; 22 citações."
+  },
+  {
+   "title": "WaveSeekerNet: accurate prediction of influenza A virus subtypes and host source using attention-based deep learning",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Influenza Virus Research Studies (Epidemiology); venue h-index=134; 3 citações."
+  },
+  {
+   "title": "Transforming clinical virology with AI, machine learning and deep learning: a comprehensive review and outlook",
+   "gate": "relevance",
+   "detail": "Vigilância/epidemiologia ou clínica; o embedding de texto não entra como feature (S1) nem é o recorte de notícia/PT. Tópico OpenAlex: Artificial Intelligence in Healthcare and Education (Health Informatics); venue h-index=43; 67 citações."
+  }
+ ]
+}

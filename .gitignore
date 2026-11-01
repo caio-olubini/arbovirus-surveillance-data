@@ -43,8 +43,11 @@ data/pipeline/news/
 # Final outputs (large)
 data/epidemiological/Arbo_SARI_disease_table.csv
 
-# Literature PDFs (keep articles/README.md)
-articles/*.pdf
+# Literature PDFs (keep articles/README.md and articles/**/references.csv)
+# `**/` casa zero ou mais diretórios, então cobre articles/foo.pdf E
+# articles/<tema>/foo.pdf. O antigo `articles/*.pdf` não atravessava `/`: sem
+# esta linha, os PDFs que o reference-research baixa por tema entram no git.
+articles/**/*.pdf
 
 # Runtime logs / local certs
 logs/
