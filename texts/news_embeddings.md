@@ -121,10 +121,12 @@ undocumented, so protocol 00's temporal validation is what decides how far their
 numbers can be trusted.
 
 The content axis reads weak in the base configuration. The leading component of
-the national weekly means explains 20.8% of its own variance and correlates +0.119
-with weekly cases, against +0.347 for the number of articles in the week. Those
-numbers describe one corpus, one configuration and one target series, and they are
-not the protocol comparison — which is the reason the bracket exists, and the
-reason the comparison carries a shuffled-text control. They fix the question it has
-to answer: whether a dense reading of the news earns its dimensions over counting
-the articles that carry it.
+the national weekly means explains 20.9% of its own variance and correlates 0.105
+with weekly cases, against 0.297 for the number of articles in the week. The
+coefficient is a magnitude rather than a signed value, because a principal
+component's sign is unidentifiable — negating it leaves the component unchanged —
+and so is not comparable across configurations. Those numbers describe one corpus,
+one configuration and one target series, and they are not the protocol comparison —
+which is the reason the bracket exists, and the reason the comparison carries a
+shuffled-text control. They fix the question it has to answer: whether a dense
+reading of the news earns its dimensions over counting the articles that carry it.

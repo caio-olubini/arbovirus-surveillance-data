@@ -103,37 +103,44 @@ As seis configurações rodaram sobre o mesmo corpus congelado (92,1 min de CPU,
 de downloads). Todas viram os mesmos 4.369 artigos e produzem as mesmas 5.152 linhas
 em 965 semanas × 28 localidades — o chão comum resistiu a seis encoders diferentes.
 
-Nos 481 semanas nacionais com série de casos, o componente principal (PC1) das
+Nos 479 semanas nacionais com série de casos, o componente principal (PC1) das
 médias semanais de cada configuração correlaciona (Spearman) assim:
 
-| configuração | PC1 explica | PC1 × casos | `n_articles` × casos |
+| configuração | PC1 explica | \|PC1 × casos\| | `n_articles` × casos |
 |---|---|---|---|
-| `bertimbau-mean` | 20,8% | +0,119 | +0,347 |
-| `bertimbau-whitening` | 1,1% | +0,188 | +0,347 |
-| `e5-large` | 6,9% | +0,243 | +0,347 |
-| `bge-m3` | 7,8% | +0,282 | +0,347 |
-| `title-only` | 9,8% | +0,178 | +0,347 |
-| `serafim-title` | 7,6% | +0,219 | +0,347 |
+| `bertimbau-mean` | 20,9% | 0,105 | +0,297 |
+| `bertimbau-whitening` | 1,1% | 0,113 | +0,297 |
+| `e5-large` | 6,9% | 0,219 | +0,297 |
+| `bge-m3` | 7,8% | 0,291 | +0,297 |
+| `title-only` | 9,8% | 0,156 | +0,297 |
+| `serafim-title` | 7,6% | 0,196 | +0,297 |
+
+O alvo é a série de casos **suspeitos** do SINAN — toda notificação menos as
+descartadas depois de investigação, `pipeline.sinan.cases.weekly_cases`. A coluna do
+PC1 é magnitude, não valor com sinal: o sinal de um componente principal é
+indeterminado (inverter o vetor devolve o mesmo componente), então ele não é
+propriedade da representação e não se compara entre configurações.
 
 Quatro leituras:
 
-1. **A faixa é de 2,4× e nenhuma alcança a contagem.** "Embeddings densos
-   correlacionam +0,12 com casos" teria sido uma frase sobre o BERTimbau com média
-   mascarada, não sobre embeddings densos. O `n_articles` (+0,347) é a mesma coluna
+1. **A faixa é de 2,8× e nenhuma alcança a contagem.** "Embeddings densos
+   correlacionam 0,10 com casos" teria sido uma frase sobre o BERTimbau com média
+   mascarada, não sobre embeddings densos. O `n_articles` (+0,297) é a mesma coluna
    em toda linha — é o `news_volume` do braço 01 com outro nome.
-2. **Ler o corpo atrapalhou.** `title-only` (+0,178) bate a base de texto completo
-   (+0,119) sem truncar nada: o título mais longo tem 35 tokens. A janela de 512
+2. **Ler o corpo atrapalhou.** `title-only` (0,156) bate a base de texto completo
+   (0,105) sem truncar nada: o título mais longo tem 35 tokens. A janela de 512
    não é o que limita a base, então a desculpa usual ("os artigos são longos
    demais") não está disponível aqui.
 3. **O branqueamento consertou a geometria, não a correlação.** O cosseno médio
    entre pares cai de +0,8792 para −0,0002 (amostra de 1.000 artigos) — o cone
    some, como [Ethayarajh 2019](https://doi.org/10.18653/v1/D19-1006) descreve. Mas
-   espalhar a variância remove também a direção dominante: o PC1 cai de 20,8% para
+   espalhar a variância remove também a direção dominante: o PC1 cai de 20,9% para
    1,1% da variância. Um único escalar é o instrumento errado para essa
    configuração.
-4. **O PC1 do braço 03 (+0,320) bate todas as configurações do braço 02**, e o
-   `news_severity` do braço 01 (+0,308) bate todas menos uma. Nesta métrica
-   descritiva a representação densa é a mais fraca das três, não a mais forte.
+4. **O PC1 do braço 03 (0,291) empata com o topo do braço 02** — o `bge-m3`, 0,291
+   —, e o `news_severity` do braço 01 (0,270) bate todas menos essa. Nesta métrica
+   descritiva a representação densa não ganha de ninguém: tem um topo que empata e
+   uma base (0,105) que perde de tudo.
 
 A leitura incômoda não é "os embeddings perderam": é que as duas configurações que
 mais ganham sobre a base são justamente **as duas cujo corte de pré-treinamento não

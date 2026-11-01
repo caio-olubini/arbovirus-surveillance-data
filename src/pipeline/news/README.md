@@ -349,7 +349,7 @@ the table already carried: measured at a maximum deviation of **1.6e-06** over t
 is the "59.8% undefined" read from the other side. No scalar dispersion of unit
 vectors escapes this — mean pairwise cosine distance is 1 − ‖m‖² too — so the column
 was deleted rather than repaired, and the dispersion hypothesis is now read as
-absorbed by the mean. Its reported +0.233 correlation with cases was largely volume
+absorbed by the mean. Its reported +0.187 correlation with cases was largely volume
 in disguise: `corr(n_articles, emb_std) = +0.432` on the real tables.
 
 ### Measured output
@@ -380,35 +380,44 @@ because it separates the configurations at a glance — the whitened variant dro
 
 ### Does the bracket change the answer?
 
-This is the reason the bracket exists. On the same 481 national weeks with a
+This is the reason the bracket exists. On the same 479 national weeks with a
 matching case series, the leading component of each configuration's weekly means
 correlates with weekly cases as follows (Spearman):
 
-| variant | PC1 explains | PC1 vs cases | `n_articles` vs cases |
+| variant | PC1 explains | \|PC1 vs cases\| | `n_articles` vs cases |
 |---|---|---|---|
-| `bertimbau-mean` | 20.8% | +0.119 | +0.347 |
-| `bertimbau-whitening` | 1.1% | +0.188 | +0.347 |
-| `e5-large` | 6.9% | +0.243 | +0.347 |
-| `bge-m3` | 7.8% | +0.282 | +0.347 |
-| `title-only` | 9.8% | +0.178 | +0.347 |
-| `serafim-title` | 7.6% | +0.219 | +0.347 |
+| `bertimbau-mean` | 20.9% | 0.105 | +0.297 |
+| `bertimbau-whitening` | 1.1% | 0.113 | +0.297 |
+| `e5-large` | 6.9% | 0.219 | +0.297 |
+| `bge-m3` | 7.8% | 0.291 | +0.297 |
+| `title-only` | 9.8% | 0.156 | +0.297 |
+| `serafim-title` | 7.6% | 0.196 | +0.297 |
+
+Cases are the dengue **suspected** series — every SINAN notification except the ones
+ruled out after investigation — built by `pipeline.sinan.cases.weekly_cases`, the
+one definition every braço calls. The column is a magnitude rather than a signed
+coefficient because a principal component's sign is unidentifiable: negating it
+leaves the component unchanged, so the direction the SVD happens to return is not a
+property of the representation and cannot be compared across variants. It is not a
+small distinction here — under the same target series five of the six configurations
+come back negative, which is an artifact of the decomposition and not a finding.
 
 Three readings, and the first is the one that matters:
 
-1. **The spread is 2.4×, and none of it reaches the count.** "Dense embeddings
-   correlate +0.12 with cases" would have been a statement about BERTimbau with
-   masked mean, not about dense embeddings: BGE-M3 nearly doubles it. A single
+1. **The spread is 2.8×, and none of it reaches the count.** "Dense embeddings
+   correlate 0.10 with cases" would have been a statement about BERTimbau with
+   masked mean, not about dense embeddings: BGE-M3 nearly triples it. A single
    configuration could not have told the two apart. And the count of articles in
-   the week (+0.347) still beats every one of them — braço 01's `news_volume` under
+   the week (+0.297) still beats every one of them — braço 01's `news_volume` under
    another name.
-2. **Reading the body *hurt*.** `title-only` (+0.178) beats the full-text base
-   (+0.119) while truncating nothing at all. The 512-token window is therefore not
+2. **Reading the body *hurt*.** `title-only` (0.156) beats the full-text base
+   (0.105) while truncating nothing at all. The 512-token window is therefore not
    what limits the base configuration, and "the articles are too long" is not
    available as an explanation.
 3. **Whitening does what it says to the geometry and not much to the correlation.**
    Mean pairwise cosine over a 1,000-article sample falls from **+0.8792** to
    **−0.0002** — the cone is gone. But spreading the variance evenly also removes
-   the dominant direction, so PC1 drops to 1.1% of the variance and its +0.188 is
+   the dominant direction, so PC1 drops to 1.1% of the variance and its 0.113 is
    the correlation of a direction that is no longer a summary of anything. This is
    the clearest case in the bracket where a single scalar reading is the wrong
    instrument.
@@ -426,7 +435,7 @@ predictive value.
    163-character era-C note both become one vector, and only that column says which
    of them was cut. `serafim-title` truncates far more and is declared as such.
 2. **No configuration's content axis beats the count of articles.** The bracket's
-   range is +0.119 to +0.282 against `n_articles`' +0.347, so the best dense
+   range is 0.105 to 0.291 against `n_articles`' +0.297, so the best dense
    configuration still loses to braço 01's `news_volume` on this descriptive
    metric. That is the pattern [Tan 2024](https://arxiv.org/abs/2406.16964)
    predicts, and the reason protocol 00 mandates a shuffled-text negative control.
