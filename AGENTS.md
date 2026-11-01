@@ -48,12 +48,20 @@ arbovirus-surveillance-data/
 │   ├── google_trends/
 │   │   ├── GoogleTrends_search.csv       ← 5-year weekly search index, 27 UF + BR (~6.4 MB)
 │   │   ├── GoogleTrends_search_EW.*      ← transform gtrends output (216,720 rows) ✓ complete
-│   │   ├── GoogleTrends_related_topic.csv← monthly related topics 2020+ (PARTIAL)
-│   │   ├── GoogleTrends_related_query.csv← monthly related queries 2020+ (PARTIAL)
-│   │   ├── GoogleTrends_related_*_monthly.* ← transform gt-related outputs (near-empty while partial)
+│   │   ├── GoogleTrends_related_topic.csv← monthly related topics 2020+ (OUR extract; PARTIAL, all-blank)
+│   │   ├── GoogleTrends_related_query.csv← monthly related queries 2020+ (OUR extract; PARTIAL)
+│   │   ├── GoogleTrends_related_*_monthly.* ← transform gt-related outputs (seed + our extract, `source` column)
 │   │   ├── popular_terms.csv             ← controlled vocabulary: diseases + symptoms in PT
 │   │   ├── manifest_search.csv           ← extraction progress log (840 requests, complete)
 │   │   └── manifest_related.csv          ← extraction progress log (resumable, partial)
+│   │
+│   ├── external/
+│   │   └── zenodo_17102575/              ← FROZEN SEED: Borges et al. published dataset (CC BY 4.0)
+│   │       ├── GoogleTrends_related_{topic,query}.csv ← 4 diseases × 28 geos, 2020-01..2025-03
+│   │       ├── Arbo_SARI_disease_table.csv            ← final merged panel (2009-04..2025-03)
+│   │       ├── SIVEP_cases.csv.gz / SINAN_chik_cases.csv.gz
+│   │       ├── README.md                 ← provenance, checksums, caveats — read before use
+│   │       └── checksums.sha256          ← immutable; never point a collector out_dir here
 │   │
 │   ├── climate/
 │   │   ├── br_municipalities.csv         ← IBGE mun→UF + pop + centroids (committed)
@@ -169,10 +177,11 @@ What is actually on disk versus configured. Re-verify before quoting numbers.
 | `SINAN_dengue_cases.parquet` (+ `.csv.gz`) | ✅ **ready** | 595,061 rows, 13 files (2014–2026), weeks 2013-07-28 → 2026-08-30, 17.5 s. 2026 is a partial year. 2010–2013 not downloaded. |
 | `ERA5_UF_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 18,036 rows, 666 epi-weeks (2013-12-29 → 2026-09-27), 27 UFs, `source` ∈ {zenodo, arco}. ~17 GB of raw ERA5 on disk. |
 | `GoogleTrends_search_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 216,720 rows, 258 weeks (2020-01-26 → 2024-12-29), 27 UF + BR. 840/840 requests `ok`. |
-| `GoogleTrends_related_*_monthly.*` | ⚠️ **partial** | ~1.2k of ~18.1k requests (≈7%). Only *Dengue* reached; 15 of 28 geos started. Topic titles come back empty, so the topics product is 0 rows until Google returns data. |
-| `Arbo_SARI_disease_table.csv` | ❌ **absent** | R merge (`4_prepare_final_disease_table.R`) never run. |
-| SIVEP / SARI | ❌ **absent** | No `data/epidemiological/SIVEP/`, no Python collector. R-only (`2_1_transform_sivep_data.R`). |
-| Chikungunya | ❌ **absent** | Parameterised in `spec.py`; no `CHIKBR*` files and no collector. |
+| `GoogleTrends_related_*_monthly.*` | ✅ **ready (two sources)** | Built by concatenating the frozen seed with our own extract; every row carries `source` ∈ {`zenodo`, `pytrends`} and the seed wins on overlap. Our extract alone is still partial (~20%, only *Dengue*, 23 of 28 geos — SC/SE/SP/TO/BR missing) and its related-*topics* requests return blank titles for every request, so the seed is the only topic data. Re-run `transform gt-related` as `gt-related` collection progresses. |
+| Frozen seed `data/external/zenodo_17102575/` | ✅ **ready** | Borges et al. published dataset (Zenodo, CC BY 4.0, 2025-09-11). Supplies `GoogleTrends_related_{topic,query}` (4 diseases × 28 geos, 2020-01..2025-03), `Arbo_SARI_disease_table.csv`, `SIVEP_cases.csv.gz`, `SINAN_chik_cases.csv.gz`. Immutable — read its README before use. |
+| `Arbo_SARI_disease_table.csv` | 🟡 **in seed only** | The published panel (23,268 rows, 831 weeks, 2009-04-19 → 2025-03-16) is on disk under `data/external/`, but the R merge that builds it here (`4_prepare_final_disease_table.R`) still has not been run. |
+| SIVEP / SARI | 🟡 **in seed only** | No `data/epidemiological/SIVEP/`, no Python collector (R-only, `2_1_transform_sivep_data.R`). The published `SIVEP_cases.csv.gz` is in the seed. |
+| Chikungunya | 🟡 **in seed only** | Parameterised in `spec.py`; no `CHIKBR*` files and no collector. The published `SINAN_chik_cases.csv.gz` is in the seed (note: 34% of its rows have no `ew_recorded`). |
 | INMET station ZIPs | ❌ **absent** | Optional; not an input to `transform climate`. |
 | Bulletins | 🟡 raw | 204 PDFs, 2019–2026. No text extraction. |
 | EBC news (raw) | 🟡 raw | 4,569 article HTML files for query `dengue`. |
@@ -238,16 +247,34 @@ the same two variables, or it will fail the same way.
   - Resumable: manifest tracks progress, safe to re-run
 
 ### 3. Google Trends — Related Topics & Queries
-- **Source**: pytrends `related_topics()` and `related_queries()`
+- **Source**: pytrends `related_topics()` and `related_queries()`, **plus** the frozen seed (see below)
 - **Coverage**: Monthly from 2020-01 to present (window grows monthly; 81 months as of 2026-10)
 - **Scope**: 27 UFs + BR, diseases (dengue, chikungunya, influenza, COVID-19). Iterated disease-first, so all of Dengue completes before Chikungunya starts.
-- **Output**: `GoogleTrends_related_topic.csv` + `GoogleTrends_related_query.csv` — **both tiny/partial in this checkout** (~1.2k of ~18.1k requests, ≈7%; only Dengue, 15 of 28 geos)
+- **Output**: `GoogleTrends_related_topic.csv` + `GoogleTrends_related_query.csv` (our extract, still partial) → `GoogleTrends_related_*_monthly.*`, which concatenates our extract with the seed
+- **Two sources, one table.** `transform gt-related` reads both our extract and
+  `data/external/zenodo_17102575/` (the published Borges et al. dataset), tags
+  every row with a `source` column, and keeps **one row per group key with the
+  seed winning** (`spec.SOURCE_PRECEDENCE`). The seed covers 4 diseases × 28
+  geos for 2020-01..2025-03; our extractor covers only the tail. Because the two
+  used different clients (R `gtrendsAPI` vs pytrends), they disagree — over the
+  8,476 shared keys, 63% match exactly and the median difference is 1 point in
+  100. Consequence to disclose in the paper: **the Dengue series changes client
+  at 2025-04**. `--no-seed` uses our extract alone.
 - **Concerns**:
-  - ~18,100 HTTP requests total (4 diseases × 28 geos × 81 months × 2 types); 5s sleep ≈ **25 h runtime**, and it grows every month
+  - Our own extractor would need ~18,100 requests (4 diseases × 28 geos × 81
+    months × 2 types) at 5s sleep ≈ **25 h**, and it grows every month. Because
+    the seed covers 2020-01..2025-03, `sources.gt_related.start_month` is set to
+    **`2025-04`** — do not revert it without also removing the seed, or the
+    collector will spend ~15 h re-fetching months already held.
   - Highly resumable — saves after every successful request; safe to interrupt
   - HTTP 429 triggers a full save + graceful exit; restart from where it left off (use `scripts/resume_gt_related.sh`)
-  - Related *topics* have returned empty titles for every request so far, so the topics product is 0 rows until Google serves data; *queries* is the useful signal
+  - Related *topics* have returned empty titles for **every** request our
+    extractor has made (verified again 2026-11-01), so the seed is the only
+    source of topic data in the project; *queries* is the useful signal from ours
   - Needs the TLS trust-store workaround (see **Checkout State**) or every request fails with `CERTIFICATE_VERIFY_FAILED`
+  - The seed is the only place the related-topics product exists at all; if the
+    `topics` table comes out empty, the seed path in `config.yml` is wrong or the
+    seed was removed
 
 ### 4. Climate — ERA5 family (Zenodo → ARCO → CDS) + INMET (optional)
 - **Primary (fastest)**: Zenodo ERA5-Land municipality daily parquets (HTTP, no key)

@@ -21,7 +21,12 @@ Research paths live in [`notes/`](./notes/), manuscript drafts in
 
 **Collection** — every source has a collector, but two are not fully on disk in
 this checkout: SIVEP-Gripe is absent (R-only, no Python collector) and the
-Google Trends *related* extract is ~7% complete. See
+Google Trends *related* extract is still filling in. The published dataset of
+Borges et al. (Zenodo, CC BY 4.0) is kept as a **frozen seed** under
+`data/external/zenodo_17102575/` and supplies what the collectors do not — it
+carries the related topics and queries for all four diseases across all 28
+locations, plus SIVEP, chikungunya and the final merged panel. The `gt-related`
+transform concatenates it with our own extract. See
 [Concerns per source](#concerns-per-source).
 
 **Transforms** (`uv run arboili transform …`), with the products on disk today:
@@ -31,7 +36,7 @@ Google Trends *related* extract is ~7% complete. See
 | `sinan` | weekly case series — 595,061 rows, 2013-07-28 → 2026-08-30 | ✅ ready |
 | `climate` | UF × epi-week features — 18,036 rows, 666 weeks, 27 UFs | ✅ ready |
 | `gtrends` | EW-keyed search index — 216,720 rows, 258 weeks | ✅ ready |
-| `gt-related` | monthly related topics/queries | 🟡 partial (~7% collected) |
+| `gt-related` | monthly related topics/queries — our extract **concatenated with the frozen Zenodo seed**, `source` column | ✅ ready |
 | `news-text` | frozen news corpus — 4,569 articles, 973 weeks | ✅ ready |
 | `news-lexicon` | braço 01 features — 5,152 rows, 965 weeks × 28 locations | ✅ ready |
 | `news-embeddings` | braço 02 — dense embeddings, a bracket of 6 configurations — 5,152 rows each, 965 weeks × 28 locations | ✅ ready |

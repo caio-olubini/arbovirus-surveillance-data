@@ -41,10 +41,18 @@ sources:
     sleep: 2.0                   # seconds between requests; raise if you hit HTTP 429
 
   # 3 — Google Trends related topics & queries, monthly, 27 UFs + BR.
-  # ~13,400 requests ≈ 18 h at sleep=5. Resumable via manifest_related.csv.
+  # Resumable via manifest_related.csv.
+  #
+  # start_month is 2025-04, not 2020-01: the frozen seed at
+  # data/external/zenodo_17102575/ already carries all 4 diseases × 28 geos for
+  # 2020-01..2025-03, so re-fetching that span would spend ~11k requests (~15 h)
+  # reproducing values we already hold — and, because the seed came from a
+  # different client (R gtrendsAPI vs pytrends), would risk a needless
+  # divergence from the published numbers. This extractor's job is the tail
+  # the seed does not cover. See the seed's README.
   gt_related:
     out_dir: data/google_trends
-    start_month: "2020-01"
+    start_month: "2025-04"
     sleep: 5.0
 
   # 4 — Climate (ERA5 family). Fastest path first:
@@ -133,9 +141,16 @@ pipeline:
     formats: [parquet, csv_gz]
 
   # Google Trends related topics/queries — monthly grain (partial extracts OK).
+  # The transform concatenates two inputs per table: this repo's own extract and
+  # the frozen seed (Borges et al., Zenodo 10.5281/zenodo.17102575). They overlap
+  # on Dengue for 2020-01..2025-03, where the seed wins, so the table matches the
+  # published dataset across the span the published dataset covers and our
+  # extractor supplies only the tail. Pass --no-seed to use our extract alone.
   gt_related:
     topics_path: data/google_trends/GoogleTrends_related_topic.csv
     queries_path: data/google_trends/GoogleTrends_related_query.csv
+    seed_topics_path: data/external/zenodo_17102575/GoogleTrends_related_topic.csv
+    seed_queries_path: data/external/zenodo_17102575/GoogleTrends_related_query.csv
     out_dir: data/google_trends
     keep_br: true
     drop_empty_related: true    # drop placeholder rows with blank related_title

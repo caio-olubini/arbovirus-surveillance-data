@@ -232,12 +232,21 @@ def run_transform_gtrends(cfg: Config, args: Namespace) -> "GTrendsTransformResu
 
 
 def run_transform_gt_related(cfg: Config, args: Namespace) -> "GTrendsRelatedTransformResult":
-    """Thin reshape of monthly related topics/queries (works on partial extracts)."""
+    """Thin reshape of monthly related topics/queries (works on partial extracts).
+
+    Concatenates the frozen Zenodo seed with this repo's own extractor output.
+    The two overlap on Dengue for the months the seed covers; on those keys the
+    seed wins (``spec.SOURCE_PRECEDENCE``), so the table agrees with the
+    published dataset wherever the published dataset reaches.
+    """
     from ..pipeline.google_trends import transform_related
+    from ..pipeline.google_trends.related_steps import RelatedSource
+    from ..pipeline.google_trends.spec import SOURCE_EXTRACT, SOURCE_SEED
 
     settings = cfg.pipeline("gt_related")
     default_topics = "data/google_trends/GoogleTrends_related_topic.csv"
     default_queries = "data/google_trends/GoogleTrends_related_query.csv"
+    default_seed_dir = "data/external/zenodo_17102575"
     default_out = "data/google_trends"
     keep_br = pick(getattr(args, "keep_br", None), settings.get("keep_br"), True)
     if getattr(args, "drop_br", False):
@@ -252,9 +261,39 @@ def run_transform_gt_related(cfg: Config, args: Namespace) -> "GTrendsRelatedTra
     queries = cfg.resolve(
         pick(args.queries_path, settings.get("queries_path"), default_queries)
     )
+
+    topic_sources = [RelatedSource(topics, SOURCE_EXTRACT)]
+    query_sources = [RelatedSource(queries, SOURCE_EXTRACT)]
+
+    if not getattr(args, "no_seed", False):
+        topic_sources.append(
+            RelatedSource(
+                cfg.resolve(
+                    pick(
+                        getattr(args, "seed_topics_path", None),
+                        settings.get("seed_topics_path"),
+                        f"{default_seed_dir}/GoogleTrends_related_topic.csv",
+                    )
+                ),
+                SOURCE_SEED,
+            )
+        )
+        query_sources.append(
+            RelatedSource(
+                cfg.resolve(
+                    pick(
+                        getattr(args, "seed_queries_path", None),
+                        settings.get("seed_queries_path"),
+                        f"{default_seed_dir}/GoogleTrends_related_query.csv",
+                    )
+                ),
+                SOURCE_SEED,
+            )
+        )
+
     return transform_related(
-        topics_path=topics,
-        queries_path=queries,
+        topic_sources=topic_sources,
+        query_sources=query_sources,
         out_dir=cfg.resolve(pick(args.output_dir, settings.get("out_dir"), default_out)),
         keep_br=bool(keep_br),
         drop_empty=bool(drop_empty),
@@ -566,6 +605,12 @@ def build_parser() -> argparse.ArgumentParser:
                           help="Path to GoogleTrends_related_topic.csv")
     p_tf_gtr.add_argument("--queries-path", type=Path,
                           help="Path to GoogleTrends_related_query.csv")
+    p_tf_gtr.add_argument("--seed-topics-path", type=Path,
+                          help="Frozen-seed related topics CSV (concatenated; wins on overlap)")
+    p_tf_gtr.add_argument("--seed-queries-path", type=Path,
+                          help="Frozen-seed related queries CSV (concatenated; wins on overlap)")
+    p_tf_gtr.add_argument("--no-seed", action="store_true",
+                          help="Ignore the frozen seed; transform our own extract only")
     p_tf_gtr.add_argument("--output-dir", type=Path, help="Where to write monthly related outputs")
     p_tf_gtr.add_argument("--drop-br", action="store_true",
                           help="Drop national BR rows (default: keep them)")

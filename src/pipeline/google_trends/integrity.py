@@ -17,6 +17,8 @@ from .spec import (
     QUERY_GROUP_KEYS,
     QUERY_OUTPUT_COLUMNS,
     RELATED_TITLE,
+    SOURCE,
+    SOURCE_PRECEDENCE,
     STATE_ABBREV,
     TOPIC_GROUP_KEYS,
     TOPIC_OUTPUT_COLUMNS,
@@ -149,6 +151,27 @@ def check_related_titles_present(series: pl.DataFrame) -> Check:
     return Check("related_titles", False, f"{bad:,} blank related_title rows")
 
 
+def check_related_sources(series: pl.DataFrame) -> Check:
+    """Every row must carry a provenance label the precedence table knows about.
+
+    The tables concatenate the frozen seed and this repo's extractor, so an
+    unlisted label would mean a row whose overlap behaviour is undefined.
+    """
+    if series.height == 0:
+        return Check("sources", True, "0 rows")
+    if SOURCE not in series.columns:
+        return Check("sources", False, f"missing {SOURCE!r} column")
+    unknown = set(series[SOURCE].unique().to_list()) - set(SOURCE_PRECEDENCE)
+    if unknown:
+        return Check("sources", False, f"unlisted source labels: {sorted(unknown)}")
+    counts = series.group_by(SOURCE).len().sort(SOURCE)
+    return Check(
+        "sources",
+        True,
+        ", ".join(f"{name}={count:,}" for name, count in counts.iter_rows()),
+    )
+
+
 def run_all_related(
     series: pl.DataFrame,
     fu_path: Path,
@@ -168,4 +191,5 @@ def run_all_related(
         ),
         check_value_domain(series),
         check_related_titles_present(series),
+        check_related_sources(series),
     ]
