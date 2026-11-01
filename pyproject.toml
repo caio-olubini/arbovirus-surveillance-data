@@ -32,10 +32,14 @@ dependencies = [
     "pyyaml==6.0.2",
     # Notebook runtime
     "ipykernel==7.2.0",
+    "matplotlib>=3.11.2",
 ]
 
 [dependency-groups]
 dev = [
+    "nbclient>=0.11.0",
+    "nbconvert>=7.17.2",
+    "nbformat>=5.11.1",
     "pytest==8.4.2",
 ]
 
