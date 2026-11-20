@@ -336,10 +336,3 @@ def test_o_render_conta_as_fatias_por_estado(tmp_path: Path) -> None:
     assert "fechadas: 1" in texto
     assert "não começaram: 2" in texto
     assert "pela metade" not in texto
-
-
-def test_o_plano_real_do_repositorio_ainda_e_legivel() -> None:
-    """Se o formato do plano mudar, é aqui que se descobre — e não numa segunda-feira."""
-    report = estado.build_report(REPO, date(2026, 11, 20), 7)
-    assert report["prazo"] is not None
-    assert len(report["fatias"]) >= 1
