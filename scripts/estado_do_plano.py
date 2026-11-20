@@ -4,7 +4,7 @@
 O plano (`notes/plano.md`) diz o que fecha em cada semana e qual artefato prova
 que fechou. Este script mede a segunda metade — o artefato existe? está no git? —
 e mede também o resto do repositório: o estado declarado de cada caminho em
-`notes/`, os estágios da régua em `src/forecast/README.md`, as famílias de
+`notes/`, os estágios do avaliador em `src/forecast/README.md`, as famílias de
 literatura em `articles/`, os produtos em `data/`, e o que foi commitado.
 
 POR QUE SCRIPT E NÃO AGENTE. A parte que se mede não pode ser lembrada de
@@ -39,6 +39,7 @@ import json
 import re
 import subprocess
 import sys
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
@@ -100,10 +101,11 @@ class Slice:
         if self.missing:
             return "não existe"
         if self.uncommitted:
-            # O artefato existe e o trabalho ainda não foi landado. O plano diz,
-            # em uma linha, que "trabalho que não foi landado não conta como
-            # progresso" — e a fatia 0 tem isso como conteúdo: ela É landar. Se
-            # o ✅ saísse mesmo assim, a fatia nasceria fechada.
+            # O artefato existe e o trabalho ainda não entrou no git. O plano diz,
+            # em uma linha, que "trabalho que não foi colocado no git não conta
+            # como progresso" — e a semana 0 tem isso como conteúdo: ela É
+            # colocar no git. Se o ✅ saísse mesmo assim, a entrega nasceria
+            # pronta.
             return "no disco, fora do git"
         return "existe"
 
@@ -114,8 +116,14 @@ class Plan:
     slices: list[Slice]
 
     def current(self, today: date) -> Slice | None:
-        """A primeira fatia que ainda não venceu. O que fazer AGORA."""
-        upcoming = [s for s in self.slices if s.due and s.due >= today]
+        """A primeira fatia que ainda não fechou e ainda não venceu. O que fazer AGORA.
+
+        Fatia fechada sai da conta mesmo que a data dela ainda não tenha passado.
+        Sem isso, uma fatia concluída um dia antes do prazo continua sendo
+        anunciada como "próxima" até o prazo vencer — e o relatório manda fazer o
+        que já está feito.
+        """
+        upcoming = [s for s in self.slices if s.due and s.due >= today and s.status != "existe"]
         return upcoming[0] if upcoming else None
 
     def index_of(self, today: date) -> tuple[int, int]:
@@ -187,8 +195,8 @@ def measure_slices(plan: Plan, root: Path) -> None:
 
     A prova aceita duas formas, porque a maioria das fatias não se prova por
     existência. `caminho` prova que o artefato foi produzido; `caminho#marcador`
-    prova que ele diz o que a fatia prometia — o README da régua que passou a
-    descrever o WIS, o plano que passou a citar o piso declarado. Sem a segunda
+    prova que ele diz o que a fatia prometia — o README do avaliador que passou a
+    descrever o WIS, o plano que passou a citar o ganho mínimo declarado. Sem a segunda
     forma, todo documento que já existe apareceria como fatia fechada no dia em
     que foi criado, e a fatia nunca teria como fechar.
 
@@ -249,7 +257,7 @@ def measure_paths(root: Path) -> list[dict[str, object]]:
 
 
 def measure_ruler(root: Path) -> list[dict[str, str]]:
-    """Os estágios da régua, lidos da tabela do próprio README dela.
+    """Os estágios do avaliador, lidos da tabela do próprio README dele.
 
     Duas armadilhas, as duas encontradas rodando isto pela primeira vez:
 
@@ -257,7 +265,7 @@ def measure_ruler(root: Path) -> list[dict[str, str]]:
        o emoji é a leitura, não a fonte.
     2. O mesmo documento tem uma SEGUNDA tabela, de decisões em aberto, também
        com três colunas. Sem parar no fim da primeira, "Horizon" e "Level"
-       entram como se fossem estágios da régua — e uma seção que inventa
+       entram como se fossem estágios do avaliador — e uma seção que inventa
        estágios é uma seção que você aprende a pular.
     """
     rows: list[dict[str, str]] = []
@@ -418,6 +426,19 @@ def render(report: dict[str, object]) -> str:
         if s["nao_commitado"]:
             out.append(f"        no disco e FORA do git: {', '.join(s['nao_commitado'])}")
     proxima = report["proxima_fatia"]
+    contar = Counter(str(s["status"]) for s in fatias)
+    resumo = " · ".join(
+        f"{rotulo}: {contar[chave]}"
+        for chave, rotulo in (
+            ("existe", "fechadas"),
+            ("no disco, fora do git", "no disco e fora do git"),
+            ("parcial", "pela metade"),
+            ("não existe", "não começaram"),
+            ("sem prova declarada", "sem prova declarada"),
+        )
+        if contar[chave]
+    )
+    out.append(f"  {resumo}")
     out.append(f"  → próxima fatia: {proxima if proxima is not None else '(nenhuma no prazo)'}")
 
     out.append("")
@@ -438,7 +459,7 @@ def render(report: dict[str, object]) -> str:
         )
 
     out.append("")
-    out.append(f"RÉGUA ({RULER_DOC})")
+    out.append(f"AVALIADOR ({RULER_DOC}) — a medição de todo modelo")
     for r in regua:
         out.append(f"  {r['estado']}  {r['estagio']}")
 

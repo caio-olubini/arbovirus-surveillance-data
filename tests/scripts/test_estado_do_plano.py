@@ -73,7 +73,7 @@ REGUA = """# Forecast evaluation
 
 
 def _repo(tmp_path: Path) -> Path:
-    """Um repositório mínimo: o plano, a régua, um caminho e as famílias.
+    """Um repositório mínimo: o plano, o avaliador, um caminho e as famílias.
 
     Monta o repositório e NADA MAIS — em particular, não cria artefato nenhum.
     Quem cria artefato é `_touch`, e a separação importa: um helper que monta e
@@ -140,6 +140,19 @@ def test_a_semana_atual_e_a_primeira_que_ainda_nao_venceu(tmp_path: Path) -> Non
     assert report["semana"] == {"atual": 2, "total": 3}
 
 
+def test_fatia_fechada_nao_e_a_proxima(tmp_path: Path) -> None:
+    """O defeito que isto conserta apareceu no plano real.
+
+    A fatia 0 fechou um dia antes do prazo dela e continuou sendo anunciada como
+    "próxima" — o relatório mandava fazer o que já estava feito.
+    """
+    root = _repo(tmp_path)
+    _touch(root, "data/forecast/bar.parquet")  # a fatia 1 fecha; hoje é 2026-11-20
+    report = _report(root)
+    assert _fatia(report, 1)["status"] == "existe"
+    assert report["proxima_fatia"] == 2
+
+
 # --- o que conta como prova --------------------------------------------------
 
 
@@ -179,15 +192,15 @@ def test_prova_parcial_e_parcial_e_nao_existe(tmp_path: Path) -> None:
     assert _fatia(_report(root), 1)["status"] == "parcial"
 
 
-# --- existir não basta: o artefato precisa estar landado ----------------------
+# --- existir não basta: o artefato precisa estar no git -----------------------
 
 
 def test_artefato_no_disco_e_fora_do_git_nao_fecha_a_fatia(tmp_path: Path) -> None:
-    """O caso que criou esta regra: a fatia 0 do plano real É landar o trabalho.
+    """O caso que criou esta regra: a semana 0 do plano real É colocar no git.
 
-    Com ✅ por existência, ela apareceria fechada no dia em que nasceu, listando
+    Com ✅ por existência, ela apareceria pronta no dia em que nasceu, listando
     como prova exatamente os arquivos que ainda estão fora do git — e o relatório
-    diria "fechou" e "está em risco" na mesma linha.
+    diria "ficou pronto" e "está em risco" na mesma linha.
     """
     if shutil.which("git") is None:
         pytest.skip("sem git não há o que medir")
@@ -200,14 +213,14 @@ def test_artefato_no_disco_e_fora_do_git_nao_fecha_a_fatia(tmp_path: Path) -> No
     assert fatia["nao_commitado"] == ["data/forecast/bar.parquet"]
 
 
-def test_artefato_landado_fecha_a_fatia(tmp_path: Path) -> None:
+def test_artefato_no_git_fecha_a_fatia(tmp_path: Path) -> None:
     if shutil.which("git") is None:
         pytest.skip("sem git não há o que medir")
     root = _repo(tmp_path)
     _touch(root, "data/forecast/bar.parquet")
     _git(root, "init", "-q")
     _git(root, "add", "-A")
-    _git(root, "commit", "-qm", "landa")
+    _git(root, "commit", "-qm", "coloca no git")
 
     assert _fatia(_report(root), 1)["status"] == "existe"
 
@@ -274,10 +287,10 @@ def test_a_regua_le_a_palavra_e_nao_so_o_emoji(tmp_path: Path) -> None:
 
 
 def test_a_segunda_tabela_do_documento_nao_vira_estagio(tmp_path: Path) -> None:
-    """O README da régua tem uma tabela de decisões em aberto, também com 3 colunas.
+    """O README do avaliador tem uma tabela de decisões em aberto, também com 3 colunas.
 
     Sem parar no fim da primeira tabela, "Horizon" e "Geography" entram como
-    estágios — e a régua aparece com decisões que ela não tem.
+    estágios — e o avaliador aparece com decisões que ele não tem.
     """
     estagios = [r["estagio"] for r in _report(_repo(tmp_path))["regua"]]
     assert "Horizon" not in estagios
@@ -312,7 +325,17 @@ def test_o_render_sai_e_aponta_a_proxima_fatia(tmp_path: Path) -> None:
     texto = estado.render(_report(_repo(tmp_path)))
     assert "PLANO — notes/plano.md" in texto
     assert "próxima fatia: 1" in texto
-    assert "RÉGUA (src/forecast/README.md)" in texto
+    assert "AVALIADOR (src/forecast/README.md)" in texto
+
+
+def test_o_render_conta_as_fatias_por_estado(tmp_path: Path) -> None:
+    """A visão macro: quantas fecharam, quantas faltam. Sem isso a leitura é fatia a fatia."""
+    root = _repo(tmp_path)
+    _touch(root, "data/forecast/bar.parquet")
+    texto = estado.render(_report(root))
+    assert "fechadas: 1" in texto
+    assert "não começaram: 2" in texto
+    assert "pela metade" not in texto
 
 
 def test_o_plano_real_do_repositorio_ainda_e_legivel() -> None:

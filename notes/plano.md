@@ -1,249 +1,264 @@
-# Plano de entrega — paper de forecasting multimodal
+# Plano de entrega — paper de previsão multimodal
 
-**Entregável:** um paper. O programa não exige dissertação; o texto da dissertação
-não é o produto.
-**Prazo:** 2027-02-19 (13 semanas a partir de 2026-11-20).
-**Pronto significa:** **manuscrito submetível**. Escolha de revista, formatação e
-o processo de submissão ficam fora das 13 semanas.
-**Orçamento:** ~12 h/semana em 2–3 sessões ≈ 150 h, das quais **~110 efetivas** —
-as semanas 5 e 6 caem em Natal e Ano Novo, e este plano as trata como meio
-período em vez de fingir que rendem uma semana cheia.
-**Snapshot:** 2026-11-20.
+**O que fica pronto:** um paper. O programa não exige dissertação.
+**Prazo:** 2027-02-19, que são 13 semanas a partir de 2026-11-20.
+**Pronto quer dizer:** manuscrito pronto para submeter. Escolher a revista,
+formatar e submeter ficam fora dessas 13 semanas.
+**Tempo disponível:** cerca de 12 h por semana, em 2 ou 3 sessões. As semanas 5 e 6
+caem no Natal e no Ano Novo, então este plano as trata como meio período, e não
+como se rendessem uma semana cheia.
+**Data desta versão:** 2026-11-20.
 
-Os caminhos em [00](00-protocolo-comparacao.md)–[05](05-llm-forecaster.md) dizem o
-**estado** de cada frente. Este arquivo diz **quando**. Se os dois discordarem, o
-estado é o fato e este plano está desatualizado — conserte este.
+Os arquivos [00](00-protocolo-comparacao.md) a [05](05-llm-forecaster.md) dizem em
+que **estado** está cada frente de pesquisa. Este arquivo diz **quando** cada uma
+entra. Se os dois discordarem, o estado é o fato e este plano está desatualizado.
 
-Rode `uv run python scripts/estado_do_plano.py` antes de mexer aqui. O plano é
-**regerado** da medição, não digitado de memória; a skill `plano-entrega` é quem
-faz o laço.
+Antes de mexer aqui, rode `uv run python scripts/estado_do_plano.py`. O plano é
+reescrito a partir dessa medição, não de memória — a skill `plano-entrega` faz
+esse ciclo toda semana.
 
 ---
 
-## 1. A afirmação do paper
+## 0. Visão macro
 
-> **Existe sinal relevante nas features multimodais propostas, e quais valem a
-> pena incluir** — medido contra abordagens mais simples, sob o mesmo alvo e as
-> mesmas métricas.
+Medido em **2026-11-20** por `scripts/estado_do_plano.py`, que é quem decide o que
+existe no disco e no git. A skill reescreve esta seção a cada semana, da mesma
+medição que reescreve a tabela do §7.
 
-**A notícia não é o assunto.** Ela é uma instância de feature multimodal — o
-mecanismo pelo qual a pergunta é respondida. O mesmo vale para os boletins. Um
-texto que se anuncie como "notícia prevê dengue" está respondendo outra pergunta,
-e é a que a revisão derruba primeiro.
+**Fechadas: 1 das 14.** A fatia 0 — colocar no git o que já existe. Fechou um dia
+antes do prazo.
 
-A lacuna que isso cobre está medida em duas frentes da própria literatura lida:
+**Pela metade: 1.** A fatia 1, o levantamento de literatura. A nota
+[06](06-desenho-do-experimento.md) existe e ainda está fora do git, e a revisão do
+protocolo 00 que tira clima e busca das condições fixas não foi escrita.
 
-- A ponte entre a literatura de representação (ganho medido em similaridade
-  intrínseca, em inglês, sobre pares de frases curtas) e a de vigilância (que
-  reduz notícia a contagem e quase nunca compara contra um baseline sem texto)
-  **não foi construída** — [articles/embeddings/relatorio.md:71](../articles/embeddings/relatorio.md).
-- **Nenhum trabalho liga o texto a um alvo preditivo**: "a extração é sempre por
-  documento, nunca como série" — [articles/llm-extracao/relatorio.md:113](../articles/llm-extracao/relatorio.md).
+**Não começaram: 12.** As fatias 2 a 13, na ordem da tabela do §7. Cada uma existe
+porque a anterior fechou, e a ordem não é preferência: começar pela 9 sem ter a 3
+não produz nada.
 
-## 2. Desenho: a escada dupla
+**Agora:** a fatia 1, que fecha em 2026-11-27.
 
-Famílias de modelo × degraus de feature. A grade responde a pergunta porque separa
-**o efeito da feature** do **efeito da arquitetura** — sem as duas famílias, um
-ganho que só aparece na rede neural não distingue uma coisa da outra.
+## 1. A pergunta do paper
 
-| Degrau | O que entra |
+> As features multimodais propostas carregam sinal relevante? Quais delas valem a
+> pena incluir?
+
+A comparação é sempre contra uma abordagem mais simples, com o mesmo alvo e as
+mesmas métricas.
+
+**A notícia não é o assunto do paper.** Ela é uma das features multimodais — o
+meio de responder à pergunta, não a pergunta. O mesmo vale para os boletins do
+Ministério da Saúde. Um texto que se apresente como "notícia prevê dengue" está
+respondendo outra pergunta, e é a primeira que uma revisão derruba.
+
+A lacuna que isso cobre está medida na própria literatura já fichada neste
+repositório:
+
+- O texto é sempre extraído por documento, nunca como série ao longo do tempo —
+  [articles/llm-extracao/relatorio.md:113](../articles/llm-extracao/relatorio.md).
+- Nada liga a qualidade de uma representação de texto a um alvo de previsão: os
+  ganhos medidos são de similaridade entre frases curtas, em inglês —
+  [articles/embeddings/relatorio.md:71](../articles/embeddings/relatorio.md).
+
+## 2. O desenho do experimento
+
+Dois eixos, e só eles variam entre as comparações.
+
+**Tipo de modelo** — dois: *simples* (gradient boosting ou regressão sobre
+features tabulares) e *sequencial* (rede neural).
+
+**Conjunto de features** — quatro, cada um somando um bloco ao anterior:
+
+| Conjunto | O que entra |
 |---|---|
-| `historico` | histórico do alvo (lags, sazonalidade) — o piso |
-| `clima` | + ERA5 UF × EW |
-| `busca` | + Google Trends |
-| `texto` | + o bloco de texto (as representações de notícia) |
+| `histórico` | lags e sazonalidade do próprio alvo |
+| `+ clima` | ERA5 por unidade federativa e semana epidemiológica |
+| `+ busca` | Google Trends |
+| `+ texto` | a representação de notícia escolhida |
 
-Duas famílias: **simples** (gradient boosting / regressão sobre features
-tabulares) e **sequencial** (rede neural). A grade são 8 células.
+São 8 combinações: 2 tipos de modelo × 4 conjuntos de features.
 
-**Consequência que veio do grill:** clima e busca **deixam de ser chão comum** e
-passam a ser degraus sob teste. A tabela do chão comum no protocolo 00 ainda os
-fixa como covariáveis — isso é uma contradição viva, e a fatia 1 a resolve.
+**Por que dois tipos de modelo.** Com um só, um ganho que aparece apenas na rede
+neural não distingue *a feature ajudou* de *a arquitetura é melhor*. Se o ganho
+aparece nos dois, ele vem da feature.
 
-**Dentro do bloco de texto**, as quatro representações (léxico, embeddings,
-tópicos, extração por LLM) são comparadas — é o material que já existe pronto em
-três quartos. O bloco responde "vale incluir texto?"; a comparação interna
-responde "qual texto?".
+**Mudança em relação ao protocolo atual.** Clima e busca hoje são condições fixas,
+iguais em todos os braços. Passam a ser **conjuntos comparados**, porque a pergunta
+do paper é quais features vale a pena incluir. Isso exige uma revisão do protocolo
+00, que entra na fatia 1.
 
-**A grade final depende da fatia 1.** As quatro células de `clima` e `busca`, e a
-metade da família simples, podem encolher conforme o que a literatura mostrar e o
-que o calendário aguentar. Depois da fatia 1 este plano é **replanejado** — é o
-modo `replanejar` da skill, com a grade deixando de ser incógnita.
+**Dentro do conjunto `+ texto`**, as quatro representações — léxico, embeddings,
+tópicos e extração por LLM — são comparadas entre si. O conjunto responde "vale
+incluir texto?"; a comparação interna responde "qual texto?".
+
+**A lista final de modelos depende da fatia 1.** O levantamento de literatura
+define quais comparações o campo já reconhece e que tipos de modelo são usados para
+combinar modalidades. Até lá, esta seção é um rascunho.
 
 ## 3. Métrica e regra de decisão
 
-**Métrica primária: WIS/CRPS.** MAE ao lado, secundária.
+**Métrica principal: WIS/CRPS**, que pontua a distribuição prevista, e não só o
+valor central. MAE fica ao lado, como métrica secundária.
 
-**Regra de decisão pré-declarada.** Um bloco "vale incluir" quando:
+**Regra de decisão.** Um conjunto de features vale a pena incluir quando:
 
-1. o ganho aparece **nas duas famílias**;
-2. o intervalo exclui zero, no teste pareado sobre as semanas avaliadas;
-3. o ganho passa de um **piso de tamanho declarado antes de olhar qualquer
-   número** — o piso é fixado na fatia 2, junto com a régua, e não depois.
+1. o ganho aparece nos **dois tipos de modelo**;
+2. o intervalo de confiança do ganho, numa comparação pareada por semana, não
+   inclui o zero;
+3. o ganho passa de um **valor mínimo** fixado antes de os resultados existirem.
 
-O piso é declarado cedo por um motivo: um limite escolhido depois de ver a tabela
-não é um limite, é uma narrativa. E o número de comparações da grade é declarado
-junto, para que a correção de comparações múltiplas seja decidida antes e não
-depois de o resultado aparecer. Os dois ficam escritos no protocolo 00, que é o
-documento onde as regras da comparação moram — não aqui, que é o documento do
-prazo.
+O valor mínimo e o número de comparações da grade ficam registrados no protocolo 00
+na semana 2, antes de a primeira combinação ser calculada.
 
-**A regra vale para os dois sinais.** Se nenhum bloco passar, isso é resultado, e
-é publicável — desde que o controle negativo exista para provar que o teste foi
-justo. Um nulo com desenho forte vale mais que um positivo com desenho frouxo.
+**A regra vale nos dois sentidos.** Se nenhum conjunto passar, esse é o resultado,
+e ele é publicável — desde que o controle negativo da semana 8 mostre que o teste
+foi justo. Um resultado nulo com desenho correto vale mais que um positivo com
+desenho fraco.
 
-## 4. Linha de corte
+## 4. O que fica de fora
 
-| Dentro | Fora (trabalho futuro declarado) |
+O §8 diz, para cada item condicional desta tabela, a data e a condição em que ele
+sai ou entra. Aqui está só o que fica de fora.
+
+| Dentro | Fora, declarado como trabalho futuro |
 |---|---|
-| Alvo BR, horizonte 1 semana | Horizonte multi-passo |
-| Quatro degraus × duas famílias; quatro representações dentro do bloco de texto | Representação par a par como degrau próprio |
-| Ablação sem texto (é o degrau `historico`) e **controle negativo** | Leitura por UF — só se sobrar tempo; senão vira limitação declarada |
-| Métricas pontuais **e** probabilísticas | Caminho 05 (LLM como previstor) |
-| Notícia (EBC) como o corpus textual | Boletins do MoH — **default fora**, decisão adiada para a fatia 10 |
+| Alvo Brasil, horizonte de 1 semana | Horizonte de várias semanas |
+| 2 tipos de modelo × 4 conjuntos de features; 4 representações de texto | Cada representação de texto como conjunto próprio |
+| O conjunto `histórico` faz o papel de ablação sem texto; há controle negativo | Leitura por unidade federativa — decisão na semana 11 |
+| Métricas pontuais **e** probabilísticas | O caminho 05, LLM como previstor |
+| Notícia da EBC como corpus de texto | Boletins do Ministério da Saúde — decisão na semana 10 |
 
-## 5. O que já existe — não refazer
+## 5. O que já existe
 
 | Peça | Onde | Estado |
 |---|---|---|
-| Régua: painel do alvo, rolling origin, métricas pontuais, run record | [src/forecast/](../src/forecast/README.md) | pronto, **sem quantis** |
-| Barra ingênua medida | idem | MAE 4.047 (persistência) / 30.714 (sazonal) |
-| Representações 01, 02 e 03 como tabelas EW | `data/pipeline/news/` | prontas |
-| Corpus de texto congelado — 4.569 artigos | idem | pronto |
-| Quatro famílias de literatura fichadas (23/37/48/10 artigos) | [articles/](../articles/README.md) | pronto — é o trabalho relacionado |
+| Avaliador (chamado de "régua" no protocolo 00): painel do alvo, rolling origin, métricas pontuais, registro de cada execução | [src/forecast/](../src/forecast/README.md) | pronto, **sem distribuições** |
+| Barra ingênua medida | idem | persistência 4.047 casos por semana; ingênuo sazonal 30.714 |
+| Representações de notícia (braços 01, 02 e 03) como tabelas por semana epidemiológica | `data/pipeline/news/` | prontas |
+| Corpus de texto congelado: 4.569 artigos | idem | pronto |
+| Quatro famílias de literatura fichadas (23, 37, 48 e 10 artigos) | [articles/](../articles/README.md) | prontas; é o trabalho relacionado |
 | Três seções de manuscrito em inglês | [texts/](../texts/README.md) | prontas |
-| Voz de referência + linter de estilo | [notes/voz-de-referencia.md](voz-de-referencia.md) | pronto |
+| Amostra de voz para calibrar o medidor de estilo | [notes/voz-de-referencia.md](voz-de-referencia.md) | pronta |
 
-## 6. Caminho crítico e dependências
+## 6. Ordem de dependências
 
-1. **A régua precisa emitir quantis** antes de qualquer célula da grade. Com WIS
-   primária, o piso ingênuo também precisa de distribuição — hoje ele emite um
-   número por semana. É pré-requisito, não detalhe: a barra do paper deixa de ser
-   MAE 4.047 e passa a ser um WIS.
-2. **A passada de literatura fecha a grade** — baselines que o campo reconhece
-   (para a "abordagem mais simples" ter citação, não invenção) e as famílias de
-   modelo usadas em fusão multimodal.
-3. **A anotação manual é o relógio de calendário.** 150–200 artigos anotados à
-   mão custam uma semana inteira do orçamento, é o único item que depende do
-   *seu* tempo, e não paraleliza com o meu. Ela paga duas vezes: valida o léxico
-   do degrau de texto e a extração por LLM.
-4. **A revisão do protocolo** (clima e busca viram degraus) precisa entrar antes
-   de o harness congelar.
-5. **A prosa corre em paralelo, uma seção por semana.** Com 12 h/semana, escrever
-   é metade do trabalho, e texto corrido no fim é onde a voz se perde.
+1. **O avaliador precisa emitir distribuições antes de qualquer outro cálculo.**
+   Com WIS como métrica principal, até os modelos ingênuos precisam prever uma
+   distribuição. Hoje eles emitem um número por semana.
+2. **O levantamento de literatura fecha a lista de modelos** — quais comparações o
+   campo já reconhece, para a "abordagem mais simples" ter citação em vez de ser
+   inventada.
+3. **A anotação manual depende só de você.** De 150 a 200 artigos anotados à mão
+   custam uma semana inteira do tempo disponível, e não dá para fazer em paralelo
+   com o resto. Ela serve duas vezes: valida o léxico do braço 01 e a extração por
+   LLM do caminho 04.
+4. **A revisão do protocolo 00** precisa entrar antes de o avaliador ser congelado.
+5. **A escrita corre em paralelo, uma seção por semana.** Com 12 h por semana,
+   escrever é metade do trabalho. Deixar tudo para o fim é o que perde a voz.
 
-**Restrição dura que o plano embute:** a Google Trends congelada termina em
-**2024-12-29** e o alvo vai a 2026. Com 104 semanas mínimas de treino, a grade só
-é avaliável onde as fontes coexistem: **~2022-01 a 2024-12, cerca de 150 semanas
-pontuadas** — não as 557 da barra atual. Esse é o recorte do paper, e ele tem que
-estar declarado no texto, não descoberto na revisão.
+**Restrição de calendário que o plano já assume.** A extração do Google Trends
+congelada termina em 2024-12-29, e o alvo vai até 2026. Com 104 semanas mínimas de
+treino, a grade só pode ser avaliada onde as fontes coexistem: de janeiro de 2022 a
+dezembro de 2024, cerca de **150 semanas pontuadas**, e não as 557 da barra atual.
+Esse é o recorte do paper, e ele precisa estar escrito no texto.
 
 ## 7. As fatias
 
-Cada linha termina em algo que você consegue **conferir**. A coluna de prova diz
-o que o script vai medir: um caminho, ou `caminho#marcador` quando o que prova a
-fatia é o documento **dizer** algo novo. Se o artefato sair com outro nome,
-corrija a prova — não deixe o ⬜ mentir.
+Cada linha termina em algo que você consegue conferir. A coluna de prova diz o que
+o script vai medir: um caminho de arquivo, ou `caminho#palavra` quando o que prova
+a fatia é o documento passar a dizer algo novo. A palavra depois do `#` precisa ser
+uma palavra que o documento **ainda não tem** — é isso que faz dela uma prova.
+`#comparados` no protocolo 00 só acende quando a revisão que transforma clima e
+busca em conjuntos comparados estiver escrita; uma palavra que o documento já usa
+fecharia a fatia no dia em que ela nasceu.
 
-O marcador tem que ser uma palavra que o documento **ainda não tem** — é isso que
-faz dele uma prova. `#degrau` no protocolo só vira ✅ quando a revisão que
-transforma clima e busca em degraus estiver escrita: hoje o protocolo não diz
-"degrau" em lugar nenhum. Um marcador escolhido por engano, com palavra que o
-documento já usa, fecha a fatia no dia em que ela nasce — e aí a medição inteira
-perde o sentido.
+A coluna `Prosa` fica vazia em quatro linhas, de propósito: as semanas 0 e 1 são de
+arrumação e leitura, e as semanas 5 e 6 são meio período. Fora elas, uma seção
+escrita por semana.
 
-A coluna de prosa fica vazia em quatro linhas, de propósito: a fatia 0 e a 1 são
-de arrumação e leitura, e as semanas 5 e 6 são meio período. Fora elas, uma seção
-por semana — com 12 h semanais, escrever é metade do trabalho e um texto corrido no
-fim é onde a voz se perde.
-
-Os artefatos de execução seguem uma convenção, para que a grade se nomeie sozinha:
-`data/forecast/grid/<degrau>__<familia>_metrics.parquet`,
-`data/forecast/texto/<representacao>__<familia>_metrics.parquet`,
+Os resultados ficam em arquivos nomeados pelo que são:
+`data/forecast/grid/<conjunto>__<tipo-de-modelo>_metrics.parquet`,
+`data/forecast/texto/<representacao>__<tipo-de-modelo>_metrics.parquet` e
 `data/forecast/controle/<variante>_metrics.parquet`.
 
 | # | Fecha em | Fatia | Prova que fechou | Prosa |
 |---|---|---|---|---|
-| 0 | 2026-11-21 | **Landar o que já existe** — a régua, as fichas, os relatórios e a voz de referência estão no disco e fora do git. Só fecha quando a lista de "fora do git" do relatório estiver vazia | `src/forecast/__init__.py` `tests/forecast/test_record.py` `notes/voz-de-referencia.md` `articles/topicos/relatorio.md` | — |
-| 1 | 2026-11-27 | **A passada de literatura** — baselines consagrados + famílias de modelo para fusão multimoda; e a revisão do protocolo que tira clima e busca do chão comum | `notes/06-baselines-e-familias.md` `notes/00-protocolo-comparacao.md#degrau` | — |
-| 2 | 2026-12-04 | **A régua em WIS e o piso declarado** — quantis para todo modelo, inclusive os dois ingênuos; o piso de tamanho e o número de comparações ficam registrados ANTES de qualquer célula da grade existir | `src/forecast/README.md#quantile` `notes/00-protocolo-comparacao.md#piso` | Métodos §régua |
-| 3 | 2026-12-11 | **O piso da escada** — o degrau `historico` nas duas famílias; é o número que clima tem que bater | `data/forecast/grid/historico__simples_metrics.parquet` `data/forecast/grid/historico__sequencial_metrics.parquet` | Introdução |
-| 4 | 2026-12-18 | **Clima e busca entram** — os dois degraus seguintes, nas duas famílias | `data/forecast/grid/clima__*_metrics.parquet` `data/forecast/grid/busca__*_metrics.parquet` | Trabalho relacionado: condensar as quatro famílias |
-| 5 | 2026-12-25 | *meio período* — **o topo da escada**: o bloco de texto nas duas famílias | `data/forecast/grid/texto__*_metrics.parquet` | — |
-| 6 | 2027-01-01 | *meio período* — **a anotação fechada**. É o relógio de calendário, e é o único artefato que não se regenera rodando nada: vai para o git | `data/news/reference/amostra_anotada.csv` `notes/07-anotacao-amostra.md` | — |
-| 7 | 2027-01-08 | **Dentro do bloco de texto** — as quatro representações sob a regra de decisão | `data/forecast/texto/lexico__*_metrics.parquet` `data/forecast/texto/embeddings__*_metrics.parquet` `data/forecast/texto/topicos__*_metrics.parquet` | Resultados §a escada |
-| 8 | 2027-01-15 | **O controle negativo** — texto embaralhado e texto constante no topo da escada. Se o erro não mudar, o texto não estava sendo usado | `data/forecast/controle/*_metrics.parquet` | Métodos §controle negativo |
-| 9 | 2027-01-22 | **A estatística da afirmação** — teste pareado sobre as semanas, intervalo, correção pelo número de comparações, e a decisão da regra aplicada célula a célula | `data/forecast/comparacoes.parquet` | Resultados §o que vale incluir |
-| 10 | 2027-01-29 | **A extração por LLM entra ou vira trabalho futuro** — decidido pelo estado da anotação, não por otimismo. Na mesma semana: a decisão adiada dos boletins | `data/forecast/texto/extracao__*_metrics.parquet` | Métodos §extração |
-| 11 | 2027-02-05 | **Auditoria de vazamento e robustez** — janela sem o ano recorde, corte de pré-treinamento de cada encoder, sensibilidade ao piso | `src/forecast/README.md#leakage` | Limitações |
-| 12 | 2027-02-12 | **O texto em uma peça**, depois do passe adversarial contra o próprio paper | `texts/multimodal_forecasting.md` | Discussão |
+| 0 | 2026-11-21 | **Colocar no git o que já existe** — o avaliador, as fichas e os relatórios estão no disco e fora do git. Fecha quando não sobrar nenhum arquivo fora do git | `src/forecast/__init__.py` `tests/forecast/test_record.py` `notes/voz-de-referencia.md` `articles/topicos/relatorio.md` | — |
+| 1 | 2026-11-27 | **Levantamento de literatura: baselines e tipos de modelo** — quais comparações o campo já reconhece, e a revisão do protocolo que tira clima e busca das condições fixas | `notes/06-desenho-do-experimento.md` `notes/00-protocolo-comparacao.md#comparados` | — |
+| 2 | 2026-12-04 | **O avaliador em WIS, e o ganho mínimo declarado** — distribuições para todos os modelos, inclusive os dois ingênuos; o ganho mínimo e o número de comparações ficam registrados antes de existir qualquer resultado | `src/forecast/README.md#quantile` `notes/00-protocolo-comparacao.md#mínimo` | Métodos §avaliação |
+| 3 | 2026-12-11 | **A base: só histórico, nos dois tipos de modelo** — é o resultado que clima e busca precisam superar | `data/forecast/grid/historico__simples_metrics.parquet` `data/forecast/grid/historico__sequencial_metrics.parquet` | Introdução |
+| 4 | 2026-12-18 | **Clima e busca entram** — os dois conjuntos seguintes, nos dois tipos de modelo | `data/forecast/grid/clima__*_metrics.parquet` `data/forecast/grid/busca__*_metrics.parquet` | Trabalho relacionado: juntar as quatro famílias |
+| 5 | 2026-12-25 | *meio período* — **Texto entra**: o quarto conjunto, nos dois tipos de modelo | `data/forecast/grid/texto__*_metrics.parquet` | — |
+| 6 | 2027-01-01 | *meio período* — **A anotação manual termina** — 150 a 200 artigos anotados à mão. É o único artefato que não se refaz rodando código, então vai para o git | `data/news/reference/amostra_anotada.csv` `notes/07-anotacao-amostra.md` | — |
+| 7 | 2027-01-08 | **Qual representação de texto** — léxico, embeddings, tópicos e extração, sob a mesma regra de decisão | `data/forecast/texto/lexico__*_metrics.parquet` `data/forecast/texto/embeddings__*_metrics.parquet` `data/forecast/texto/topicos__*_metrics.parquet` | Resultados §conjuntos de features |
+| 8 | 2027-01-15 | **Controle negativo** — texto embaralhado e texto constante no conjunto `+ texto`. Se o erro não mudar, o modelo não estava usando o texto | `data/forecast/controle/*_metrics.parquet` | Métodos §controle negativo |
+| 9 | 2027-01-22 | **O teste estatístico** — comparação pareada por semana, intervalo de confiança, correção para o número de comparações, e a regra aplicada a cada combinação | `data/forecast/comparacoes.parquet` | Resultados §o que vale incluir |
+| 10 | 2027-01-29 | **A extração por LLM entra ou fica de fora** — decidido pelo estado da anotação, não por otimismo. Na mesma semana, a decisão adiada sobre os boletins | `data/forecast/texto/extracao__*_metrics.parquet` | Métodos §extração |
+| 11 | 2027-02-05 | **Vazamento de dados e robustez** — janela sem 2024, data de corte de cada codificador de texto, sensibilidade ao ganho mínimo | `src/forecast/README.md#leakage` | Limitações |
+| 12 | 2027-02-12 | **O texto inteiro, em uma peça** — depois de uma revisão adversarial contra o próprio paper | `texts/multimodal_forecasting.md` | Discussão |
 | 13 | 2027-02-19 | **Fechamento** — estilo, reprodução do zero, artefatos depositados | `texts/multimodal_forecasting.md#Disponibilidade` | — |
-
-**Fatia 0 é hoje ou amanhã.** A régua, as quatro famílias de fichas e os relatórios
-estão no disco e fora do git — o número exato está no relatório, e ele muda a cada
-sessão. Trabalho que não foi landado não conta como progresso e fica em risco de se
-perder; foi por isso que a medição parou de marcar ✅ em artefato que existe só no
-disco.
 
 ## 8. Pontos de corte
 
-Sem estes, o plano não falha de uma vez: falha devagar, e ninguém percebe até a
-fatia 13. Cada um é uma data em que a decisão já está tomada.
+Cada ponto de corte decide de antemão o que sai do escopo, na data em que a decisão
+importa. Sem eles, o corte acontece no fim, quando não há mais tempo.
 
-| Na | Se | Então |
+| Na semana | Se | Então |
 |---|---|---|
-| 1 | a busca não fecha a lista de baselines | usa os quatro já listados no protocolo 00 e declara a lista provisória |
-| 3 | o degrau `historico` não fecha nas duas famílias | a família que não fechar sai e o desenho deixa de ser duplo — **declarado como desvio**, nunca escondido |
-| 5 | a grade não fecha até aqui | corta as células da família simples em `clima` e `busca`; mantém as duas famílias no topo, que é onde a afirmação vive |
-| 6 | a anotação não fechou | a extração por LLM sai do paper; a amostra parcial vira evidência de trabalho futuro |
-| 10 | boletins (decisão adiada para cá) | **default: fora.** Só entram se a grade fechou adiantada |
-| 11 | a leitura por UF não fecha | BR é o número principal; o descompasso espacial vira limitação, como o protocolo já previa |
-| 12 | o texto não está em uma peça | corta robustez, não o fechamento — texto corrido é o que a banca lê |
+| 1 | o levantamento não fecha a lista de baselines | usa os quatro já listados no protocolo 00 e declara a lista como provisória |
+| 3 | o conjunto `histórico` não fecha nos dois tipos de modelo | o tipo de modelo que não fechar sai, e o desenho deixa de ser duplo — registrado como desvio, não escondido |
+| 5 | a grade não fecha até aqui | corta as combinações do modelo simples em `+ clima` e `+ busca`; mantém os dois tipos de modelo no conjunto `+ texto`, que é onde a pergunta do paper é respondida |
+| 6 | a anotação não terminou | a extração por LLM sai do paper; a amostra parcial vira evidência para trabalho futuro |
+| 10 | boletins do Ministério da Saúde, decisão adiada para cá | fora por padrão. Só entram se a grade fechou antes do prazo |
+| 11 | a leitura por unidade federativa não fecha | o Brasil é o número principal e o descompasso espacial vira limitação declarada, como o protocolo já previa |
+| 12 | o texto não está em uma peça | corta a robustez, não o fechamento: o texto corrido é o que a banca lê |
 
-## 9. Riscos que este plano não resolve
+## 9. Riscos
 
-- **A grade é o maior consumidor de tempo.** 8 células, mais a comparação interna
-  do bloco de texto, mais o controle negativo. Cada uma é um refit em rolling
-  origin. Se a família sequencial for pesada, ela come o orçamento — é por isso
-  que o ponto de corte da fatia 3 existe.
-- **Vazamento temporal.** E5 e BGE-M3 têm corte de pré-treinamento desconhecido e
-  o corpus vai até 2026 — dengue 2024 foi recorde e está em toda parte.
-- **Descompasso espacial.** Notícia é nacional, alvo é UF. É por isso que o número
-  principal é BR.
-- **Contagem acumulada.** Só 24% dos artigos declaram número de casos, e
-  acumulado, não semanal. É o que a extração por LLM tenta recuperar — e é a mais
-  frágil das quatro representações, segundo a própria literatura de extração.
-- **Comparações múltiplas.** Uma grade com ~15 execuções e uma regra de decisão
-  declarada exige declarar o número de comparações. Está na fatia 2 por isso.
-- **Nenhum checkpoint externo por semanas.** O acompanhamento é de pouca
-  interação. O substituto é o passe adversarial da fatia 12: eu ataco o próprio
-  paper antes de escrever a discussão, procurando o que uma revisão procuraria.
+- **A grade é o que mais consome tempo.** São 8 combinações, mais a comparação
+  interna do conjunto de texto, mais o controle negativo. Cada uma exige reajustar
+  o modelo em várias origens de previsão. Se o modelo sequencial for pesado, o
+  ponto de corte da semana 3 é o que evita perder o prazo.
+- **Vazamento de dados.** Os codificadores de texto têm data de corte de
+  treinamento desconhecida, e o corpus vai até 2026. 2024 foi o ano recorde de
+  dengue e está em toda parte.
+- **Descompasso espacial.** A notícia é nacional e o alvo é por unidade federativa.
+  Por isso o número principal é o Brasil.
+- **Contagem acumulada.** Só 24% dos artigos declaram número de casos, e o número é
+  acumulado, não semanal. É o que a extração por LLM tenta recuperar, e é a mais
+  frágil das quatro representações.
+- **Comparações múltiplas.** Cerca de 15 execuções na grade. Um ganho que aparece
+  em uma delas por acaso é o positivo falso que o §3 e a fatia 9 existem para
+  barrar.
+- **Nenhum checkpoint externo.** O acompanhamento é de pouca interação. O que
+  substitui é a revisão adversarial da semana 12, em que eu ataco o próprio paper
+  procurando o que uma revisão procuraria.
 
 ## 10. Registro de decisões
 
-Do grill de 2026-11-20, para que daqui a seis semanas o raciocínio esteja aqui e
-não na memória de ninguém:
+Todas as decisões de escopo deste plano foram tomadas em **2026-11-20**, na sessão
+de levantamento, e o conteúdo de cada uma está escrito nas seções acima — a
+pergunta no §1, os dois eixos e a mudança de clima e busca no §2, a métrica e a
+regra no §3, o que fica de fora no §4, o prazo no cabeçalho.
 
-| Decisão | Data |
-|---|---|
-| O entregável é um paper; a dissertação não é exigida | 2026-11-20 |
-| A tese é o valor de features multimodais, não a notícia | 2026-11-20 |
-| Desenho de escada dupla (modelos × features) | 2026-11-20 |
-| Clima e busca deixam de ser chão comum | 2026-11-20 |
-| WIS/CRPS primária, MAE secundária | 2026-11-20 |
-| Ganho nas duas famílias, intervalo excluindo zero, piso declarado antes | 2026-11-20 |
-| Só o caminho 04 entra; 05 é trabalho futuro | 2026-11-20 |
-| Boletins: default fora, decisão na fatia 10 | 2026-11-20 |
-| Prazo 2027-02-19; pronto = manuscrito submetível | 2026-11-20 |
+Este registro existe para **datar** a decisão, não para repeti-la. Decisão nova
+entra aqui com a data, e é ela que muda o plano de forma; o resto é consequência.
+
+**2026-11-20 — o ensemble entra como comparação obrigatória.** O levantamento de
+literatura ([06](06-desenho-do-experimento.md)) mostrou que o campo trata o
+ensemble como o adversário de verdade — ele vence em 180+ localidades
+(Johansson 2019; Wu 2025) — e o protocolo 00 não o tinha. Custo baixo: é a média
+das células da grade.
 
 ## 11. Como este arquivo se mantém
 
-A skill `plano-entrega`, no laço semanal. Ela **mede** o repositório com
-`scripts/estado_do_plano.py` — quais provas de fatia existem, o que está fora do
-git, o estado de cada caminho, os estágios da régua, as fichas — e só então
-compara com esta tabela e reescreve.
+A skill `plano-entrega`, no ciclo semanal. Ela roda
+`scripts/estado_do_plano.py` para medir quais provas de fatia existem, o que está
+fora do git, o estado de cada frente em `notes/`, os estágios do avaliador, as
+fichas de cada família de literatura e os produtos em `data/`. Só depois de medir
+ela compara com esta tabela e reescreve.
 
-O plano é **regerado** da medição, não digitado. Um plano escrito à mão hoje mente
-na semana que vem, e um plano que mente é pior que nenhum: é a mesma lição que já
-está em [.claude/workflows/familias/README.md](../.claude/workflows/familias/README.md)
-— configuração que só existe na conversa é memória, não configuração.
+Um plano escrito à mão fica desatualizado em uma semana. A mesma regra vale para as
+configurações da revisão de literatura, que moram em
+[.claude/workflows/familias/](../.claude/workflows/familias/README.md) em vez de
+morar na conversa.

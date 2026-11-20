@@ -3,6 +3,33 @@
 > Canonical context for AI coding harnesses (Cursor, Claude Code, Copilot, Codex, Aider, etc.).
 > Keep this file as the single source of truth; `CLAUDE.md` points here.
 
+## How to write here
+
+This project is judged on how clearly it explains itself. **Everything an agent
+writes in this repository follows these rules** — prose and code alike: notes,
+reports, plans, README files, docstrings, comments, commit messages, and chat
+answers. The author reads Portuguese and does not track the code line by line, so
+every document must stand on its own without the conversation that produced it.
+
+- **Name things for what they are, not for what they resemble.** No ladder, rung,
+  floor, or common ground as the name of a concept. If a name needs a glossary,
+  the name is wrong. Two different things must never share a word — "piso" meaning
+  both the lowest rung and the minimum effect is the failure this rule prevents.
+- **No imported jargon.** Not "landar", not "setup", not "gap" when Portuguese has
+  the word. If the English term is the proper name of a thing (`rolling origin`,
+  `embeddings`, `gradient boosting`), use it and gloss it in one clause the first
+  time.
+- **Prefer concrete verbs and numbers.** "Colocar no git", not "landar". "4.047
+  casos por semana", not "~4k". A number arrives with its unit.
+- **No aphorisms.** A sentence that sounds good and carries no information is
+  filler. Delete it rather than polish it.
+- **Answer in Brazilian Portuguese.** Code, identifiers, commit messages and
+  artefact names follow the repository's existing convention (mostly English);
+  everything written for a person is Portuguese.
+
+The measurable half of this rule is enforced by `scripts/checar_estilo_relatorio.py`
+for the literature reports; the rest is judgement, and it applies everywhere.
+
 ## Project Goal
 
 ARBOILI is a **reproducible data pipeline** for digital surveillance of arboviruses (dengue, chikungunya) and respiratory syndromes (SARI/influenza, COVID-19) in Brazil, built to support a paper on **multimodal forecasting**. The paper asks whether the proposed multimodal features carry relevant signal — and which are worth including — against simpler approaches, under one target and one set of metrics. News coverage and health bulletins are *instances* of a multimodal feature: they are the mechanism by which the question is answered, not the paper's subject. The repository's primary objective is to collect, transform, and publish a multi-source dataset linking:
