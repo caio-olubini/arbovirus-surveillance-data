@@ -12,13 +12,26 @@ vale se todo o resto estiver fixo. É o que este arquivo fixa.
 Se um braço ganhar porque usou um split melhor, um horizonte diferente ou uma
 métrica que favorece o seu tipo de erro, o resultado é ruído publicado como achado.
 
+## Revisão — 2026-11-20: a pergunta do artigo é mais larga que a notícia
+
+O parágrafo acima diz que o artigo responde "qual representação da notícia prevê
+dengue melhor?". Isso estava **estreito demais, e errado no sujeito**: o artigo
+não é sobre a notícia, nem sobre os boletins. Ele pergunta se as **features
+multimodais propostas carregam sinal relevante e quais vale a pena incluir**,
+contra abordagens mais simples. As representações de notícia são **instâncias** de
+feature multimodal — o mecanismo pelo qual a pergunta é respondida, não o assunto.
+
+O que **não** muda é o chão comum abaixo. Comparação entre blocos de feature só
+vale com alvo, calendário, split, métricas e backbone fixos; o motivo de este
+arquivo existir continua de pé e agora vale para mais blocos do que três.
+
 ## Chão comum (não pode variar entre os braços)
 
 | Item | Fixo em | Onde |
 |---|---|---|
 | Corpus | mesma versão congelada dos HTMLs (registrar hash + data) | `data/news/dengue/articles/` |
 | Calendário | semana epidemiológica ancorada no domingo | `src/pipeline/epiweek.py` |
-| Alvo | casos SINAN dengue, UF × EW | `SINAN_dengue_cases.parquet` |
+| Alvo | casos SINAN dengue **suspeitos** (toda notificação menos os descartados), na semana de **início de sintomas**; **BR** no número principal, UF como leitura exploratória | `SINAN_dengue_cases.parquet` |
 | Covariáveis não-textuais | GT search + ERA5 UF×EW, mesmas features e lags | `GoogleTrends_search_EW`, `ERA5_UF_EW` |
 | Backbone | **o mesmo** para todos os braços | TFT early-fusion como baseline de fusão |
 | Split | rolling-origin, refit só com passado | — |
@@ -64,7 +77,20 @@ mesmo modelo → mesmas métricas.
 ## Pendências / próximo passo
 
 - [ ] Congelar e versionar a versão do corpus usada (hash dos HTMLs + data).
-- [ ] Definir o horizonte de previsão (1 semana? 4?). Isso muda tudo a jusante.
-- [ ] Decidir alvo em nível ou log, e por UF ou BR.
-- [ ] Escolher o backbone exato e escrever o baseline "sem texto" antes de
-      qualquer representação — ele é a régua.
+- [x] Definir o horizonte de previsão (1 semana? 4?). **1 semana**, para o
+      primeiro número; multi-passo é o próximo eixo, não uma reescrita —
+      `rolling_origin` já aceita horizonte maior.
+- [x] Decidir alvo em nível ou log, e por UF ou BR. **Nível, BR.** Log é decisão
+      de modelo e pertence ao modelo, não à régua; BR é onde notícia e alvo têm
+      o mesmo grão, então a comparação é honesta. UF fica como exploratório, como
+      já estava previsto nos riscos.
+- [x] Escrever o baseline "sem texto" antes de qualquer representação — ele é a
+      régua. **Meio caminho:** a régua ingênua está de pé e medida. Os dois
+      ingênuos dão MAE de **4.047** (persistência, repetir a última semana) e
+      **30.714** casos/semana (naive sazonal, repetir a mesma semana do ano
+      anterior), em BR, horizonte 1, 557 semanas previstas de 2014 a 2026.
+      A persistência é a régua de verdade: o naive sazonal é 7,6× pior porque
+      dengue no Brasil pula de patamar entre anos (2024 teve média de 125.779
+      casos/semana contra 32.001 em 2023). Falta o "sem texto" com GT e ERA5.
+
+Números, comandos e o contrato compartilhado: [`src/forecast/README.md`](../src/forecast/README.md).

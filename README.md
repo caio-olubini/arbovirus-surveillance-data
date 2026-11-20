@@ -1,8 +1,8 @@
 # arbovirus-surveillance-data
 
-Reproducible data pipeline (master's dissertation / data paper) for digital
-surveillance of arboviruses (dengue, chikungunya) and respiratory syndromes
-(SARI/influenza, COVID-19) in Brazil.
+Reproducible data pipeline and evaluation harness for a paper on **multimodal
+forecasting** of arbovirus surveillance in Brazil (dengue, chikungunya) and
+respiratory syndromes (SARI/influenza, COVID-19).
 
 For AI coding agents, project context is in [`AGENTS.md`](./AGENTS.md).
 It collects and transforms a multi-source dataset linking official
@@ -11,11 +11,17 @@ epidemiological case counts (SINAN, SIVEP-Gripe), digital search behaviour
 and news coverage (Agência Brasil/EBC) — stratified by federative unit (26
 states + DF) and aligned temporally for surveillance modelling.
 
-The news source is transformed into **three competing representations** of one
-frozen corpus (lexicon+rules, dense embeddings, topic modelling), a comparison
-protocol fixed in [`notes/00-protocolo-comparacao.md`](./notes/00-protocolo-comparacao.md).
+**The question the paper answers** is whether the proposed multimodal features
+carry relevant signal, and which are worth including, against simpler approaches.
+News and bulletins are *instances* of a multimodal feature — the mechanism by
+which the question is answered, not its subject. Within the text block, the news
+source is transformed into three competing representations of one frozen corpus
+(lexicon+rules, dense embeddings, topic modelling), a comparison protocol fixed
+in [`notes/00-protocolo-comparacao.md`](./notes/00-protocolo-comparacao.md).
 Research paths live in [`notes/`](./notes/), manuscript drafts in
-[`texts/`](./texts/), and the curated climate references in [`articles/`](./articles/).
+[`texts/`](./texts/), the curated literature in [`articles/`](./articles/), and
+the delivery plan — dates, order, cut points — in
+[`notes/plano.md`](./notes/plano.md).
 
 ## Status
 
@@ -46,14 +52,35 @@ Braços 02 and 03 need an optional extra each: `uv sync --extra embeddings` for
 `torch` + `transformers` (~800 MB), `uv sync --extra topics` for `tomotopy`
 (~30 MB). Both stages say so and exit 1 if the extra is missing.
 
+**Forecast evaluation** (`uv run python -m src.forecast`) — the ruler the
+protocol-00 comparison is measured against. It is not a transform: it produces a
+measurement, not a product.
+
+| Piece | State |
+|---|---|
+| Target panel — SINAN suspected cases on a gapless weekly calendar | ✅ ready |
+| Rolling-origin split (fit on the past only) | ✅ ready |
+| Naive baselines + point metrics (MAE, RMSE, MAPE) | ✅ ready |
+| Run record — the setup each result table travels with | ✅ ready |
+| "No text" model — SINAN + Google Trends + ERA5 | ⬜ next |
+
+First number, Brazil, 1 week ahead, 2014–2026 (557 scored weeks): persistence
+**MAE 4,047 cases/week**, seasonal naive 30,714. Numbers, caveats and the
+reproduction command: [`src/forecast/README.md`](src/forecast/README.md). The
+same measurement, argued decision by decision as a methods section:
+[`notebooks/forecast_evaluation.ipynb`](notebooks/forecast_evaluation.ipynb).
+
 **Not started:**
 
 - [ ] Pipeline — SIVEP-Gripe (SARI): no Python collector, R-only
 - [ ] Pipeline — Bulletins: PDF text extraction (204 PDFs stored raw, unparsed)
 - [ ] Final merge: join all series into one `Arbo_SARI_disease_table`
-- [ ] Protocol-00 comparison: braços 01 / 02 / 03 under one model and one set of metrics
+- [ ] Protocol-00 comparison, *inside the text block*: braços 01 / 02 / 03 under
+      one model and one set of metrics — the baseline to beat is measured; the
+      braços are not yet compared. It is one rung of the wider feature ladder in
+      [`notes/plano.md`](./notes/plano.md), not the paper's headline comparison
 
-Tests: `uv run pytest` → **286 passed, 4 failed**. The four failures are
+Tests: `uv run pytest` → **471 passed, 4 failed**. The four failures are
 pre-existing and confined to `tests/pipeline/sinan/test_integrity.py`: the
 on-disk SINAN series covers 2014–2026, while those tests assert ≥15 complete
 years from 2010.
@@ -83,7 +110,13 @@ years from 2010.
 │   │       └── topics/    ← braço 03: tomotopy DMR → EW × (BR + UF) × topic
 │   │
 │   ├── config.py          ← config.yml loader, shared by collection & pipeline
-│   └── common.py          ← shared ExtractResult type
+│   ├── common.py          ← shared ExtractResult type
+│   └── forecast/          ← evaluation harness: target panel, split, baselines
+│       ├── panel.py       ← SINAN suspected cases on a gapless weekly calendar
+│       ├── splits.py      ← rolling origin (fit on the past only)
+│       ├── baselines.py   ← persistence + seasonal naive
+│       ├── evaluate.py    ← the loop; MAE / RMSE / MAPE per baseline
+│       └── record.py      ← the setup each result table travels with
 │
 ├── notebooks/             ← collection orchestration + per-source walkthroughs
 │   ├── data_collection.ipynb
@@ -93,7 +126,8 @@ years from 2010.
 │   ├── gtrends_related_pipeline.ipynb
 │   ├── news_pipeline.ipynb
 │   ├── news_embeddings_pipeline.ipynb
-│   └── news_topics_pipeline.ipynb
+│   ├── news_topics_pipeline.ipynb
+│   └── forecast_evaluation.ipynb  ← the ruler: target, split, baselines, metrics
 ├── notes/                 ← research-path tracker (00 protocol … 05 forecaster)
 ├── texts/                 ← generated English manuscript drafts
 ├── articles/              ← curated climate references (PDFs + references.csv)

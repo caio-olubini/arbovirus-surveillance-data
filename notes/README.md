@@ -13,6 +13,8 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 - Um arquivo por caminho de pesquisa, numerado.
 - Estado: `ideia` → `testando` → `decidido` | `descartado`. Toda mudança leva data.
 - Ideia que ainda não é caminho vai para [ideias-soltas.md](ideias-soltas.md).
+- **Quando** cada caminho entra e o que fica de fora é [plano.md](plano.md) — os
+  caminhos dizem o estado, o plano diz a ordem e o prazo.
 - Criar/atualizar à mão ou pela skill `research-notes`
   (`.claude/skills/research-notes/`).
 
@@ -20,6 +22,7 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 
 | # | Caminho | Papel | Estado |
 |---|---------|-------|--------|
+| — | [Plano de entrega](plano.md) | regra do prazo | ativo — 2026-11-20 |
 | 00 | [Protocolo de comparação](00-protocolo-comparacao.md) | regra do jogo | rascunho |
 | 01 | [Léxico PT-BR + regras](01-lexico-regras.md) | concorrente | testando |
 | 02 | [Embeddings densos + pooling por EW](02-embeddings-densos.md) | concorrente | testando |
@@ -35,6 +38,20 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 seu próprio conjunto de features e o artigo compara qual representa melhor a
 notícia para prever dengue. Consequência: existe o [protocolo 00](00-protocolo-comparacao.md),
 que fixa o chão comum. Sem ele a comparação não vale nada.
+
+**2026-11-20 — o artigo é sobre o valor das features, não sobre a notícia.**
+A entrada acima diz que "o artigo compara qual representa melhor a notícia para
+prever dengue". **O sujeito estava errado.** O artigo pergunta se as **features
+multimodais propostas carregam sinal relevante e quais vale a pena incluir**,
+contra abordagens mais simples — notícia e boletins são **instâncias** de feature
+multimodal, o mecanismo pelo qual a pergunta é respondida, não o assunto. Um texto
+que se anuncie como "notícia prevê dengue" está respondendo outra pergunta.
+
+Consequências, todas registradas no [protocolo 00](00-protocolo-comparacao.md):
+01–03 continuam concorrentes **entre si**, mas agora como a comparação *dentro* do
+bloco de texto — um degrau entre vários, não o eixo do artigo; e clima e busca
+deixam de ser chão comum para virar degraus sob teste. A ordem e o prazo estão em
+[plano.md](plano.md).
 
 **2026-10-07 — notícia não é proxy de casos.**
 O enquadramento é modalidade de **atenção midiática / ambiente informacional**,

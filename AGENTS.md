@@ -5,7 +5,7 @@
 
 ## Project Goal
 
-ARBOILI is a **reproducible data paper** (part of a master's dissertation) on digital surveillance of arboviruses (dengue, chikungunya) and respiratory syndromes (SARI/influenza, COVID-19) in Brazil. The primary objective is to collect, transform, and publish a multi-source dataset linking:
+ARBOILI is a **reproducible data pipeline** for digital surveillance of arboviruses (dengue, chikungunya) and respiratory syndromes (SARI/influenza, COVID-19) in Brazil, built to support a paper on **multimodal forecasting**. The paper asks whether the proposed multimodal features carry relevant signal — and which are worth including — against simpler approaches, under one target and one set of metrics. News coverage and health bulletins are *instances* of a multimodal feature: they are the mechanism by which the question is answered, not the paper's subject. The repository's primary objective is to collect, transform, and publish a multi-source dataset linking:
 
 - **Epidemiological case counts** (SINAN/SIVEP official notified cases)
 - **Digital search behavior** (Google Trends weekly/monthly search interest)
