@@ -78,6 +78,11 @@ def bodyless_expr() -> pl.Expr:
     would stop guarding. The byline ends with the site credit; the header chrome
     does not. Anything the rule does not recognise falls through to the length
     guard, which is the loud direction.
+
+    Making text quality a checked stage rather than an implicit assumption is
+    what the news-corpus literature does explicitly (Kriesch & Losacker 2025 —
+    see `text.spec.REFERENCES`). The "Últimas notícias" rail is the case a
+    length check misses: 1,086 characters of link text pass every size floor.
     """
     tail = pl.col(TEXT).fill_null("").str.to_lowercase().str.strip_chars()
     return (pl.col(CHAR_COUNT) < BODYLESS_MAX_CHARS) & tail.str.contains(

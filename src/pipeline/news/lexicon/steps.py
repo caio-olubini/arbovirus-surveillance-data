@@ -4,6 +4,16 @@ Everything here is dictionary and regex work: no model, no GPU, no annotation.
 That is the point of this braço — it is the representation that can be closed
 first, and the one with direct precedent in dengue (see notes/01).
 
+The design is not invented here. It is the dictionary-and-rule lineage of
+event-based surveillance: the HealthMap cascade that reads headline→body and
+stops at the first disease+place pair (Freifeld et al. 2008), the BioCaster
+slots (Collier et al. 2008), the PADI-web curated vocabulary and count regex
+(Valentin et al. 2020). What that lineage reports about *this* stage is the
+calibration, not the method: the case count is the weakest field it extracts
+(Arsevska et al. 2018; Consoli et al. 2025), and two human annotators barely
+agree on it (Conway et al. 2010). The full list with DOIs is
+`lexicon.spec.REFERENCES`; the fichas are in `articles/features-texto/`.
+
 The two approximations worth knowing about, both deliberate and both reported
 rather than hidden:
 
@@ -224,6 +234,13 @@ class UfMatcher:
     Two-letter codes are matched on the original text too, and only when a
     locative cue precedes them (or they sit in parentheses). Bare codes are not
     usable: `SE` is the reflexive pronoun, and `PA` collides with `p.a.`.
+
+    That the target is the administrative unit and not the exact spot is the
+    easy half of the problem, and deliberately so: coarse units are the toponym
+    class the literature finds most tractable — 13 of 27 approaches recognise
+    more than 60% of them — while street and natural-feature resolution stays
+    under 25% (Hu et al. 2023, `lexicon.spec.REFERENCES`). Municipalities are
+    below this resolution and are declared unresolved.
     """
 
     name_patterns: tuple[tuple[re.Pattern[str], str], ...]
@@ -284,7 +301,15 @@ def _negated(normalized: str, start: int, lexicon: Lexicon) -> bool:
 
 
 def severity_score(normalized: str, lexicon: Lexicon) -> int:
-    """Weighted count of non-negated severity hits."""
+    """Weighted count of non-negated severity hits.
+
+    This feature is this project's own construct, and it is declared as such.
+    The lineage extracts disease and place, not intensity: what survives the
+    HealthMap/BioCaster/PADI-web pipeline is a discrete (disease, place) label
+    (Collier 2011), and none of them scores "how bad" the coverage sounds. The
+    ordinal weights (alert 1, outbreak 2, epidemic 3) are therefore a design
+    choice, not a calibrated scale — declared as ordinal in the pipeline README.
+    """
     score = 0
     for tier in lexicon.severity:
         for pattern in tier.patterns:
@@ -384,6 +409,15 @@ def count_mentions(normalized: str, lexicon: Lexicon) -> tuple[int | None, int |
     figure ("ao longo de 2024, 6,6 milhões de casos"), so the weekly maximum is
     the scale of the largest figure the press stated that week, not the week's
     incidence. See the pipeline README.
+
+    That the slot is fragile is documented, not assumed: it is the field of
+    worst performance where it is measured (Arsevska et al. 2018; Consoli et al.
+    2025), it was absent from production systems (Ng et al. 2020), and human
+    annotators disagree on it (Conway et al. 2010; Chanlekha et al. 2010). What
+    the literature does *not* offer is a procedure for the cumulative-vs-weekly
+    problem above — no surveyed system distinguishes a stock from a flow
+    (Valentin et al. 2020; Arsevska et al. 2018; Consoli et al. 2025), which is
+    why the fix is left to the model side. See `lexicon.spec.REFERENCES`.
     """
     starts = [0]
     starts.extend(match.end() for match in SENTENCE_END.finditer(normalized))
@@ -413,7 +447,15 @@ def count_mentions(normalized: str, lexicon: Lexicon) -> tuple[int | None, int |
 
 
 def analyse(text: str, title: str, lexicon: Lexicon, matcher: UfMatcher) -> ArticleSignals:
-    """Run every rule over one article's title + body."""
+    """Run every rule over one article's title + body.
+
+    The title is folded in rather than treated as metadata, because that is
+    where the signal concentrates: on a relevance task over outbreak news, title
+    plus the document edges scores F1 87.82 against 77.94 for the body alone
+    (Mutuvi et al. 2020 — see `text.spec.REFERENCES`). Braço 02 sees the same
+    effect from the other side, where the title-only configuration beats
+    full-text.
+    """
     original = f"{title}\n{text}"
     normalized = strip_accents(original)
     cases, deaths = count_mentions(normalized, lexicon)
@@ -448,7 +490,11 @@ def build(
     (3.7% of the corpus, mostly Spanish, concentrated in 2016). Keeping them
     would add articles whose text no PT-BR term can match, which inflates
     `news_volume` while leaving `news_severity` and `news_cases` at zero for
-    them — a row that looks like coverage and measures nothing.
+    them — a row that looks like coverage and measures nothing. The language
+    split is the sharpest gap this braço works in: the lineage was English-first
+    and said so (Brownstein et al. 2008 lists Portuguese as "under development";
+    Collier 2010 admits missing the 2008 Ceará dengue outbreak for lack of
+    Portuguese coverage). See `lexicon.spec.REFERENCES`.
     """
     require = (
         lexicon.require_disease_term

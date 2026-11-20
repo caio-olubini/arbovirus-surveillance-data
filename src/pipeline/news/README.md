@@ -157,6 +157,41 @@ The lexicon is versioned at
 [`data/news/reference/lexico_dengue.yaml`](../../../data/news/reference/lexico_dengue.yaml).
 Changing a term or a weight invalidates the comparison with braços 02 and 03.
 
+### Grounding
+
+This braço is the dictionary-and-rule lineage of event-based surveillance, and
+the design choices above are read off it rather than invented. The cascade that
+reads headline→body and stops at the first disease+place pair, and the rule that
+drops a generic place when a specific one is named, are the HealthMap design
+(Freifeld et al. 2008, `doi:10.1197/jamia.M2544`); the slots come from the
+BioCaster ontology (Collier et al. 2008, `doi:10.1093/bioinformatics/btn534`);
+the curated vocabulary plus count regex are the PADI-web design (Valentin et al.
+2020, `doi:10.1016/j.compag.2019.105163`).
+
+Two findings from that lineage set the expectations for §5 rather than the
+method. First, **the case count is the weakest field these systems extract** —
+F1 0.658 against 0.851 for disease and 0.962 for country in one pipeline
+(Consoli et al. 2025, `doi:10.1038/s41597-025-05276-2`), F 85% against 95% for
+disease and host in another (Arsevska et al. 2018,
+`doi:10.1371/journal.pone.0199960`), and absent from production systems entirely
+(Ng et al. 2020, `doi:10.14745/ccdr.v46i06a06`). Second, **the cumulative-vs-weekly
+problem this stage names in §5 is not treated anywhere in it**: no surveyed
+system distinguishes a stock from a flow. Both are why the count slots are kept
+with a measured floor rather than a promise.
+
+The language split is the gap this braço works in. The lineage is English-first
+and said so — Portuguese was "under development" in the HealthMap (Brownstein et
+al. 2008, `doi:10.1371/journal.pmed.0050151`) and its absence is why BioCaster
+missed the 2008 Ceará dengue outbreak (Collier 2010,
+`doi:10.1186/2041-1480-1-2`) — and no surveyed work measures dictionary
+extraction over Portuguese news.
+
+The DOIs above are a subset, chosen for the choices this module makes. The full
+review, its ranking of approaches and the 35 fichas are in
+[`articles/features-texto/`](../../../articles/features-texto/); the same list is
+carried in code at `src/pipeline/news/lexicon/spec.py` (`REFERENCES`) and
+`src/pipeline/news/text/spec.py`.
+
 ### Scoping
 
 Every article counts for `BR`; it also counts for each federative unit it names.

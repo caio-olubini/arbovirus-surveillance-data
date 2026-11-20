@@ -11,6 +11,23 @@ regression to a header element is the failure this stage exists to catch.
 
 from __future__ import annotations
 
+# --- literature grounding ---------------------------------------------------
+#
+# This stage has its own grounding, separate from braço 01's. Treating
+# extracted-text quality as a stage rather than a detail comes from the
+# news-corpus literature, and the title/lead finding is why every downstream
+# matcher folds the title into the body rather than reading the body alone.
+# Full fichas in `articles/features-texto/`.
+REFERENCES = (
+    "Kriesch & Losacker 2025, Sci Data — seven text-quality heuristics applied "
+    "before a document enters a news corpus: minimum sentence count, "
+    "non-alphabetic fraction, words per line, a length window, duplicate "
+    "removal. doi:10.1038/s41597-025-05422-w",
+    "Mutuvi et al. 2020, COLING — the signal sits at the document edges: title "
+    "plus the first and last paragraphs scores F1 87.82 against 77.94 for the "
+    "body alone. doi:10.18653/v1/2020.coling-main.543",
+)
+
 # --- column names -----------------------------------------------------------
 
 ARTICLE_ID = "article_id"
@@ -56,7 +73,9 @@ ARTICLES_DIRNAME = "articles"
 
 # A correct extraction bottoms out at 128 chars (a one-sentence 2002 wire note);
 # a header-only regression yields ~20. 100 separates the two without flagging
-# any real article.
+# any real article. The two thresholds below are this project's version of the
+# length window Kriesch & Losacker (2025) apply before a document enters a news
+# corpus — see REFERENCES.
 MIN_CHARS = 100
 
 # Three era-B pages were saved with no article body at all: the HTML jumps from

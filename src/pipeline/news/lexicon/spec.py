@@ -15,6 +15,51 @@ from __future__ import annotations
 
 import re
 
+# --- literature grounding ---------------------------------------------------
+#
+# The lineage this braço descends from, and the numbers behind each design
+# choice below. The full fichas — abstract, measured numbers, PDF — are in
+# `articles/features-texto/` (`relatorio.md`, `ranking.md`); the citation lives
+# here, next to the constants it justifies, so it cannot drift from the code.
+#
+# Author-year is the form the review chapter uses. One year differs from the
+# local PDF name: the JAMIA HealthMap paper is cited by its 2008 issue, though
+# the saved PDF is dated 2007 (online-first).
+REFERENCES = (
+    "Freifeld et al. 2008, JAMIA 15(2):150 — dictionary cascade headline→body, "
+    "gazetteer of ~2,300 places and ~1,100 diseases, and the container rule that "
+    "drops a generic place when a specific one is named. "
+    "doi:10.1197/jamia.M2544",
+    "Brownstein et al. 2008, PLoS Med 5(7):e151 — the same architecture; "
+    "Portuguese listed as 'under development' in 2008. "
+    "doi:10.1371/journal.pmed.0050151",
+    "Collier et al. 2008, Bioinformatics 24(24):2940 — disease/location slots "
+    "read from a formal ontology rather than a flat term list. "
+    "doi:10.1093/bioinformatics/btn534",
+    "Valentin et al. 2020, Comput Electron Agric — curated vocabulary + GeoNames "
+    "+ HeidelTime dates + regex for case counts. "
+    "doi:10.1016/j.compag.2019.105163",
+    "Arsevska et al. 2018, PLoS ONE 13(8):e0199960 — F 85% on case counts "
+    "against 95% on disease/host: the count is the weak slot. "
+    "doi:10.1371/journal.pone.0199960",
+    "Consoli et al. 2025, Sci Data — F1 0.658 on case counts against 0.851 for "
+    "disease and 0.962 for country; deaths left unevaluated. "
+    "doi:10.1038/s41597-025-05276-2",
+    "Ng et al. 2020, CCDR 46(6) — no production surveillance system extracted "
+    "case counts at the time of writing. doi:10.14745/ccdr.v46i06a06",
+    "Carlson et al. 2023, PLOS Glob Public Health — the same disease under five "
+    "names, cities spelled inconsistently, duplicate and impossible dates. "
+    "doi:10.1371/journal.pgph.0001083",
+    "Conway et al. 2010, J Med Internet Res 12(2):e23 — two annotators agreed on "
+    "the *number* of events in only 67% of documents. doi:10.2196/jmir.1323",
+    "Chanlekha et al. 2010, BMC Med Inform Decis Mak 10:1 — exact-location kappa "
+    "0.806/0.749, rising to 0.997 under approximate agreement. "
+    "doi:10.1186/1472-6947-10-1",
+    "Hu et al. 2023, ACM Comput Surv — administrative units are the easiest "
+    "toponym class (13 of 27 methods above 60% recall); no Portuguese model was "
+    "evaluated. doi:10.1145/3625819",
+)
+
 # --- column names -----------------------------------------------------------
 
 EW = "ew"
@@ -64,12 +109,17 @@ LOCATIVE_CUES = (
 # a phone number, not a case count. Brazil's worst dengue year on record
 # (2024) reported ~6.6 million cases and ~6,100 deaths, so this is loose enough
 # to admit every real figure and tight enough to reject a national population.
+# A plausibility ceiling is the cheap version of what the corpus literature
+# reports as a document-level problem: impossible values reach the extractor
+# (Carlson et al. 2023 — see REFERENCES).
 MAX_PLAUSIBLE_COUNT = 50_000_000
 
 # A count followed by "de"/"por" plus a disease word is only ours when that word
 # is a dengue-family term or a generic one. See `generic_disease_words` in the
 # lexicon for why: dengue coverage cites other diseases, and their numbers are
-# an order of magnitude away from dengue's.
+# an order of magnitude away from dengue's. The rule exists because a bare
+# numeral carries no disease of its own — the count is only meaningful bound to
+# the disease in its sentence (Ng et al. 2020 — see REFERENCES).
 QUALIFIER_LOOKAHEAD = 40
 # Up to two intervening words so "casos prováveis de dengue" and "casos
 # confirmados de dengue" are seen as dengue-qualified, while "casos e 10 mortes
