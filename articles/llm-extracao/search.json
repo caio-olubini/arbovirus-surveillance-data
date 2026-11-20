@@ -1,0 +1,1812 @@
+{
+  "family": {
+    "slug": "llm-extracao",
+    "label": "Extração estruturada de eventos epidemiológicos por LLM"
+  },
+  "as_of_year": 2026,
+  "generated": "2026-11-01",
+  "gates": {
+    "as_of_year": 2026,
+    "min_year": 2019,
+    "citations": {
+      "mature_age_years": 2,
+      "mature_min": 10,
+      "recent_min": 3
+    },
+    "venue": {
+      "min_h_index": 30,
+      "allow_any_of": [
+        "ACL",
+        "EMNLP",
+        "NAACL",
+        "EACL",
+        "COLING",
+        "TACL",
+        "NeurIPS",
+        "ICLR",
+        "ICML",
+        "AAAI",
+        "JMLR"
+      ]
+    },
+    "require_pdf": true
+  },
+  "citations_per_year_formula": "cited_by_count / max(1, as_of_year - publication_year)",
+  "sources": [
+    {
+      "name": "OpenAlex",
+      "url_base": "https://api.openalex.org",
+      "role": "backbone: works, venue h-index, best OA pdf"
+    },
+    {
+      "name": "Semantic Scholar",
+      "url_base": "https://api.semanticscholar.org/graph/v1",
+      "role": "cross-check (429 sem chave; usado apenas como fallback de PDF)"
+    },
+    {
+      "name": "Crossref",
+      "url_base": "https://api.crossref.org",
+      "role": "citacoes e DOI dos papers de gap achados na web (proxy: --cacert logs/macos-ca-bundle.pem)"
+    },
+    {
+      "name": "Web (WebSearch)",
+      "url_base": "https://www.google.com",
+      "role": "apenas para lacunas: localizar papers on-domain nao retornados pelas queries OpenAlex"
+    }
+  ],
+  "notes": [
+    "Familia: extracao estruturada de eventos epidemiologicos (doenca, local, data, casos, obitos, gravidade) de noticia de surto e relatorio oficial por LLM, com JSON-schema/few-shot/ensemble e avaliacao contra anotacao humana.",
+    "OpenAlex \"search\" faz match em texto completo, entao varias queries trazem obras fora da familia (clinica, agricultura, desinformacao, previsao); o julgamento esta em selected / considered_not_selected, nao na contagem bruta de hits.",
+    "Candidatos deduplicados por DOI/openalex_id entre as 31 consultas; total_unique_hits (916) e menor que a soma bruta de hits.",
+    "O h-index do venue nao vem em primary_location.source.summary_stats no resultado de works; foi buscado a parte em /sources?filter=openalex_id:S...|S... em lotes de 50 (441 venues resolvidos).",
+    "Proxy corporativo com inspecao TLS: urllib/python falhou com CERTIFICATE_VERIFY_FAILED no Crossref e em downloads MDPI; usei curl --cacert logs/macos-ca-bundle.pem. OpenAlex e Semantic Scholar funcionaram com curl simples.",
+    "Semantic Scholar Graph API retornou 429 sem chave; as contagens de citacao vieram do OpenAlex (cited_by_count) e, para os 5 papers de gap achados na web, do Crossref.",
+    "OpenAlex esgotou o orcamento diario compartilhado (429 \"Rate limit exceeded\") no fim: nao consegui reexecutar as ultimas queries de gap com filtro OpenAlex nem resolver o h-index do workshop NLP4PI (paper Health Sentinel) — este reprovou pelo gate de venue.",
+    "PDFs MDPI deram 403 em www.mdpi.com; recuperados via mdpi-res.com/d_attachment/.../article_deploy/*.pdf e verificados com `file` = \"PDF document\".",
+    "O paper 10.1016/j.jbi.2020.103374 (Zhang 2020, JBI) passou year/citations/venue, mas o unico PDF OA (ScienceDirect) e bloqueado por bot (403) e nao ha copia green-OA; ficou em rejected_by_gate.pdf e NAO esta em selected.",
+    "Os papers mais on-domain achados na busca web (From Text to Maps NLP4PI 2024; Epidemic Information Extraction for EBS LNNS 2024; Health Sentinel NLP4PI 2025; EpiGator LREC 2026; EpiLens arXiv 2026; agentic public-health collection arXiv 2026; RANLP 2025; DATA 2026; DEFI 2025) NAO passam nos gates congelados (citacoes abaixo de 3 ou venue de workshop < h30 sem match na allow-list).",
+    "Nenhum paper de extracao de surto em portugues/multilingue passou os gates — a cobertura da familia e fina nessa dimensao.",
+    "Baselines EBS por dicionario/regra (BioCaster, PADI-web, ProMED/You 2021, Ganser 2022, Ng 2020) foram excluidos por out_of_scope item 6 (ja cobertos em articles/features-texto); incluidos apenas baselines novos de ML/NER nao duplicados (EventEpi, Event Geoparser, Kim classification).",
+    "ATENCAO: 01 Consoli 2025 (epidemiological KG from WHO DON) tambem aparece em articles/features-texto como 19_consoli_2025_knowledge_graph_who_don.pdf — overlap entre familias.",
+    "GRANULARIDADE: todo candidato que passou nas regras objetivas e nao foi selecionado tem linha propria em considered_not_selected com o motivo (281). Quem reprovou numa regra objetiva aparece so como contagem em rejected_by_gate.",
+    "LACUNA CONHECIDA (registrada a mao em 2026-11-01): as 31 entradas de 'queries' vieram sem o campo 'url' exigido pelo contrato, no lugar do qual o agente de busca gravou 'n_results'. Os tres registros irmaos (topicos, embeddings, features-texto) usam {source, query, url, hits}, de modo que llm-extracao e o unico fora da forma declarada. A URL de cada consulta nao e recuperavel: ela nao ficou em nenhum log do workflow. Consequencia pratica: as buscas desta rodada NAO podem ser refeitas a partir do registro. Para refazer, use as strings de 'query' como estao e reconte os hits, ciente de que a contagem pode divergir."
+  ],
+  "counts": {
+    "total_unique_hits": 916,
+    "mechanical_gate_passers": 291,
+    "selected_with_pdf": 10
+  },
+  "queries": [
+    {
+      "source": "OpenAlex",
+      "query": "large language model structured extraction outbreak news epidemiological fields",
+      "hits": 2119,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "LLM few-shot information extraction disease surveillance news articles",
+      "hits": 271,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "GPT-4 extraction case counts outbreak reports evaluation",
+      "hits": 1049,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "JSON schema constrained generation information extraction public health",
+      "hits": 1857,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "ensemble LLM majority voting event extraction epidemic intelligence",
+      "hits": 63,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "named entity recognition epidemic news case counts baseline comparison",
+      "hits": 994,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "multilingual LLM extraction disease outbreak Portuguese news",
+      "hits": 40,
+      "n_results": 40
+    },
+    {
+      "source": "OpenAlex",
+      "query": "knowledge graph construction from WHO disease outbreak news LLM",
+      "hits": 199,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "LLM annotation gold standard epidemiology extraction precision recall",
+      "hits": 304,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "open-weight LLM local inference structured extraction biomedical",
+      "hits": 4625,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "negation and numeric value extraction from news reports epidemiology",
+      "hits": 198,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "event-based surveillance LLM versus rule-based extraction timeliness",
+      "hits": 1498,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "large language model epidemic intelligence outbreak news extraction",
+      "hits": 2673,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "generative AI epidemic intelligence news event extraction",
+      "hits": 1042,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "GPT outbreak report information extraction disease surveillance",
+      "hits": 711,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "ProMED large language model event extraction surveillance",
+      "hits": 719,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "LLM structured extraction WHO disease outbreak news fields",
+      "hits": 427,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "large language model surveillance news Portuguese dengue outbreak",
+      "hits": 254,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "epidemic intelligence generative AI news extraction evaluation",
+      "hits": 1434,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "LLM information extraction epidemic surveillance news benchmark",
+      "hits": 148,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "large language model biosurveillance news extraction disease location cases",
+      "hits": 95,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "epidemic intelligence from open sources large language model EIOS",
+      "hits": 135,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "news article outbreak extraction named entity recognition disease cases deaths",
+      "hits": 1168,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "zero-shot information extraction disease outbreak news LLM evaluation",
+      "hits": 239,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "large language model extract outbreak event fields news evaluation F1",
+      "hits": 1499,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "LLM event extraction epidemic news disease location date case counts",
+      "hits": 102,
+      "n_results": 50
+    },
+    {
+      "source": "OpenAlex",
+      "query": "From Text to Maps LLM-Driven Extraction and Geotagging of Epidemiological Data",
+      "hits": 18,
+      "n_results": 5
+    },
+    {
+      "source": "OpenAlex",
+      "query": "Epidemic Information Extraction for Event-Based Surveillance using Large Language Models",
+      "hits": 9086,
+      "n_results": 5
+    },
+    {
+      "source": "OpenAlex",
+      "query": "Exploring the Performance of Large Language Models for Event Detection and Extraction in the Health Domain",
+      "hits": 59603,
+      "n_results": 5
+    },
+    {
+      "source": "OpenAlex",
+      "query": "Media-Derived Epidemic Intelligence for Avian Influenza LLM-Augmented Event-Based Surveillance",
+      "hits": 9,
+      "n_results": 5
+    },
+    {
+      "source": "Web (WebSearch/Crossref)",
+      "query": "on-domain LLM outbreak-news extraction gap search (titles found via web)",
+      "hits": 5,
+      "n_results": 5
+    }
+  ],
+  "selected": [
+    {
+      "key": "consoli2025epidemiologicalkg",
+      "file": "articles/llm-extracao/01_consoli_2025_epidemiological_kg_who_don.pdf",
+      "title": "An epidemiological knowledge graph extracted from the World Health Organization’s Disease Outbreak News",
+      "year": 2025,
+      "venue": "Scientific Data",
+      "venue_h_index": 215,
+      "doi": "10.1038/s41597-025-05276-2",
+      "citations": 10,
+      "citations_per_year": 10.0,
+      "pdf": "https://www.nature.com/articles/s41597-025-05276-2.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "algaradi2025mortalityextraction",
+      "file": "articles/llm-extracao/02_algaradi_2025_mortality_extraction_llm.pdf",
+      "title": "Automated Extraction of Mortality Information From Publicly Available Sources Using Large Language Models: Development and Evaluation Study",
+      "year": 2025,
+      "venue": "Journal of Medical Internet Research",
+      "venue_h_index": 286,
+      "doi": "10.2196/71113",
+      "citations": 5,
+      "citations_per_year": 5.0,
+      "pdf": "https://www.jmir.org/2025/1/e71113/PDF",
+      "decision": "selected"
+    },
+    {
+      "key": "neveditsin2025structuredoutput",
+      "file": "articles/llm-extracao/03_neveditsin_2025_structured_output_robustness_json.pdf",
+      "title": "Evaluating Structured Output Robustness of Small Language Models for Open Attribute-Value Extraction from Clinical Notes",
+      "year": 2025,
+      "venue": "Proceedings of the conference - Association for Computational Linguistics. Meeting",
+      "venue_h_index": 305,
+      "doi": "10.18653/v1/2025.acl-srw.19",
+      "citations": 4,
+      "citations_per_year": 4.0,
+      "pdf": "https://aclanthology.org/2025.acl-srw.19.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "li2024aegpt",
+      "file": "articles/llm-extracao/04_li_2024_aegpt_adverse_events_surveillance.pdf",
+      "title": "AE-GPT: Using Large Language Models to extract adverse events from surveillance reports-A use case with influenza vaccine adverse events",
+      "year": 2024,
+      "venue": "PLoS ONE",
+      "venue_h_index": 594,
+      "doi": "10.1371/journal.pone.0300919",
+      "citations": 61,
+      "citations_per_year": 30.5,
+      "pdf": "https://journals.plos.org/plosone/article/file?id=10.1371/journal.pone.0300919&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "mortezaagha2026schemaconstrained",
+      "file": "articles/llm-extracao/05_mortezaagha_2026_schema_constrained_biomedical_extraction.pdf",
+      "title": "From chaos to clarity: schema-constrained AI for auditable biomedical evidence extraction from full-text PDFs",
+      "year": 2026,
+      "venue": "BMC Medical Research Methodology",
+      "venue_h_index": 221,
+      "doi": "10.1186/s12874-026-02847-8",
+      "citations": 4,
+      "citations_per_year": 4.0,
+      "pdf": "https://bmcmedresmethodol.biomedcentral.com/counter/pdf/10.1186/s12874-026-02847-8.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "schmidt2024dataextraction",
+      "file": "articles/llm-extracao/06_schmidt_2024_llm_data_extraction_systematic_reviews.pdf",
+      "title": "Exploring the use of a Large Language Model for data extraction in systematic reviews: a rapid feasibility study",
+      "year": 2024,
+      "venue": "arXiv (Cornell University)",
+      "venue_h_index": 762,
+      "doi": "10.48550/arxiv.2405.14445",
+      "citations": 12,
+      "citations_per_year": 6.0,
+      "pdf": "https://arxiv.org/pdf/2405.14445",
+      "decision": "selected"
+    },
+    {
+      "key": "shamsabadi2024scinfoextraction",
+      "file": "articles/llm-extracao/07_shamsabadi_2024_llm_scientific_information_extraction_virology.pdf",
+      "title": "Large Language Models for Scientific Information Extraction: An Empirical Study for Virology",
+      "year": 2024,
+      "venue": "Findings of the Association for Computational Linguistics: EACL",
+      "venue_h_index": 18,
+      "doi": "10.18653/v1/2024.findings-eacl.26",
+      "citations": 10,
+      "citations_per_year": 5.0,
+      "pdf": "https://aclanthology.org/2024.findings-eacl.26.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "abbood2020eventepi",
+      "file": "articles/llm-extracao/09_abbood_2020_eventepi_nlp_event_based_surveillance.pdf",
+      "title": "EventEpi—A natural language processing framework for event-based surveillance",
+      "year": 2020,
+      "venue": "PLoS Computational Biology",
+      "venue_h_index": 282,
+      "doi": "10.1371/journal.pcbi.1008277",
+      "citations": 26,
+      "citations_per_year": 4.33,
+      "pdf": "https://journals.plos.org/ploscompbiol/article/file?id=10.1371/journal.pcbi.1008277&type=printable",
+      "decision": "selected"
+    },
+    {
+      "key": "dewandaru2020eventgeoparser",
+      "file": "articles/llm-extracao/10_dewandaru_2020_event_geoparser_numerical_argument_indonesian.pdf",
+      "title": "Event Geoparser with Pseudo-Location Entity Identification and Numerical Argument Extraction Implementation and Evaluation in Indonesian News Domain",
+      "year": 2020,
+      "venue": "ISPRS International Journal of Geo-Information",
+      "venue_h_index": 109,
+      "doi": "10.3390/ijgi9120712",
+      "citations": 11,
+      "citations_per_year": 1.83,
+      "pdf": "https://mdpi-res.com/d_attachment/ijgi/ijgi-09-00712/article_deploy/ijgi-09-00712.pdf",
+      "decision": "selected"
+    },
+    {
+      "key": "kim2020onlineclassification",
+      "file": "articles/llm-extracao/11_kim_2020_classification_online_sources_infectious_disease.pdf",
+      "title": "Automated Classification of Online Sources for Infectious Disease Occurrences Using Machine-Learning-Based Natural Language Processing Approaches",
+      "year": 2020,
+      "venue": "International Journal of Environmental Research and Public Health",
+      "venue_h_index": 320,
+      "doi": "10.3390/ijerph17249467",
+      "citations": 29,
+      "citations_per_year": 4.83,
+      "pdf": "https://mdpi-res.com/d_attachment/ijerph/ijerph-17-09467/article_deploy/ijerph-17-09467.pdf",
+      "decision": "selected"
+    }
+  ],
+  "rejected_by_gate": {
+    "year": 0,
+    "citations": 600,
+    "venue": 24,
+    "pdf": 1
+  },
+  "considered_not_selected": [
+    {
+      "title": "Retrieval augmentation of large language models for lay language generation",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "Disaster Storylines and Knowledge Graphs from Global News with Large Language Models and Retrieval-Augmented Generation",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Large language models for bioinformatics",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Effective Training Data Extraction Method to Improve Influenza Outbreak Prediction from Online News Articles: Deep Learning Model Study",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Attention-Driven Deep Learning for News-Based Prediction of Disease Outbreaks",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Epidemiological, clinical, and public health response characteristics of a large outbreak of diphtheria among the Rohingya population in Cox’s Bazar, Bangladesh, 2017 to 2019: A retrospective study",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "A survey on the applications of transfer learning to enhance the performance of large language models in healthcare systems",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Contribution and performance of ChatGPT and other Large Language Models (LLM) for scientific and research advancements: a double-edged sword",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "An epidemiological forecast model and software assessing interventions on the COVID-19 epidemic in China",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Opportunities and Challenges in Combining Optical Sensing and Epidemiological Modeling",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Application of natural language processing algorithms for extracting information from news articles in event-based surveillance",
+      "gate": "relevance",
+      "detail": "Vigilancia baseada em eventos (EBS) por dicionario/regra; esse tipo ja esta coberto em articles/features-texto (item fora do escopo)."
+    },
+    {
+      "title": "Scoping future outbreaks: a scoping review on the outbreak prediction of the WHO Blueprint list of priority diseases",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Rumor surveillance methods in outbreaks: A systematic literature review",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Ten Epidemiological Parameters of COVID-19: Use of Rapid Literature Review to Inform Predictive Models During the Pandemic",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Use of mobile data collection systems within large-scale epidemiological field trials: findings and lessons-learned from a vector control trial in Iquitos, Peru",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "A Methodology for Open Information Extraction and Representation from Large Scientific Corpora: The CORD-19 Data Exploration Use Case",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "Early Warning of Infectious Disease Outbreaks Using Social Media and Digital Data: A Scoping Review",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Business insights using RAG–LLMs: a review and case study",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Few-shot learning for medical text: A review of advances, trends, and opportunities",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Few-shot clinical entity recognition in English, French and Spanish: masked language models outperform generative model prompting",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Language Models Can Improve Event Prediction by Few-Shot Abductive Reasoning",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Harnessing artificial intelligence for enhanced public health surveillance: a narrative review",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Systematic review: The use of large language models as medical chatbots in digestive diseases",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Large language models overcome the challenges of unstructured text data in ecology",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Location Reference Recognition from Texts: A Survey and Comparison",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Operationalizing Large Language Models for Clinical Research Data Extraction: Methods, Quality Control, and Governance",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Large language models in medical and healthcare fields: applications, advances, and challenges",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "GBERT: A hybrid deep learning model based on GPT-BERT for fake news detection",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "ChiMed-GPT: A Chinese Medical Large Language Model with Full Training Regime and Better Alignment to Human Preferences",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Rapid development and field evaluation of a portable CRISPR-based assay for Mpox during the 2025 Sierra Leone outbreak",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Sentiment-Based Spatiotemporal Prediction Framework for Pandemic Outbreaks Awareness Using Social Networks Data Classification",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Synthetic Lies: Understanding AI-Generated Misinformation and Evaluating Algorithmic and Human Solutions",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Extracting COVID-19 diagnoses and symptoms from clinical text: A new annotated corpus and neural event extraction framework",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Leveraging open-source large language models for clinical information extraction in resource-constrained settings",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "A flood knowledge-constrained large language model interactable with GIS: enhancing public risk perception of floods",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "A framework for extraction of clinical information from radiological mammography reports using large language models and retrieval augmented generation",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "AI-assisted protocol information extraction for improved accuracy and efficiency in clinical trial workflows",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "From text to insight: large language models for chemical data extraction",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Artificial Intelligence for Opioid Safety Surveillance from Clinical Text: A Clinically Focused Review",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Artificial Intelligence: A Promising Tool for Application in Phytopathology",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "COVID-19 in the Age of Artificial Intelligence: A Comprehensive Review",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "A Comprehensive Survey of Artificial Intelligence Techniques for Talent Analytics",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Automating biomedical literature review for rapid drug discovery: Leveraging GPT-4 to expedite pandemic response",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Multi-modal fake news detection: A comprehensive survey on deep learning technology, advances, and challenges",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A Review of Automatic Fake News Detection: From Traditional Methods to Large Language Models",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Intelligent Detection and Control of Crop Pests and Diseases: Current Status and Future Prospects",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Capabilities of Gemini Models in Medicine",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "Divided by discipline? A systematic literature review on the quantification of online sexism and misogyny using a semi-automated approach",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Unleashing the Power of Continual Learning on Non-Centralized Devices: A Survey",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "A pragmatic guide to geoparsing evaluation: Toponyms, Named Entity Recognition and pragmatics.",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "Transformer-Based Named Entity Recognition in Construction Supply Chain Risk Management in Australia",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Information Extraction and Named Entity Recognition Supported Social Media Sentiment Analysis during the COVID-19 Pandemic",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "NEREL-BIO: a dataset of biomedical abstracts annotated with nested named entities",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "The Psychology of Fake News",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Pandemic News: Facebook Pages of Mainstream News Media and the Coronavirus Crisis -- A Computational Content Analysis",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A systematic review on fake news research through the lens of news creation and consumption: Research efforts, challenges, and future directions",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Evidence-Aware Multilingual Fake News Detection",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "COMETA: A Corpus for Medical Entity Linking in the Social Media",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "A comprehensive survey on machine learning approaches for fake news detection",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "An image and text-based multimodal model for detecting fake news in OSN’s",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Conspiracy in the time of corona: automatic detection of emerging COVID-19 conspiracy theories in social media and the news",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A review on fake news detection 3T’s: typology, time of detection, taxonomies",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Characterizing the Entities in Harmful Memes: Who is the Hero, the Villain, the Victim?",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "A deep fusion model for stock market prediction with news headlines and time series data",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Frontiers in Operations: News Event-Driven Forecasting of Commodity Prices",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Ax-to-Grind Urdu: Benchmark Dataset for Urdu Fake News Detection",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A systematic review of AI, VR, and LLM applications in special education: Opportunities, challenges, and future directions",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Emotion detection for misinformation: A review",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "SmartBook: AI-Assisted Situation Report Generation for Intelligence Analysts",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "A systematic survey of natural language processing for the Greek language",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Fingerspelling within Sign Language Translation",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Few-shot Named Entity Recognition: Definition, Taxonomy and Research Directions",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "What can artificial intelligence do for soil health in agriculture?",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "The Role of AI in Predictive Modelling for Sustainable Urban Development: Challenges and Opportunities",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Enhancing supply chain visibility with knowledge graphs and large language models",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Can LLM-Generated Misinformation Be Detected?",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Optimizing context-based location extraction by tuning open-source LLMs with RAG",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "Artificial intelligence in early warning systems for infectious disease surveillance: a systematic review",
+      "gate": "relevance",
+      "detail": "Vigilancia por esgoto (wastewater-based epidemiology), nao extracao de campos de texto de noticia."
+    },
+    {
+      "title": "Machine and deep learning algorithms for sentiment analysis during COVID-19: A vision to create fake news resistant society",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Infectious Disease Research in the Era of Big Data",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Reimagining ethnopharmacology with generative AI: Towards inclusive, ethical, and data-driven traditional medicine",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Natural language processing in drug discovery: bridging the gap between text and therapeutics with artificial intelligence",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "CLINES: Clinical LLM-based Information Extraction and Structuring Agent",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "ZebraMap: A Multimodal Rare Disease Knowledge Map with Automated Data Aggregation & LLM-Enriched Information Extraction Pipeline",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Unveiling LLM Evaluation Focused on Metrics: Challenges and Solutions",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "An Entity Extraction Pipeline for Medical Text Records Using Large Language Models: Analytical Study",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Assessing large language models for acute heart failure classification and information extraction from French clinical notes",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Applying Artificial Intelligence and machine learning in precision nutrition",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Understanding LLMs: A Comprehensive Overview from Training to Inference",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "The Aloe Family recipe for open and specialized healthcare LLMs",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "LLM-AIx: An open source pipeline for Information Extraction from unstructured medical text based on privacy preserving Large Language Models",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Causality Extraction from Medical Text Using Large Language Models (LLMs)",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Benchmarking the diagnostic performance of open source LLMs in 1933 Eurorad case reports",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Structure Causal Models and LLMs Integration in Medical Visual Question Answering",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Numerical evaluation of spray position for improved nasal drug delivery",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Numerical evaluation of spray position for improved nasal drug delivery",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Advances in Chemical and Biological Methods to Identify Microorganisms—From Past to Present",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Vaccine Hesitancy on Social Media: Sentiment Analysis from June 2011 to April 2019",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Ensembling Classical Machine Learning and Deep Learning Approaches for Morbidity Identification From Clinical Notes",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Deep Learning applications for COVID-19",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Neural Natural Language Processing for unstructured data in electronic health records: A review",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Identifying signs and symptoms of urinary tract infection from emergency department clinical notes using large language models",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Systematic review of natural language processing for recurrent cancer detection from electronic medical records",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "AI Reasoning in Deep Learning Era: From Symbolic AI to Neural–Symbolic AI",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Tweets Classification and Sentiment Analysis for Personalized Tweets Recommendation",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Social stigma during COVID-19: A systematic review",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "PubHealthTab: A Public Health Table-based Dataset for Evidence-based Fact Checking",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Towards a practical use of text mining approaches in electrodiagnostic data",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Determinants of physician networks: an ethnographic study examining the processes that inform patterns of collaboration and referral decision-making among physicians",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Predicting mental health using social media: A roadmap for future development",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Detection of Depression-Related Posts in Reddit Social Media Forum",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Automatically Assessing Quality of Online Health Articles",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "The Not Yet Exploited Goldmine of OSINT: Opportunities, Open Challenges and Future Trends",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "A medically grounded LLM agent–based tool to detect patient safety events in medical records",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Agentic AI in Healthcare and Medicine: A Seven-Dimensional Taxonomy for Empirical Evaluation of LLM-Based Agents",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "CO2 (Co-Compliance Officer): An LLM-Based Ontology-Driven Methodology for Generating Knowledge Graphs and AI Compliance Checking",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "Authorship Attribution in the Era of LLMs: Problems, Methodologies, and Challenges",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A scoping review of using Large Language Models (LLMs) to investigate Electronic Health Records (EHRs)",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "Large Language Models for Adverse Drug Events: A Clinical Perspective",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "LLM-Driven Offloading Decisions for Edge Object Detection in Smart City Deployments",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Generative AI and LLM applications in renewable energy and smart grids: a systematic review for the sustainable energy transition",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "A comprehensive review of LLM applications for lung cancer diagnosis and treatment: classification, challenges, and future directions",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Using large language models to identify prediagnostic clinical features of ovarian cancer from healthcare records: a population-based case–control study",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Large Language Models for Drug-Related Adverse Events in Oncology Pharmacy: Detection, Grading, and Actioning",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Survey on Context-Aware Radio Frequency-Based Sensing",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Vision Technologies with Applications in Traffic Surveillance Systems: A Holistic Survey",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Natural Language Processing in Support of Evidence-based Medicine: A Scoping Review",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "AI-driven epidemic intelligence: the future of outbreak detection and response",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Fake News Detection in Portuguese Under Large Language Model-Generated Content",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A Synoptic Review of Plant Disease Epidemics and Outbreaks Published in 2022",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Large language models for newspaper sentiment analysis during COVID-19: The Guardian",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Artificial intelligence in epidemic watch: revolutionizing infectious diseases surveillance",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Artificial Intelligence and Telehealth may Provide Early Warning of Epidemics",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "An Analysis of Body Language of Patients Using Artificial Intelligence",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "BioCaster in 2021: automatic disease outbreaks detection from global news media",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "Detecting COVID-19-Related Fake News Using Feature Extraction",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Wastewater-based epidemiology for preventing outbreaks and epidemics in Latin America – Lessons from the past and a look to the future",
+      "gate": "relevance",
+      "detail": "Vigilancia por esgoto (wastewater-based epidemiology), nao extracao de campos de texto de noticia."
+    },
+    {
+      "title": "Fake news research trends, linkages to generative artificial intelligence and sustainable development goals",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Generative Artificial Intelligence Use in Healthcare: Opportunities for Clinical Excellence and Administrative Efficiency",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Scientists' Perspectives on the Potential for Generative AI in their Fields",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "AI Agents and Epidemic Intelligence on Respiratory Infectious Diseases: Toward a Conceptual Framework Integrating Decision Support",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Artificial Intelligence (AI): Multidisciplinary perspectives on emerging challenges, opportunities, and agenda for research, practice and policy",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Forecasting Influenza Epidemics and Pandemics in the Age of AI and Machine Learning",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Artificial intelligence: A powerful paradigm for scientific research",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Artificial intelligence‐based prediction of pathogen emergence and evolution in the world of synthetic biology",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Fake news, disinformation and misinformation in social media: a review",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Mapping the landscape of Artificial Intelligence applications against COVID-19",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "TextEE: Benchmark, Reevaluation, Reflections, and Future Challenges in Event Extraction",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Defending Against Neural Fake News",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "A Survey on Applications of Artificial Intelligence in Fighting Against COVID-19",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Data science and AI in FinTech: an overview",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Artificial Intelligence in the Fight Against COVID-19: Scoping Review",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "A State-of-the-Art Review of Artificial Intelligence (AI) Applications in Healthcare: Advances in Diabetes, Cancer, Epidemiology, and Mortality Prediction",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Artificial Intelligence and Musicking",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Machine Learning and Artificial Intelligence for Infectious Disease Surveillance, Diagnosis, and Prognosis",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Mpox Surveillance and Laboratory Response in Portugal: Lessons Learned from Three Outbreak Waves (2022–2025)",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Emerging infectious disease surveillance using a hierarchical diagnosis model and the Knox algorithm",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Evaluation of four DNA extraction kits for implementation of nanopore sequencing in routine surveillance of antimicrobial resistance in low-resource settings",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Advancing Public Health Surveillance With Artificial Intelligence: A Systematic Review of Real‐Time Data Analytics and Disease Prediction",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Text mining for disease surveillance in veterinary clinical data: part two, training computers to identify features in clinical text",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Leveraging Large Language Models for Infectious Disease Surveillance—Using a Web Service for Monitoring COVID-19 Patterns From Self-Reporting Tweets: Content Analysis",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Internet-based Surveillance Systems and Infectious Diseases Prediction: An Updated Review of the Last 10 Years and Lessons from the COVID-19 Pandemic",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Artificial intelligence in infection surveillance: Data integration, applications and future directions",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Constructing a disease database and using natural language processing to capture and standardize free text clinical information",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Epidemiological and digital syndromic surveillance data on dengue, chikungunya, and SARI in Brazil",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Hantavirus Emergence in a Changing World: Virology, Pathogenesis, Surveillance, and One Health Preparedness",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Large Language Models in Biomedical and Health Informatics: A Review with Bibliometric Analysis",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Using digital surveillance tools for near real-time mapping of the risk of infectious disease spread",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "AMMU: A survey of transformer-based biomedical pretrained language models",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Dissemination of information in event-based surveillance, a case study of Avian Influenza",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Predicting Kyasanur forest disease in resource-limited settings using event-based surveillance and transfer learning",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Rift Valley Fever outbreaks in the East African Community: insights from ProMed data (2010–2024)",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "The Influence of Social Support in PROMs of Patients with COPD in Primary Care: A Scoping Review",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Leveraging Hybrid Natural Language Processing Techniques for Large-Scale Pulmonary Embolism Identification",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "The Application of Internet-Based Sources for Public Health Surveillance (Infoveillance): Systematic Review",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "COVID-19 Surveillance in a Primary Care Sentinel Network: In-Pandemic Development of an Application Ontology",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Effectiveness of Public Health Digital Surveillance Systems for Infectious Disease Prevention and Control at Mass Gatherings: Systematic Review",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Artificial Intelligence for Public Health Surveillance in Africa: Applications and Opportunities",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Designing Social Robots with LLMs for Engaging Human Interaction",
+      "gate": "relevance",
+      "detail": "Geracao, sumarizacao, traducao ou simplificacao de texto sem extracao de campos (item fora do escopo)."
+    },
+    {
+      "title": "Clinician voices on ethics of LLM integration in healthcare: a thematic analysis of ethical concerns and implications",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Global approaches to infectious disease surveillance and modeling",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Leveraging State-of-the-Art Topic Modeling for News Impact Analysis on Financial Markets: A Comparative Study",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Detection of dengue virus and chikungunya virus in wastewater in Portugal: an exploratory surveillance study",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Modelling the Lodi, 2023 and Fano 2024, Italy Dengue Outbreaks: The Effects of Control Strategies and Environmental Extremes",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Gravitrap deployment for adult Aedes aegypti surveillance and its impact on dengue cases",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Dengue Virus Infection and Associated Risk Factors in Africa: A Systematic Review and Meta-Analysis",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Predicting dengue importation into Europe, using machine learning and model-agnostic methods",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Twitter vs. Zika—The role of social media in epidemic outbreaks surveillance",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "A Systematic Review of Mathematical Models of Dengue Transmission and Vector Control: 2010–2020",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Using Text Mining to Track Outbreak Trends in Global Surveillance of Emerging Diseases: ProMED-mail",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Risk assessment and perspectives of local transmission of chikungunya and dengue in Italy, a European forerunner",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Toward a global virus genomic surveillance network",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Acceptability of a hypothetical dengue vaccine and the potential impact of dengue vaccination on personal vector control behavior: a qualitative study in Fortaleza, Brazil",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Google Health Trends performance reflecting dengue incidence for the Brazilian states",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Comparing News Articles and Tweets About COVID-19 in Brazil: Sentiment Analysis and Topic Modeling Approach",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Discrepancies in dengue burden estimates: a comparative analysis of reported cases and global burden of disease study, 2010–2019",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Global estimation of dengue disability weights based on clinical manifestations data",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Data and Digital Solutions to Support Surveillance Strategies in the Context of the COVID-19 Pandemic",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Using surveillance data for early warning modelling of highly pathogenic avian influenza in Europe reveals a seasonal shift in transmission, 2016–2022",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Semi-Supervised Text Classification Framework: An Overview of Dengue Landscape Factors and Satellite Earth Observation",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Emerging data inputs for infectious diseases surveillance and decision making",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Systematic Review of the Ovitrap Surveillance of Aedes Mosquitoes in Brazil (2012–2022)",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Long-term efficacy and safety of a tetravalent dengue vaccine (TAK-003): 4·5-year results from a phase 3, randomised, double-blind, placebo-controlled trial",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "The Landscape of Participatory Surveillance Systems Across the One Health Spectrum: Systematic Review",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "COVID-19 and beyond: leveraging artificial intelligence for enhanced outbreak control",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Exploring 97 Years of Aedes aegypti as the Vector for Dengue, Yellow Fever, Zika, and Chikungunya (Diptera: Culicidae): Scientometric Analysis",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Interventions to mitigate early spread of SARS-CoV-2 in Singapore: a modelling study",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Clinical outcomes of dengue virus infection in pregnant and non-pregnant women of reproductive age: a retrospective cohort study from 2016 to 2019 in Paraná, Brazil",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Electronic data collection, management and analysis tools used for outbreak response in low- and middle-income countries: a systematic review and stakeholder survey",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Interventions to support the resilience and mental health of frontline health and social care professionals during and after a disease outbreak, epidemic or pandemic: a mixed methods systematic review",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "The generative revolution: AI foundation models in geospatial health—applications, challenges and future research",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "Artificial Intelligence (AI) and Big Data for Coronavirus (COVID-19) Pandemic: A Survey on the State-of-the-Arts",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "From Model Design to Organizational Design: Complexity Redistribution and Trade-Offs in Generative AI",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Agent-Based Modelling Meets Generative AI in Social Network Simulations",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Leveraging Artificial Intelligence (AI) Capabilities for COVID-19 Containment",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Artificial intelligence (AI) for medical imaging to combat coronavirus disease (COVID-19): a detailed review with direction for future research",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "How artificial intelligence may affect our mental wellbeing",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "UCL-Bench: A Chinese User-Centric Legal Benchmark for Large Language Models",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Social Media-Based Surveillance Systems for Health Informatics Using Machine and Deep Learning Techniques: A Comprehensive Review and Open Challenges",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "The benefits and dangers of anthropomorphic conversational agents",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A review on knowledge graphs for healthcare: Resources, applications, and promises",
+      "gate": "relevance",
+      "detail": "Extracao geografica/espacial ou grafo de conhecimento sem os campos epidemiologicos (doenca, contagem, obitos) exigidos pelo escopo."
+    },
+    {
+      "title": "PADI-web 3.0: A new framework for extracting and disseminating fine-grained information from the news for animal disease surveillance",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Large Language Model Symptom Identification From Clinical Text: Multicenter Study",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Automated Travel History Extraction From Clinical Notes for Informing the Detection of Emergent Infectious Disease Events: Algorithm Development and Validation",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Risk assessment strategies for early detection and prediction of infectious disease outbreaks associated with climate change",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "The Role of Natural Language Processing during the COVID-19 Pandemic: Health Applications, Opportunities, and Challenges",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Global Variations in Event-Based Surveillance for Disease Outbreak Detection: Time Series Analysis",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Metadata Schemas and Ontologies for Building Energy Applications: A Critical Review and Use Case Analysis",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Disease Outbreak Detection and Forecasting: A Review of Methods and Data Sources",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "When Infodemic Meets Epidemic: Systematic Literature Review",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Spatiotemporal event detection: a review",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Veterinary informatics: forging the future between veterinary medicine, human medicine, and One Health initiatives—a joint paper by the Association for Veterinary Informatics (AVI) and the CTSA One Health Alliance (COHA)",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Reconstructing historic and modern potato late blight outbreaks using text analytics",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Big data analytics as a tool for fighting pandemics: a systematic review of literature",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Artificial intelligence in public health: the potential of epidemic early warning systems",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Preventing the next pandemic: Use of artificial intelligence for epidemic monitoring and alerts",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Epidemic intelligence data of Crimean-Congo haemorrhagic fever, European Region, 2012 to 2022: a new opportunity for risk mapping of neglected diseases",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Technological trends in epidemic intelligence for infectious disease surveillance: a systematic literature review",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Usage of social media in epidemic intelligence activities in the WHO, Regional Office for the Eastern Mediterranean",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Implementing epidemic intelligence in the WHO African region for early detection and response to acute public health events",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Artificial intelligence cooperation to support the global response to COVID-19",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Role of digital technology in epidemic control: a scoping review on COVID-19 and Ebola",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Enhanced event-based surveillance for imported diseases during the Tokyo 2020 Olympic and Paralympic Games",
+      "gate": "relevance",
+      "detail": "Panorama, framework ou implantacao de inteligencia epidemica (epidemic intelligence) com IA; nao e um estudo de extracao estruturada de campos de noticia com avaliacao."
+    },
+    {
+      "title": "Data revolution, health status transformation and the role of artificial intelligence for health and pandemic preparedness in the African context",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "From data to decisions: The vital role of digital epidemiology for strengthening public health",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Digital Data Sources and Their Impact on People's Health: A Systematic Review of Systematic Reviews",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "A storytree-based model for inter-document causal relation extraction from news articles",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Foodborne viral outbreaks associated with frozen produce",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Ebola virus disease",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "Outbreak COVID-19 in Medical Image Processing Using Deep Learning: A State-of-the-Art Review",
+      "gate": "relevance",
+      "detail": "Estudo epidemiologico, clinico ou de laboratorio da doenca, sem componente de extracao de texto por LLM/NLP."
+    },
+    {
+      "title": "Beyond fear and anger: A global analysis of emotional response to Covid-19 news on Twitter",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "A Review of the Machine Learning Algorithms for Covid-19 Case Analysis",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Ebola virus disease: An emerging and re-emerging viral threat",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "The economic burden of Ebola virus disease: a review and recommendations for analysis",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Using co-sharing to identify use of mainstream news for promoting potentially misleading narratives",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Why meaning-making matters: the case of the UK Government’s COVID-19 response",
+      "gate": "relevance",
+      "detail": "Fora do escopo desta familia: nao trata de extracao estruturada de campos epidemiologicos (doenca, local, data, casos, obitos) de noticia ou relatorio de surto."
+    },
+    {
+      "title": "PH-LLM: Public Health Large Language Models for Infoveillance",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Explainable Fake News Detection with Large Language Model via Defense Among Competing Wisdom",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Transformers and large language models in healthcare: A review",
+      "gate": "relevance",
+      "detail": "Extracao/classificacao em texto clinico ou biomedico generico (EHR/nota clinica), excluido pelo escopo; nao e noticia nem relatorio de surto."
+    },
+    {
+      "title": "Large Language Models Are Biased Because They Are Large Language Models",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Disinformation Capabilities of Large Language Models",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Long-form factuality in large language models",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "From Vulnerability to Defense: The Role of Large Language Models in Enhancing Cybersecurity",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Do Large Language Models Know about Facts?",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Large language models to process, analyze, and synthesize biomedical texts: a scoping review",
+      "gate": "relevance",
+      "detail": "Dominio quimica/energia/materiais/bioinformatica, fora do escopo de vigilancia epidemiologica em noticia de surto."
+    },
+    {
+      "title": "Evaluating Large Language Models for Sentiment Analysis and Hesitancy Analysis on Vaccine Posts From Social Media: Qualitative Study",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "LaMDA: Language Models for Dialog Applications",
+      "gate": "relevance",
+      "detail": "Aplicacao geral de IA/LLM em saude sem extracao estruturada de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Moderating New Waves of Online Hate with Chain-of-Thought Reasoning in Large Language Models",
+      "gate": "relevance",
+      "detail": "Vigilancia digital por redes sociais, busca ou participativa; nao extrai campos estruturados de noticia/relatorio de surto."
+    },
+    {
+      "title": "Evaluating the effectiveness of publishers’ features in fake news detection on social media",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Automated stance detection in complex topics and small languages: The challenging case of immigration in polarizing news media",
+      "gate": "relevance",
+      "detail": "Analise de sentimento, topicos ou discurso de texto, nao extracao de campos estruturados de surto."
+    },
+    {
+      "title": "Infectious disease outbreak prediction using media articles with machine learning models",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    },
+    {
+      "title": "Enhanced earthquake impact analysis based on social media texts via large language model",
+      "gate": "relevance",
+      "detail": "Dominio nao epidemiologico (desastre, financas, industria, cidade, outros); nao extrai campos de surto de saude publica."
+    },
+    {
+      "title": "Studying fake news spreading, polarisation dynamics, and manipulation by bots: A tale of networks and language",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "Use of Retrieval-Augmented Large Language Model for COVID-19 Fact-Checking: Development and Usability Study",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A Survey on Event Extraction for Natural Language Understanding: Riding the Biomedical Literature Wave",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Does Fake News in Different Languages Tell the Same Story? An Analysis of Multi-level Thematic and Emotional Characteristics of News about COVID-19",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "MonkeyPox2022Tweets: A Large-Scale Twitter Dataset on the 2022 Monkeypox Outbreak, Findings from Analysis of Tweets, and Open Research Questions",
+      "gate": "relevance",
+      "detail": "Deteccao/analise de desinformacao, fake news ou rumor (classificacao de veracidade), nao extracao de campos epidemiologicos de noticia de surto."
+    },
+    {
+      "title": "A novel clay shrink-swell buildings damage model: From unstructured insurance data to the creation of buildings database, and the proposition of damage severity scale",
+      "gate": "relevance",
+      "detail": "Dominio agricola/veterinario/microbiologico, fora do escopo (noticia de surto em saude publica humana)."
+    },
+    {
+      "title": "Large Language Models for Mental Health Applications: Systematic Review",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "A Survey on Evaluation of Large Language Models",
+      "gate": "relevance",
+      "detail": "Revisao/panorama (IA em saude, vigilancia ou LLM), sem estudo proprio de extracao estruturada de noticia de surto nem avaliacao de extracao."
+    },
+    {
+      "title": "Filling the gap: artificial intelligence-driven one health integration to strengthen pandemic preparedness in resource-limited settings",
+      "gate": "relevance",
+      "detail": "Previsao/modelagem de surto ou estimativa epidemiologica (serie temporal, risco ou carga), que e o eixo de previsao, nao a extracao estruturada de campos."
+    }
+  ]
+}

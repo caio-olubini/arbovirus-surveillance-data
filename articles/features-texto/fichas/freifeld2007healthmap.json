@@ -1,0 +1,50 @@
+{
+  "key": "freifeld2007healthmap",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/01_freifeld_2007_healthmap_global_media_monitoring.pdf",
+  "author": "Freifeld et al.",
+  "year": 2008,
+  "read": "Li o artigo inteiro, páginas 1-8 do PDF (páginas 150-157 do JAMIA): abstract, Introduction, Background, Formulation Process, Model Description (Data Acquisition Engine, Classification Engine com Preparation Module e Parser Module, Container Relationships, Database, Output Renderer, User Interface), Validation (exemplo de relatório e a seção Classifier Performance), Discussion, Conclusion e References. Li também a Table 1 (página 6, 'Location and Disease Classifier Performance over the One Month Period from 10 October 2007 to 9 November 2007') e as legendas das Figures 1-4. Os números que importam (84%, 91%, 81%, 655/778, 2.300/1.100) estão na seção Classifier Performance e no corpo, não no abstract.",
+  "technique": "HealthMap é um sistema de vigilância de doenças que raspa notícias da web (Google News, ProMED Mail, alertas oficiais da OMS) e classifica automaticamente cada alerta pela LOCALIZAÇÃO e pela DOENÇA, plotando num mapa interativo. A técnica NÃO é embedding: é um classificador de dicionário por N-gramas de palavras. O texto passa por um Preparation Module em estágios (cabeçalho -> descrição -> corpo do artigo -> nome da fonte, parando quando acha match) e por um Parser Module que tokeniza, minusculiza (exceto tokens de <=2 caracteres), e casa os tokens contra um dicionário de padrões de lugares e doenças armazenado em árvore (cada nó é uma hash table, então a busca é O(1) por token, linear no tamanho do input). Os padrões mapeiam para IDs de banco (localização/doença). Desambiguação hierárquica por 'container relationships' (elimina Massachusetts se já achou Boston; elimina gastroenterite se já achou Norwalk). O texto vira um ID de categoria, não um vetor.",
+  "representation": "Não há espaço vetorial nem encoder: o texto é transformado em IDs de categorias discretas por casamento exato de tokens contra um dicionário de padrões (árvore de hash tables). Cada token é buscado em tempo constante; a classificação é linear no número de tokens. Não há pooling, normalização, dimensionalidade ou geometria — é lookup simbólico. Casamento exato é a limitação estrutural: sem fuzzy matching, wildcards ou regex, e o sistema só reconhece lugares/doenças já estocados no dicionário.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O classificador automático do HealthMap acertou 84% dos alertas (655 de 778) em um mês de operação, medido pela fração de relatórios que não precisou de correção humana de localização ou doença.",
+      "citacao": "As shown, the overall accuracy of the system is 84%, thus correctly classifying 655 out of 778 reports over the one-month period from October 10 to November 9.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Alertas de fonte curada (ProMED) classificam melhor que notícia crua de agregador: 91% contra 81% no Google News, atribuído à estrutura mais regular das mensagens do ProMED.",
+      "citacao": "performance on ProMED alerts, at 91%, is substantially better than on Google News reports (81%), as ProMED messages represent data curated specifically for disease outbreak reporting and follow a more regular structure.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O dicionário de padrões que sustenta o classificador tinha, na época da escrita, mais de 2.300 padrões de localização e 1.100 padrões de doença, atualizados diariamente.",
+      "citacao": "at the time of this writing it consists of over 2,300 location and 1,100 disease patterns.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A própria medida de acurácia é frágil: muitas 'correções' apenas movem o alerta entre categorias relacionadas (Gastroenterite->Norovírus, UK->England), e os autores admitem que não capturam essa distinção de gravidade.",
+      "citacao": "the correction of the classification serves merely to shift between related categories, such as reclassifying Gastroenteritis as Norovirus, or UK as England.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O sistema tem viés geográfico e linguístico declarado, por depender da edição americana do Google News, o que concentra a cobertura em EUA, Canadá e países anglófonos.",
+      "citacao": "the system is biased toward the US and Canada as well as other English-speaking countries around the world",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram duas limitações. (1) Sobre a métrica de acurácia: 'There are, however, important limitations to this performance analysis. In particular, in some cases, the correction of the classification serves merely to shift between related categories, such as reclassifying Gastroenteritis as Norovirus, or UK as England... Clearly the change is more significant in the latter cases, but we don't capture this distinction in the current analysis.' (2) Sobre cobertura: 'Because we currently rely heavily on the US edition of Google News for reports, the system is biased toward the US and Canada as well as other English-speaking countries around the world... we will continue to face this issue for the foreseeable future.' Também admitem que o método de dicionário só reconhece o que já está estocado e não acomoda fuzzy matching, wildcards ou regex.",
+  "evidence": "A evidência é operacional, não um benchmark contra outro modelo: durante um mês (10 out - 9 nov 2007) eles contaram quantos dos 778 alertas entraram no sistema sem precisar de correção humana diária (Table 1, página 6): All 778 / 123 editados (16%) / 87 de localização (11%) / 47 de doença (6%) / 84% de acurácia; ProMED 207 / 91%; Google News 547 / 81%. Não há baseline de outro classificador, nem precision/recall: os autores dizem explicitamente que não dá para aplicar métricas tradicionais porque o engine distribui os alertas em centenas de categorias ('it is not possible to apply traditional binary classification metrics such as precision and recall'). A única comparação é interna (ProMED 91% vs Google News 81%), atribuída à regularidade da fonte curada.",
+  "needs": "Não exige GPU nem embeddings: exige um dicionário de padrões construído e mantido à mão (2.300 lugares + 1.100 doenças no caso global) e um 'language expert' para traduzir/refinar o dicionário e as sutilezas de capitalização/pontuação. O artigo reporta que adaptaram o engine para espanhol com colaboradores do Naval Medical Research Center (Peru), 'albeit with a smaller pattern dictionary', sem mudanças estruturais. Custo de computação não é reportado; o sistema processa em média 30 alertas/dia e exibe ~1.000 alertas por vez. O custo real é trabalho humano de curadoria de dicionário e correção diária, não CPU.",
+  "cost_here": "Sobre o nosso corpus (4.369 artigos PT-BR, 965 semanas, 28 localizações), o custo de compute é praticamente zero (lookup O(1) por token, sem GPU, roda em milissegundos), mas o custo de trabalho não é 'não reportado': precisaríamos de um gazetteer PT-BR de municípios/UFs (a hierarquia container do artigo — município dentro de UF dentro de BR — mapeia direto nas nossas 28 localizações) e de um léxico de dengue em português. O artigo não dá número de horas de curadoria nem de compute; isso é 'não reportado'. Na prática é a mesma família do nosso braço 01 (léxico), não uma dependência nova pesada. O artigo não reporta custo de rodar sobre corpus PT-BR.",
+  "transferable": "Transfere: (a) o Preparation Module em estágios (cabeçalho -> descrição -> corpo -> fonte), diretamente aplicável a notícia; (b) a desambiguação hierárquica por container relationships, que casa exatamente com município dentro de UF dentro de BR nas nossas 28 localizações; (c) a observação quantificada de que fonte curada classifica melhor que notícia crua (91% vs 81%) — relevante para escolher a fonte dos nossos rótulos; (d) o caminho de extensão multilíngue (espanhol com dicionário menor sugere que PT-BR é factível). NÃO transfere: o artigo não usa embeddings em lugar nenhum — é casamento exato por dicionário —, então não diz nada sobre encoder, pooling, normalização ou dimensionalidade do nosso braço 02. A distância de domínio é grande: inglês, notícia global via Google News, viés EUA/Canadá, taxonomia global de 700+ categorias de doença; nosso corpus é PT-BR, uma única doença (dengue), 28 localizações fixas, e o alvo do nosso pipeline é uma série de casos suspeitos, não um marcador de mapa. A acurácia deles (84%) mede classificação binária de localização/doença para visualização, não um alvo preditivo como o nosso.",
+  "red_flags": [
+    "Sem baseline de outro modelo: a acurácia é medida contra a curadoria humana dos próprios autores, não contra um classificador concorrente; não há precision/recall (os autores dizem que não conseguem aplicar métricas tradicionais).",
+    "Avaliação de um único mês (10 out - 9 nov 2007), 778 relatórios, instância única do sistema, sem split treino/teste nem conjunto held-out.",
+    "A acurácia mistura correções triviais (Gastroenterite->Norovírus, UK->England) com correções graves (Washington DC->Washington State) e os autores admitem que 'we don't capture this distinction in the current analysis'.",
+    "Viés geográfico/linguístico declarado: dependência da edição americana do Google News, cobertura concentrada em EUA/Canadá/anglófonos — os próprios autores dizem que continuarão a enfrentar o problema.",
+    "Método de dicionário é casamento exato apenas, sem fuzzy matching/wildcards/regex, e só reconhece lugares e doenças já cadastrados; a acurácia depende de curadoria manual contínua e crescente.",
+    "Números auto-reportados pelos desenvolvedores do próprio sistema (HealthMap), avaliados pela sua própria operação."
+  ]
+}

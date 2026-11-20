@@ -1,0 +1,50 @@
+{
+  "key": "meaney2023qualityindices",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/13_meaney_2023_quality_indices_topic_model.pdf",
+  "author": "Meaney et al.",
+  "year": 2023,
+  "read": "Li as 18 paginas do PDF: capa/abstract (p.1); Background e Literature review (p.2-7); Methods, incluindo desenho do estudo, pre-processamento e NMF (p.7-8); Results com a descricao do corpus e os oito indices de qualidade (p.8-17), incluindo a Tabela 2 (top-5 palavras por topico, K=50) e as Figuras 1-8; Discussion (p.12-13); Limitations and future work (p.14); Conclusions (p.15); declaracoes e referencias (p.17-18).",
+  "technique": "Revisao de literatura mais estudo de caso sobre indices de qualidade para escolher o numero de topicos (K) em modelos de topicos NMF. Compara oito indices: erro de reconstrucao por validacao cruzada Monte Carlo; coerencia de topico UCI e UMASS; rank biased overlap (RBO); tau de Kendall ponderado; coeficiente e entropia de particao (fuzzy c-means); e indice Xie-Beni. Os indices sao avaliados via validacao cruzada e analise de estabilidade por bootstrap. O objeto do artigo e a selecao/avaliacao do modelo, nao o texto em si.",
+  "representation": "O texto vira numero por uma matriz documento-termo (DTM): uma matriz esparsa D x V de contagens de palavras. O NMF fatora essa DTM em duas matrizes nao-negativas: theta (D x K, pesos topicos por documento) e phi (K x V, pesos de palavra por topico). K, o numero de topicos, e a dimensionalidade do espaco latente; os indices de qualidade avaliam ajuste, coerencia, estabilidade e geometria (compacidade versus separacao dos clusters).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus do estudo tem 382.666 notas clinicas de 44.828 pacientes, 54 medicos e 12 clinicas, de Toronto, entre 2017 e 2020.",
+      "citacao": "The study corpus/sample consists of 382,666 primary care progress notes from 44,828 patients, 54 physicians, and 12 clinics collected 01/01/2017 through 31/12/2020 from Toronto, Canada.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Diferentes indices de qualidade de modelo de topicos nao concordam sobre qual modelo e o otimo para um mesmo conjunto de dados.",
+      "citacao": "different topical model quality indices do not necessarily agree on a single topic model as being “optimal” when applied to a given empirical dataset",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "Erro de reconstrucao por validacao cruzada, coerencia de topico e o indice Xie-Beni favorecem modelos grandes, enquanto RBO e tau de Kendall ponderado favorecem modelos pequenos.",
+      "citacao": "Cross-validated reconstruction error, (averaged) topic coherence and (averaged) Xie-Beni score (a ratio of compactness vs separation) were observed to favour large models; whereas, set based agreement measures (rank biased overlap) and rank correlation measures (weighted Kendall’s tau) pair-wise averaged over aligned bootstrapped datasets seem to favour small models.",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "Os modelos NMF de baixa complexidade (K=5,10), preferidos pelos indices de correlacao de rank e de concordancia de conjunto, nao resumem adequadamente um corpus clinico complexo.",
+      "citacao": "the NMF topic models of low complexity (K = {5,10}) which are preferred by the rank correlation metrics and the set based agreement metrics are not expressive enough to adequately summarize a complex clinical text corpus",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "Existem muitos indices de qualidade defensaveis e a escolha do modelo otimo depende da metrica escolhida, com metricas diferentes levando a modelos NMF fundamentalmente diferentes.",
+      "citacao": "a large host of defensible topic model quality indices exist, and the choice of an optimal model appears metric dependent (i.e. different quality metrics guide the analyst toward fundamentally different NMF topic models).",
+      "pagina": 15
+    }
+  ],
+  "ressalva_do_autor": "our review is necessarily incomplete (as metrics are disparately studied over a vast number of scientific disciplines) and our evaluation focuses on a single large/complex biomedical text corpus. [...] We did not compare NMF topic model fits against alternative topic modelling frameworks, for example: Bayesian probabilistic graphical models (e.g. latent Dirichlet allocation), neural topic models (e.g. BERTopic) or tensor factorization models",
+  "evidence": "Nao ha baseline externo: os autores comparam oito indices de qualidade entre si e contra o julgamento humano, no mesmo corpus clinico, variando K em {5,10,25,50,75,100,150,200,250}. Erro de reconstrucao, coerencia (UCI/UMASS) e Xie-Beni favorecem K grande; RBO e tau de Kendall ponderado favorecem K pequeno (K=5,10); nenhum indice aponta para o K=50 que o julgamento humano (por 'eyeballing') preferiu. Os autores explicitamente NAO comparam NMF com LDA/BERTopic nem usam rotulos de verdade. A evidencia e a discordancia entre metricas e o descolamento delas do julgamento humano, nao um ganho sobre um baseline.",
+  "needs": "Exige uma DTM esparsa; NMF (sklearn.decomposition.NMF, sklearn 0.24.2, Python 3.6); e implementacao propria de RBO, tau de Kendall ponderado, coeficiente/entropia de particao e Xie-Beni; validacao cruzada Monte Carlo e estabilidade por bootstrap (5 replicatas) com alinhamento de matrizes topicas (algoritmo Hungaro). CPU suficiente, sem GPU. Sem requisito linguistico: o metodo e agnostico de idioma, mas o vocabulario foi curado a mao para o dominio clinico (2.210 tokens). Nao requer rotulos (nao supervisionado).",
+  "cost_here": "O artigo NAO reporta tempo de parede nem memoria; diz apenas que 'o pipeline de avaliacao e computacionalmente caro' (validacao cruzada Monte Carlo exige checagens de validade das DTMs e a analise de estabilidade exige alinhamento de matrizes). Nosso corpus e cerca de 88x menor (4.369 artigos contra 382.666 documentos), mas o artigo cobre K ate 250 com 5 replicatas de bootstrap, entao o custo real em CPU sobre os nossos 4.369 documentos e nao reportado. A NMF via sklearn exigiria scikit-learn, que nao esta entre os extras instalados (embeddings, tomotopy).",
+  "transferable": "Transfere: o achado metodologico de que indices diferentes discordam entre si e de que nenhum indice isolado (por exemplo o c_v do tomotopy) deve decidir o K do braco 03; a ideia de combinar varios indices com julgamento humano; e o uso de estabilidade por bootstrap para testar a robustez do K. NAO transfere: o dominio (notas clinicas em ingles, documentos longos, versus noticias PT-BR curtas), o modelo (NMF versus LDA/DMR do tomotopy), o vocabulario curado a mao e o K=50 otimo, que e especifico daquele corpus clinico. O artigo nao cobre modelos neurais/embedding nem cenario multilingue.",
+  "red_flags": [
+    "Um unico corpus, um unico dominio (notas clinicas em ingles), sem replicacao externa.",
+    "Sem baseline externo: nao compara NMF com LDA, BERTopic ou qualquer alternativa.",
+    "Sem verdade de referencia: o 'otimo' e definido por julgamento humano subjetivo (por 'eyeballing'), nao por metrica objetiva ou desempenho a jusante.",
+    "Nenhum dos indices avaliados bateu o julgamento humano (nenhum apontou K=50), ou seja, os indices falham no proprio criterio dos autores.",
+    "Avaliacao restrita a uma classe de modelo (NMF); nada garante que os achados valham para modelos neurais/embeddings.",
+    "Indices medidos apenas em estabilidade/coerencia, sem ligacao com desempenho preditivo."
+  ]
+}

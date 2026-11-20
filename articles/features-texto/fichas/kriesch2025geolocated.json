@@ -1,0 +1,49 @@
+{
+  "key": "kriesch2025geolocated",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/29_kriesch_2025_geolocated_german_news_dataset.pdf",
+  "author": "Kriesch & Losacker",
+  "year": 2025,
+  "read": "Li o PDF inteiro (13 páginas): capa/abstract (p.1), Background & Summary (p.1-2), Methods Stages 1-5 (p.2-5), Data description (p.5-6), Data Records com Tabelas 2-5 (p.6-7), Technical Validation com Tabelas 7-8 (p.8-11), Usage Notes / Code availability / referências (p.11-13). Li o corpo, não só o abstract.",
+  "technique": "Data descriptor de um corpus de notícias alemãs geolocalizadas. A técnica é uma pipeline, não um método novo: (1) baixa o Common Crawl News (~35 TiB de HTML), (2) extrai texto com Trafilatura e filtra por heurísticas de qualidade, (3) usa o LLM LLAMA-3.1-8B-Instruct para anotar entidades de local e treinar um NER customizado no spaCy que identifica nomes de cidades, (4) faz geoparsing resolvendo os nomes a coordenadas via Nominatim/OpenStreetMap e atribuindo cada local a uma região NUTS-3, e (5) embeda cada artigo com um sentence transformer (SBERT) e guarda os vetores num banco vetorial Usearch para busca semântica. O que ele mediu no domínio: F1 do NER, retenção de acurácia de recuperação por nível de quantização e correlação do volume de notícias com o Google Trends.",
+  "representation": "O texto vira número por um modelo SBERT pré-treinado alemão (deepset-mxbai-embed-de-large-v1), aplicado off-the-shelf: cada artigo inteiro é codificado como uma passagem (com o prefixo \"passage: \") e vira UM vetor denso por artigo. O artigo não estuda pooling, normalização ou geometria — apenas usa o modelo pronto. O que ele explora é o lado de armazenamento: o modelo suporta Matryoshka Representation Learning e Vector Quantization, então os mesmos embeddings são publicados em dimensões e precisões diferentes (Float32, Int8, Binário), permitindo trade-off entre tamanho do índice e acurácia de busca. Não há comparação entre encoders alternativos.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O dataset publicado tem cerca de 50 milhões de artigos de notícias alemãs com embeddings, e ~70% deles carregam localização geográfica.",
+      "citacao": "We compile a dataset containing text embeddings for about 50 million German news articles, of which about 70% include geographic locations.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "Os artigos são embedados com sentence transformers, convertendo o texto em vetores numéricos para busca semântica.",
+      "citacao": "we embedded the news articles using sentence transformers, converting the text data into numerical vectors.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O NER customizado de cidades atingiu F1 de 93,87% em nível de entidade numa amostra de 500 artigos anotados manualmente.",
+      "citacao": "The evaluation yielded an entity-level F1-score of 93.87%, indicating a high level of accuracy in recognizing entities.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Quantizar os embeddings para Int8 retém 93,55% da acurácia de recuperação com 4x menos tamanho que Float32, enquanto Binário cai para ~51%.",
+      "citacao": "Our results demonstrate that the Int8 precision offers an interesting balance between size and accuracy, achieving a performance retention of 93.55% while offering a 4x reduction in size compared to the Float32 configuration.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "A distribuição temporal dos artigos sobre \"heat pumps\" recuperados por busca semântica correlaciona 0,84 (Pearson) com o Google Trends alemão — a validação externa do pipeline.",
+      "citacao": "The Pearson correlation coefficient between the monthly news article count and Google Trends data is 0.84, demonstrating a strong linear relationship.",
+      "pagina": 11
+    }
+  ],
+  "ressalva_do_autor": "\"Second, the reliance on Nominatim introduces potential biases due to how OpenStreetMap ranks and matches locations—favoring more populous or internationally prominent cities.\" E continuam: \"Third, abbreviated or informal place name variants may not always resolve correctly if not explicitly included in our training data.\" (ambas p.5, lista de limitações do geoparsing). Em p.1 também admitem que o dataset se limita ao alemão por restrições computacionais e viabilidade de controle de qualidade manual.",
+  "evidence": "A evidência é interna e de validação de dataset, não de comparação de técnicas de embedding. NER: F1 de entidade 93,87% (precision 0,9363, recall 0,9412) contra 500 artigos anotados manualmente como ground truth (Tabela 7). Geolocalização: regressão log-log contra população NUTS-3 dá coeficiente 0,99 (p<0,001), R²=0,507. Banco vetorial: busca idêntica do termo \"heat pumps\" nas três precisões, com Float32 como benchmark explícito — Int8 retém 93,55%, Binário 51,14% (Tabela 8). Validação externa: Pearson 0,84 contra Google Trends. IMPORTANTE: o modelo de embedding em si NÃO é comparado com nenhuma alternativa — não há baseline de encoder, pooling ou dimensionalidade. A \"acurácia\" medida é de recuperação do índice quantizado contra o índice Float32 do MESMO modelo.",
+  "needs": "Exige: acesso ao Common Crawl News (~35 TiB de HTML não comprimido); um LLM (Meta LLAMA-3.1-8B-Instruct) para gerar as anotações de treino do NER — logo GPU para essa etapa; spaCy para inferência NER em CPU; a API Nominatim/OpenStreetMap para geocodificação; o modelo SBERT deepset-mxbai-embed-de-large-v1 (modelo \"large\", alemão/inglês) e um banco vetorial Usearch. Depende de dados rotulados (500 artigos anotados manualmente para avaliar o NER). O artigo NÃO reporta tempo de execução nem custo computacional de embedar os 49,4M artigos — não reportado.",
+  "cost_here": "Para o NOSSO corpus (4.369 artigos, PT-BR, 28 locations) a parte de embedding seria barata: torch+transformers já estão instalados (extra embeddings) e embedar 4.369 textos curtos num SBERT em CPU leva minutos — mas o modelo do artigo é alemão e não serve; precisaríamos de um modelo PT-BR. As etapas caras do artigo NÃO transferem: o crawl de 35 TiB e a anotação por LLM em GPU não são necessárias porque já temos o corpus e não precisamos treinar NER de cidades do zero. O custo real de replicar o pipeline geográfico seria a geocodificação via Nominatim (API pública, com rate limits) sobre 28 locations — pequeno. Nenhum número de custo é reportado pelo artigo.",
+  "transferable": "Transfere: o domínio é idêntico ao nosso (artigos de notícia), a ideia de embedar o artigo inteiro como uma passagem, o uso de busca semântica sobre o corpus e o trade-off de quantização (Int8 = 4x menor com 93,55% de retenção) como decisão de armazenamento. O desenho de validação externa (comparar volume recuperado contra uma série independente tipo Google Trends) transfere conceitualmente para validar o nosso braço 02. O geoparsing por NER + Nominatim/OSM funciona para o Brasil (OSM cobre BR e UFs). NÃO transfere: o encoder é alemão (deepset-mxbai-embed-de-large-v1) e a língua/domínio de treino são alemães — distância de língua grande; para PT-BR precisaríamos de outro modelo. A escala (49,4M artigos) e o custo de anotação por LLM em GPU são irrelevantes para o nosso corpus de 4.369 artigos. A unidade geográfica deles é NUTS-3 (cidade), a nossa é UF — granularidade diferente.",
+  "red_flags": [
+    "O modelo de embedding não é comparado com nenhuma alternativa: não há baseline de encoder, pooling ou dimensionalidade — a \"acurácia\" de 93,55% é só do índice quantizado contra o índice Float32 do mesmo modelo.",
+    "Validação do embedding apoiada em UM único caso de uso (\"heat pumps\") e numa correlação externa com Google Trends de um único termo.",
+    "O NER foi treinado com rótulos gerados por um LLM (LLAMA-3.1-8B-Instruct) — risco de circularidade, embora a avaliação final use 500 artigos anotados manualmente.",
+    "Geoparsing sem desambiguação por contexto de documento, com viés declarado para cidades mais populosas (Nominatim).",
+    "Encoder alemão: resultado não transfere para português; qualquer ganho medido é específico de língua e domínio."
+  ]
+}

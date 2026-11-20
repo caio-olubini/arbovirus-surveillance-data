@@ -1,0 +1,49 @@
+{
+  "key": "rieger2024ldaprototypemodel",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/23_rieger_2024_ldaprototype_model_selection_algorithm.pdf",
+  "author": "Rieger et al.",
+  "year": 2022,
+  "read": "Li a capa (p.1), abstract e introdução (pp.2-4), related work e métodos incluindo a definição do tJacc e do S-CLOP e a Table 2 de datasets (pp.5-17), o desenho do estudo (pp.17-18), os Resultados 6.1-6.5 com a Table 3 de tempos (pp.18-19), a Table 4 de scores de confiabilidade (p.23), as Figuras 4-10 (pp.19-32), a Discussão e as limitações (pp.32-34) e as Declarações/Apêndice A (pp.33-35). Não li em detalhe as tabelas de coocorrência do apêndice B. Observação de identificação: a capa traz 'Posted Date: March 28th, 2022' (preprint Research Square, DOI rs-1486359/v1); extraí daí o ano 2022, embora a chave/ficha e o nome do arquivo usem 2024 (versão publicada).",
+  "technique": "LDAPrototype é um algoritmo de seleção de modelo para LDA (não é um encoder). Ajusta-se o LDA R vezes no mesmo corpus (mesmo K) e escolhe-se o run medoide, isto é, o que tem maior similaridade média com todos os outros runs. Para medir essa similaridade os autores criam o S-CLOP: agrupam-se os R·K tópicos de todos os runs por cluster hierárquico (complete linkage) sobre uma versão com limiar do coeficiente de Jaccard (tJacc) dos vetores de contagem de palavras, poda-se o dendrograma para achar o conjunto de clusters que minimiza a disparidade, e S-CLOP = 1 - U*/[K(R-1)]. O alvo é reprodutibilidade (confiabilidade), não qualidade dos tópicos.",
+  "representation": "Texto vira número por saco-de-palavras: matriz documento x termo (vocabulário com limite de frequência) e depois LDA, em que cada tópico é uma distribuição phi sobre o vocabulário e cada documento uma mistura teta de tópicos. A similaridade entre tópicos é calculada sobre os vetores de contagem de palavras (top palavras, com limiar de Jaccard) e a similaridade entre modelos agrega clusters de tópicos. Não há encoder neural, pooling nem normalização de embeddings; a geometria é a de contagens de palavras.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Selecionar o run medoide eleva a confiabilidade; recomenda-se usar ao menos 50 réplicas, o que leva a similaridade média entre 0,862 e 0,895 e a um score de confiabilidade (média) de 0,8816.",
+      "citacao": "we recommend to fit at least 50 replications because this leads to an increase of similarity to 0.862 at the minimum and 0.895 at the maximum, or a reliability score (mean) of 0.8816",
+      "pagina": 24
+    },
+    {
+      "afirmacao": "O ganho de confiabilidade do LDAPrototype é cerca de duas vezes o ganho obtido com seleção por perplexity.",
+      "citacao": "the improvement turns out to be about twice as large as that obtained from a selection based on perplexity",
+      "pagina": 33
+    },
+    {
+      "afirmacao": "Selecionar por NPMI não melhora a confiabilidade em relação a runs LDA básicos, independentemente do número de modelos candidatos.",
+      "citacao": "model selection with the optimal NPMI does not significantly improve the reliability compared to the basic LDAs, regardless of the number of candidate models",
+      "pagina": 33
+    },
+    {
+      "afirmacao": "O custo em 4 núcleos vai de menos de um minuto (reuters, 91 artigos) a mais de um dia (tweets, ~3,7 milhões de textos); no dataset NYT, não paralelizado, são cerca de 130 dias.",
+      "citacao": "range from less than a minute for the reuters dataset to just over a day for the tweets dataset",
+      "pagina": 18
+    },
+    {
+      "afirmacao": "O artigo mede confiabilidade (reprodutibilidade), não qualidade: a correlação dos tópicos com a percepção humana ficou fora do escopo.",
+      "citacao": "The quality of the results of LDAPrototype in terms of correlation with human perception was not in the scope of the paper",
+      "pagina": 33
+    }
+  ],
+  "ressalva_do_autor": "One limitation of the method is that the repetition strategy could be computationally demanding on large datasets with a large number of topics.",
+  "evidence": "Compara o score de confiabilidade (reprodutibilidade) do LDAPrototype contra três baselines, em seis datasets de artigos de jornal e tweets: (a) réplicas LDA aleatórias, (b) seleção por perplexity e (c) seleção por NPMI. Table 4 (R=100): LDAPrototype 0,8858 vs réplicas 0,8425, perplexity 0,8674 e NPMI 0,8493 — a redução relativa da margem restante é 38% para o método e 19% para o perplexity, ou seja, ganho ~2x o do perplexity. A Table 8 confirma o ganho em tweets (0,8735 -> 0,9108), politics (0,8759 -> 0,9224) e economy (0,8963 -> 0,9453). Também compara quatro medidas de similaridade de tópicos (tJacc, cosseno, Jensen-Shannon, RBO): todas aumentam a confiabilidade, sem ranking claro; tJacc vira o default por rapidez e interpretabilidade. A Table 3 dá os tempos de execução.",
+  "needs": "Pacote R ldaPrototype (CRAN/GitHub) e uma implementação de LDA (ex. pacote lda); exige rodar R réplicas do LDA e H protótipos (o estudo usa R=H=100, ou R=50 no nyt). Roda em CPU e é paralelizável (4 núcleos); nenhuma GPU é mencionada. O corpus precisa estar pré-processado (saco-de-palavras, vocabulário com limite de frequência). Não requer dados rotulados. Custo medido (Table 3, 4 núcleos): reuters 43 s; economy 8,3 min; politics 27 min; usatoday 3,4 h; tweets 28,6 h; nyt ~130 dias (R=50, 1 núcleo).",
+  "cost_here": "Não reportado para corpus em português nem deste tamanho. Extrapolando da Table 3 (4 núcleos), um corpus de ~4 mil documentos como o nosso (4.369 artigos) fica entre economy (1.855 docs -> 8 min) e usatoday (7.453 docs -> 3,4 h) por LDAPrototype, ou seja, ordem de dezenas de minutos a poucas horas em CPU, sem GPU. O gargalo é o número de réplicas R (o artigo usa R=100), e o custo escala com R x K. Multiplicar por 28 locations não está reportado.",
+  "transferable": "A ideia de medoide/réplicas transfere para o nosso braço 03 (DMR/tomotopy), que também tem inicialização aleatória: escolher o run mais central reduziria a variância entre runs. NÃO transfere para o braço 02 (configurações de embedding): o método é para modelos de tópicos com distribuições de palavras, não para embeddings. Distância de domínio: os seis datasets são em inglês (usatoday, nyt, reuters) ou alemão (tweets); nosso corpus é notícia PT-BR, e os limiares do tJacc (limit.rel=0,002 ~= 100 palavras por tópico) foram calibrados nesses corpora. O artigo mostra ganho menor em textos curtos (tweets) e maior em datasets pequenos/médios — nossa notícia é de tamanho médio, mais próxima dos datasets de jornal onde o ganho foi claro.",
+  "red_flags": [
+    "Avaliação só intrínseca (reprodutibilidade), sem juiz humano nem métrica de qualidade; os próprios autores excluem qualidade do escopo.",
+    "A confiabilidade é definida como reprodutibilidade e o método otimiza exatamente reprodutibilidade: o critério de sucesso é a própria métrica que o método maximiza.",
+    "Os estudos de R, K e das medidas de similaridade são feitos sobretudo em um único dataset (usatoday).",
+    "Custo explode em corpora grandes (NYT ~130 dias) e exige muitas réplicas (R=100); o ganho é maior justamente em datasets pequenos.",
+    "Os parâmetros do tJacc (limit.abs, limit.rel) são escolhidos de forma pouco justificada."
+  ]
+}

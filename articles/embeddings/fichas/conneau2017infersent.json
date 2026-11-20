@@ -1,0 +1,50 @@
+{
+  "key": "conneau2017infersent",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/03_conneau_2017_infersent.pdf",
+  "author": "Conneau et al.",
+  "year": 2017,
+  "read": "Li as paginas 1 a 9 do PDF (paginas 670-678 dos anais EMNLP 2017). Capa, abstract e Introducao (p.1); Related work e inicio de Approach (p.2); Secao 3.1 (tarefa NLI/SNLI), 3.2 (sete arquiteturas de encoder: LSTM, GRU, BiGRU-last, BiLSTM-Mean, Inner-attention, HConvNet, BiLSTM-Max) e Figuras 1-4 (pp.3-4); 3.3 Training details (p.4); Secao 4 Evaluation com as 12 tarefas de transferencia e Tabela 1 (pp.4-5); Tabela 2 (p.6); Secao 5 Empirical results, 5.1 Architecture impact com Tabela 3 e Figura 5 (p.6); 5.2 Task transfer com Tabela 4 (p.7); Tabela 5 (COCO) e discussao NLI/MultiNLI/adaptacao de dominio (p.8); Secao 6 Conclusion (p.9). As pp.10-11 sao apenas referencias. Nao leio so o abstract.",
+  "technique": "InferSent: um encoder de frases treinado de forma supervisionada na tarefa de inferencia em linguagem natural (NLI) do SNLI, em vez do objetivo nao supervisionado do SkipThought. O texto vira numero assim: cada palavra e um vetor GloVe de 300 dimensoes (treinado no Common Crawl 840B); a sequencia de vetores passa por um encoder neural (BiLSTM, GRU, self-attention ou ConvNet hierarquica) e o vetor da frase e obtido por max-pooling ou mean-pooling sobre os estados ocultos. O melhor modelo e o BiLSTM com max-pooling, de 4096 dimensoes. O treino usa pares premissa/hipotese e combina as representacoes u e v como (u, v, |u-v|, u*v) antes de uma softmax de 3 classes. Depois de treinado, o encoder e congelado e transferido: sobre o vetor da frase treina-se uma regressao logistica (classificacao) ou calcula-se similaridade de cosseno (STS) para cada tarefa-alvo.",
+  "representation": "Como o texto vira numero: um encoder neural mapeia a sequencia de word embeddings para um unico vetor de tamanho fixo. A escolha de arquitetura, o tipo de pooling (max vs mean), a dimensao do vetor (512 a 4096) e a geometria do espaco resultante sao o objeto do artigo, e valem independente do dominio. A tese central e que a TAREFA de treino importa: NLI supervisionado forca o modelo a codificar relacoes semanticas entre frases e produz vetores mais transferiveis que os de objetivos nao supervisionados como SkipThought, ainda que o treino use menos dados. O artigo tambem mostra que melhor desempenho na tarefa de treino nao implica melhor transferencia, porque o modelo pode se super-especializar nas vieses do dataset.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Representacoes de frase treinadas com supervisao de NLI superam de forma consistente metodos nao supervisionados como SkipThought numa ampla gama de tarefas de transferencia.",
+      "citacao": "we show how universal sentence representations trained using the supervised data of the Stanford Natural Language Inference datasets can consistently outperform unsupervised methods like SkipThought vectors",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "Entre as arquiteturas testadas, o BiLSTM de 4096 dimensoes com max-pooling e o que tem o melhor desempenho tanto no SNLI quanto nas tarefas de transferencia.",
+      "citacao": "The BiLSTM-4096 with the max-pooling operation performs best on both SNLI and transfer tasks.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Desempenho melhor na tarefa de treino nao se traduz necessariamente em melhor transferencia, pois o modelo pode se super-especializar nas vieses do dataset.",
+      "citacao": "better performance on the training task does not necessarily translate in better results on the transfer tasks",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Mesmo treinando com muito menos dados que o SkipThought (570k contra 64M de frases), a supervisao de alta qualidade do SNLI permite superar de forma consistente os vetores do SkipThought.",
+      "citacao": "With much less data (570k compared to 64M sentences) but with high-quality supervision from the SNLI dataset, we are able to consistently outperform the results obtained by SkipThought vectors.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O modelo treina em menos de um dia numa unica GPU, contra um mes para a melhor rede SkipThought-LN.",
+      "citacao": "We train our model in less than a day on a single GPU compared to the best SkipThought-LN network trained for a month.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "O artigo nao tem secao de limitacoes; o que os autores declaram de mais proximo esta na conclusao, em que admitem cobertura limitada de combinacoes modelo x tarefa e a necessidade de mais dados: \"We believe that this work only scratches the surface of possible combinations of models and tasks for learning generic sentence embeddings. Larger datasets that rely on natural language understanding for sentences could bring sentence embedding quality to the next level.\" (pagina 9).",
+  "evidence": "Compara contra baselines nao supervisionados (SkipThought, SkipThought-LN, FastSent, SDAE, ParagraphVec, Unigram-TFIDF, BOW de word2vec/fastText/GloVe, SIF) e supervisionados (CaptionRep, DictRep, NMT En-to-Fr, AdaSent). Na media micro de transferencia (Tabela 4/3), BiLSTM-Max treinado no SNLI atinge 85.2 (macro 83.7) contra 82.9 do SkipThought-LN, o melhor baseline nao supervisionado. Em SICK-R, Pearson 0.885 contra 0.868 de Tai et al. (2015); em SICK-E, 86.3% de acuracia contra 84.5% de features feitas a mao (Lai & Hockenmaier); em STS14, Pearson 0.68 contra 0.29 do SkipThought e 0.44 do SkipThought-LN. Em COCO caption retrieval R@1, sobe de 37.9 (SkipThought) para 42.4. Excecao admitida: no dataset SUBJ o BiLSTM-Max nao supera o SkipThought-LN.",
+  "needs": "Dados rotulados de NLI em ingles: o SNLI, 570k pares premissa/hipotese anotados manualmente (e o MultiNLI, 433k pares, para o modelo AllNLI). Word embeddings GloVe pre-treinados no Common Crawl 840B, 300 dimensoes. GPU para treinar. Modelo final de 4096 dimensoes. Nenhum pre-treinado em portugues e liberado: o encoder publico e so em ingles (github.com/facebookresearch/InferSent). No uso por transferencia, exige apenas um conjunto pequeno rotulado por tarefa para a regressao logistica de topo.",
+  "cost_here": "O artigo so reporta custo de treino: \"less than a day on a single GPU\" (nao diz qual GPU) — pagina 7. Custo de inferencia nao e reportado. Rodar em CPU sobre os nossos 4.369 artigos seria so inferencia (o encoder e um BiLSTM pequeno), mas isso e inferencia minha, nao um numero do artigo: o custo real de codificar 4.369 textos em CPU nao e reportado. O obstaculo concreto e outro: este artigo nao libera encoder InferSent em PT-BR, e treinar do zero exigiria um SNLI em portugues que nao temos. Os extras atuais (embeddings com torch+transformers, topics com tomotopy) nao trazem InferSent, entao adiciona-lo e dependencia nova — e o contexto marca isso como custo alto.",
+  "transferable": "Transfere: a licao de arquitetura (BiLSTM + max-pooling como encoder de frase forte e barato, viavel em CPU) e a hipotese de que supervisao em NLI produz vetores mais transferiveis que objetivos nao supervisionados, util para decidir como treinar/afinar um encoder nosso. Nao transfere direto: todos os resultados sao em ingles e sobre benchmarks em ingles (SNLI, SICK, STS, MR, CR, SUBJ, MPQA, SST, TREC, COCO); nosso corpus e noticia em PT-BR. A distancia de dominio e grande — as frases do SNLI sao curtas e de inferencia, enquanto noticia e longa, e o artigo nao mede nada em portugues nem em texto jornalistico. O ganho medido nao foi medido no nosso dominio; supor que se repete e extrapolacao.",
+  "red_flags": [
+    "Avaliacao inteiramente em ingles (SNLI, SICK, STS, MR, CR, SUBJ, MPQA, SST, TREC, COCO); nenhum resultado em outra lingua.",
+    "Sem testes de significancia; a maioria das comparacoes e de um unico modelo treinado uma vez.",
+    "A dimensao do embedding (ate 4096) foi escolhida olhando o resultado agregado (Figura 5), o que pode inflar o ganho.",
+    "O proprio artigo admite uma excecao: no SUBJ o BiLSTM-Max nao supera o SkipThought-LN.",
+    "Baselines nao supervisionados eram o estado da arte de 2017; nao ha comparacao com encoders contextuais (BERT etc.), que ainda nao existiam.",
+    "Ganhos pequenos em algumas tarefas (ex.: SICK-R 0.885 vs 0.868) podem estar dentro do ruido."
+  ]
+}

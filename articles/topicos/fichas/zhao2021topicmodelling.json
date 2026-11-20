@@ -1,0 +1,49 @@
+{
+  "key": "zhao2021topicmodelling",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/40_zhao_2021_topic_modelling_meets_deep.pdf",
+  "author": "Zhao et al.",
+  "year": 2021,
+  "read": "Li as 8 paginas do PDF (IJCAI-21, Survey Track, pp. 4713-4720). Secao 1 Introducao; Secao 2 Background/Definition/Evaluation (metricas: predictive accuracy/perplexity, topic coherence, topic diversity, downstream application performance); Secao 3 NTMs com inferencia variacional amortizada (variantes de distribuicoes de prior/posterior/dados, topicos correlacionados e estruturados, meta-dados, textos curtos, NTMs sequenciais, modelos de linguagem pre-treinados); Secao 4 NTMs em outros frameworks (autoregressivo/DocNADE, GAN, GNN, optimal transport, WAE, fatoracao de matrizes, reinforcement learning); Secao 5 Discussao (avaliacao, arquiteturas mais ricas, conhecimento externo); pp. 6-8 sao referencias. Nao ha tabela de experimentos: e um survey, sem numeros de desempenho proprios.",
+  "technique": "Survey sobre neural topic models (NTMs): modelos que usam redes neurais profundas para aprender topicos latentes de um corpus. O backbone dominante e o VAE com inferencia variacional amortizada (AVI) — um encoder leva o bag-of-words do documento a uma distribuicao de topicos z, e um decoder reconstroi o bag-of-words a partir de z e da matriz topico-palavra T, maximizando o ELBO. O artigo propoe uma taxonomia por backbone: VAE-NTMs (com variantes de distribuicao de prior, posterior, dados e de fatoracao de T), modelos autoregressivos (DocNADE), GAN, GNN, Wasserstein autoencoders, optimal transport, fatoracao de matrizes e reinforcement learning; e cobre topicos correlacionados/estruturados, meta-dados, textos curtos, NTMs sequenciais e modelos de linguagem pre-treinados (BERT/TopicBERT).",
+  "representation": "Como o texto vira numero: um documento e representado como vetor de contagens bag-of-words b em Z_{>=0}^V (ou como sequencia de indices de palavra s). Um topico e uma distribuicao t sobre o vocabulario (t no simplex de dimensao V) e um documento e uma distribuicao z sobre K topicos (z no simplex de dimensao K). O modelo aprende uma projecao theta de b para z (inferencia/encoder) e uma projecao phi de (z, T) de volta para b (processo gerativo/decoder). Em varios NTMs a matriz T e fatorada no produto de embeddings de topico e de palavra, de modo que a relevancia topico-palavra passa a ser uma distancia num espaco de embeddings compartilhado. A contribuicao do survey e a taxonomia dessas projecoes (backbones), nao um encoder ou pooling novo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Os neural topic models formaram um campo grande e de rapido crescimento: ja foram desenvolvidos mais de uma centena de modelos e variantes, com aplicacoes em tarefas de NLP como geracao de texto, sumarizacao e modelos de linguagem.",
+      "citacao": "With appealing flexibility and scalability, NTMs have gained a huge research following, with more than a hundred models and variants developed to date.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O framework dominante dos neural topic models e o VAE com inferencia variacional amortizada (AVI), que estende o processo gerativo dos modelos bayesianos probabilisticos (BPTMs) e amortece sua inferencia via redes neurais.",
+      "citacao": "has shed light on extending the generative process and amortising the inference process of BPTMs, which is the most popular framework for NTMs.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A relevancia entre topico e palavra pode ser modelada como distancia em um espaco de embeddings compartilhado, quando a matriz topico-palavra e fatorada no produto de embeddings de topico e de palavra.",
+      "citacao": "meaning that the relevance between a topic and a word is captured by their distance in the embedding space",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A acuracia preditiva (log-likelihood/perplexidade) nao acompanha a qualidade interpretativa dos topicos: as duas sao frequentemente descorrelacionadas e as vezes levemente anticorrelacionadas, o que invalida comparar modelos de topico apenas por perplexidade.",
+      "citacao": "Predictive accuracy and human judgement on topic quality are often not correlated [Chang et al., 2009], and even sometimes slightly anti-correlated.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Topic diversity e definida operacionalmente como a porcentagem de palavras unicas entre as 25 palavras mais representativas de cada topico.",
+      "citacao": "Specifically, [Dieng et al., 2020] defines topic diversity to be the percentage of unique words in the top 25 words.",
+      "pagina": 2
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem que a avaliacao de topic models nao tem sistema unificado e que algumas metricas nao sao sempre apropriadas, o que torna a comparacao entre NTMs dificil pela variedade de frameworks, arquiteturas e datasets: \"evaluation of topic models is challenging. This is mainly because there has not been a unified system of evaluation metrics, and indeed some metrics are not always appropriate, making the comparisons across different NTMs harder due to the variety of frameworks, architectures and datasets.\" E uma limitacao do campo que o proprio survey identifica e nao resolve.",
+  "evidence": "O artigo e um survey e nao roda experimentos: nao reporta F1, coherence nem ganho sobre baseline algum. A evidencia oferecida e a sintese comparativa de cerca de uma centena de modelos citados e a analise de armadilhas de avaliacao (ex.: acuracia preditiva e julgamento humano da qualidade de topico frequentemente nao correlacionados; coerencia varia com a formulacao e com o corpus de referencia). Nao ha comparacao numerica contra baseline: a comparacao e qualitativa, via taxonomia.",
+  "needs": "O survey em si nao exige nada para ser lido. Adotar os modelos que ele revisa (VAE-NTMs) exige: framework de deep learning (PyTorch/TF), tipicamente GPU para treino (VAEs pequenos de bag-of-words rodam em CPU), entrada em bag-of-words (tokenizacao agnostica de lingua), treino por corpus, e — para a linha com modelos de linguagem (BERT/TopicBERT) — modelos transformer pre-treinados grandes. O artigo NAO reporta tempo de treino, tamanho de modelo nem requisito de hardware: nao reportado.",
+  "cost_here": "O survey nao custa nada para ler. Adotar um VAE-NTM sobre os nossos 4.369 artigos PT-BR reusa o torch ja instalado no extra 'embeddings' (nenhuma dependencia nova), precisa apenas de um vocabulario bag-of-words, e um VAE-NTM pequeno treinaria em CPU em minutos nesse tamanho de corpus — mas o artigo nao reporta nenhum numero de custo ou tempo, entao o custo medido e nao reportado. A variante com BERT pre-treinado exigiria um modelo transformer grande, bem mais caro em CPU.",
+  "transferable": "Transfere: (1) a ideia de que a distribuicao de topicos z e a representacao semantica do documento e pode alimentar classificacao, clustering e retrieval; (2) a fatoracao de T em embeddings de topico e de palavra (relevancia = distancia no espaco); (3) as ressalvas de avaliacao — perplexidade nao mede interpretabilidade, e a coerencia depende do corpus de referencia (computar TC de noticias PT-BR contra um corpus de tweets, como o artigo adverte, engana); (4) o alerta de que textos curtos (manchetes) degradam tanto BPTMs quanto NTMs. NAO transfere: numeros — o survey e centrado em ingles, cita corpora e modelos majoritariamente anglofonos, nao avalia portugues nem vigilancia de doenca e nao da nenhum custo de computacao. A distancia de dominio e grande para qualquer numero concreto.",
+  "red_flags": [
+    "E survey, nao artigo empirico: nenhum experimento proprio, nenhum baseline, nenhuma metrica de desempenho — nao serve para justificar escolha de metodo por desempenho.",
+    "O proprio artigo alerta que acuracia preditiva e julgamento humano da qualidade de topico sao frequentemente descorrelacionados e as vezes anticorrelacionados, e que o ranking de coerencia muda com a formulacao e o corpus de referencia — qualquer metrica isolada e suspeita.",
+    "Avaliacao majoritariamente em ingles; sem avaliacao em portugues, multilingue ou em noticia de agencia.",
+    "Nao reporta custo/tempo de treino nem requisito de GPU — a economia CPU-vs-GPU, central para nos, e invisivel no artigo.",
+    "Contagens nao verificaveis: 'more than a hundred models' e a alegacao de ser a 'first review on this specific topic' sao afirmacoes dos autores, nao medidas."
+  ]
+}

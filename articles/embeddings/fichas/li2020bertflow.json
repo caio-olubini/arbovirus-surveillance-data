@@ -1,0 +1,50 @@
+{
+  "key": "li2020bertflow",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/12_li_2020_bert_flow_sentence_embeddings.pdf",
+  "author": "Li et al.",
+  "year": 2020,
+  "read": "PDF completo, 12 paginas (impressas 9119-9130). Li capa/abstract e Introducao (p.1-2); Secao 2 (espaco de sentence embeddings do BERT, Tabela 1, Observacoes 1 e 2, p.2-4); Secao 3 (metodo BERT-flow, p.4-5); Secao 4 (experimentos: Tabela 2 sem NLI, p.6; Tabela 3 com NLI, p.7; Tabela 4 QNLI e Tabela 5 baselines de calibracao, p.8; Secao 4.4 similaridade semantica vs lexical, Tabela 6 e Figura 2, p.8-9); Conclusao (p.9); Apendices A (formulas do flow, p.11), B (detalhes de implementacao e hiperparametros, p.11) e C (variancia entre seeds, p.12). Nao ha secao formal de limitacoes.",
+  "technique": "BERT-flow: calibracao dos sentence embeddings do BERT via normalizing flows. O embedding de frase (media dos context embeddings das ultimas uma ou duas camadas do BERT) e mapeado por uma funcao invertivel — um Glow simplificado, com actnorm, coupling aditivo e permutacao aleatoria no lugar da convolucao 1x1 — para uma distribuicao Gaussiana padrao isotropica. O flow e treinado por maxima verossimilhanca de forma nao supervisionada, mantendo os parametros do BERT congelados; a invertibilidade preserva a informacao mutua entre o embedding e a frase.",
+  "representation": "Texto vira numero em duas etapas: (1) o BERT produz o embedding de frase como media (pooling) dos context embeddings das duas ultimas camadas; (2) o flow aplica uma transformacao invertivel que reposiciona esse vetor no espaco Gaussiano isotropico. A similaridade entre frases e o cosseno (ou produto escalar) entre os vetores transformados. O objetivo e corrigir a anisotropia (embeddings concentrados num cone estreito, com 'buracos' onde palavras raras caem) sem descartar informacao, ja que o mapeamento e invertivel.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O BERT induz um espaco de sentence embeddings anisotropico e nao-suave, e e isso que degrada a similaridade semantica sem fine-tuning.",
+      "citacao": "We find that BERT always induces a non-smooth anisotropic semantic space of sentences, which harms its performance of semantic similarity.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O metodo aprende, de forma nao supervisionada, um flow generativo invertivel que maximiza a verossimilhanca de gerar os embeddings do BERT a partir de uma variavel latente Gaussiana padrao, com o BERT congelado.",
+      "citacao": "Concretely, we learn a flow-based generative model to maximize the likelihood of generating BERT sentence embeddings from a standard Gaussian latent variable in a unsupervised fashion.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "No espaco anisotropico aprendido, palavras de alta frequencia ficam densas e palavras de baixa frequencia ficam esparsas, o que corrompe a geometria dos sentence embeddings obtidos por media.",
+      "citacao": "We observe that, in the learned anisotropic embedding space, high-frequency words concentrates densely and low-frequency words disperse sparsely.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O BERT-flow melhora o baseline -last2avg em media 5,88 pontos (BERT-base) e 8,16 pontos (BERT-large) na correlacao de Spearman nos benchmarks de STS, sem supervisao.",
+      "citacao": "For BERTbase and BERTlarge , our proposed flow-based method (BERT-flow (target)) can further boost the performance by 5.88 and 8.16 points on average respectively.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A similaridade induzida pelo BERT correlaciona-se excessivamente com a similaridade lexical (distancia de edicao), com rho = -50,49 contra -24,61 do padrao-ouro.",
+      "citacao": "Table 6 shows that the correlation between BERT-induced similarity and edit distance is very strong (ρ = −50.49), considering that gold standard labels maintain a much smaller correlation with edit distance (ρ = −24.61).",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Nao ha secao formal de limitacoes. Os autores declaram duas ressalvas no corpo: (1) o flow e treinado de forma transdutiva sobre as frases do proprio conjunto-alvo — \"Our flow models are by default learned over the full target dataset (train + validation + test).\" (p.6); (2) a variancia entre seeds do fine-tuning com NLI nao e desprezivel — \"Although the variance of NLI finetuning is not negligible, our proposed flow-based method consistently leads to improvement.\" (p.12).",
+  "evidence": "Em 7 benchmarks de STS (Spearman rho x100, sem supervisao), o BERT-flow(target) supera o proprio baseline -last2avg em 5,88 pontos (BERT-base) e 8,16 pontos (BERT-large) em media (p.7); a Introducao cita ganho de ate 12,70 pontos e media de 8,16 (p.2). Contra baselines de calibracao no STS-B: BERT-base puro 47,29, melhor combinacao SN+NATSV 63,51, BERT-flow 65,62 (Tabela 5, p.8). Com supervisao NLI, supera SBERT/SRoBERTa. Em QNLI (AUC, sem supervisao de tarefa): 76,17 vs 70,30 do baseline -last2avg (Tabela 4, p.8). Baseline de referencia: media de GloVe (58,02 no STS-B), que o BERT sem fine-tuning nao consegue superar (p.6).",
+  "needs": "BERT (base/large) congelado + uma rede de flow pequena (3-layer CNN coupling com conexao residual, largura 32, 2 niveis, profundidade 3). Codigo original em TensorFlow (BERT oficial + GLOW/Tensor2tensor). Nao exige rotulos (objetivo nao supervisionado); flow treinado por 1 epoca (lr 1e-3) no dataset-alvo ou 0,15 epoca (lr 2e-5) no NLI. Tudo em ingles: BERT pre-treinado em ingles e datasets STS/NLI/QNLI em ingles. Sequencia truncada em 64 tokens para reduzir o custo de memoria de GPU.",
+  "cost_here": "Nao reportado: o artigo nao da tempo de parede nem medicao de CPU (so mencionam 'reducing the costing of GPU memory', p.11). A parte caríssima seria extrair os embeddings do BERT para os 4.369 artigos; o flow em si e minusculo (1 epoca sobre vetores de frase). Em nosso ambiente CPU-only o flow e barato, mas exigiria um BERT em portugues (ex.: BERTimbau) no lugar do BERT ingles — configuracao que o artigo nao testa. Sem dependencia pesada nova: torch/transformers ja instalados e o flow e um modelo pequeno. Custo de CPU para 4.369 artigos: nao reportado.",
+  "transferable": "Transfere: o diagnostico (anisotropia dos sentence embeddings do BERT) e a correcao por flow sao de nivel arquitetural e, em principio, agnosticos de lingua, entao poderiam se aplicar a BERTimbau e ao nosso braco de embeddings. Nao transfere direto: toda a evidencia e em ingles, sobre pares de frases (STS) e NLI — nenhum texto PT-BR, nenhuma noticia, nenhum texto curto de vigilancia; o ganho medido e em correlacao de similaridade, nao em sinal de tendencia/cluster. A distancia de dominio e grande: similaridade de pares de frases nao e serie semanal de topicos. Alem disso, a configuracao principal 'flow (target)' treina o flow sobre as proprias frases do conjunto-alvo (train+val+test, transdutivo), decisao que teriamos que redefinir para janelas semanais.",
+  "red_flags": [
+    "Benchmarks so em ingles (STS-B, SICK-R, STS-12 a STS-16, SNLI/MNLI, QNLI); nada em portugues.",
+    "Avaliacao intrinseca: correlacao de similaridade (Spearman) e AUC de QNLI; nenhuma tarefa de vigilancia/noticia nem metrica de downstream.",
+    "Configuracao principal 'flow (target)' e transdutiva — o flow e ajustado nas frases do conjunto-alvo (train+val+test), entao os numeros nao sao estimativa limpa de generalizacao.",
+    "Os proprios autores admitem que a variancia entre seeds nao e desprezivel (Apendice C, 5 runs).",
+    "O ganho-titulo (8,16) e medido sobre o proprio baseline reimplementado (-last2avg), nao sobre numeros publicados de terceiros.",
+    "Correcao demonstrada essencialmente sobre o BERT; sem verificacao de que o flow funciona igualmente em outros encoders."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "key": "brownstein2008surveillance",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/02_brownstein_2008_surveillance_sans_frontieres_healthmap.pdf",
+  "author": "Brownstein et al.",
+  "year": 2008,
+  "read": "Li as 6 páginas do PDF inteiro (PLoS Medicine, seção 'Health in Action', sem abstract tradicional). Pág. 1: título, autoria (John S. Brownstein, Clark C. Freifeld, Ben Y. Reis, Kenneth D. Mandl), Summary Points e 'The Opportunity'. Pág. 2: 'The System' — fontes de dados, volume, idiomas, usuários e custo operacional declarado. Pág. 3: vieses das fontes de mídia, avaliação de 43 semanas, viés geográfico (Figura 3) e Tabela 1 (contagem de doenças extraídas do Google News). Pág. 4: 'Knowledge extraction' (dicionário, classificador bayesiano, deduplicação) e 'Knowledge integration and dissemination' (heat index). Pág. 5: 'The Future' — limitações e trabalho futuro, incluindo a declaração sobre NLP vs. análise humana. Pág. 6: Glossary, 'Conclusion' e referências. Não há seção formal de 'Limitations'; as ressalvas estão no corpo, págs. 4 e 5.",
+  "technique": "HealthMap é um sistema de vigilância multistream em tempo real que agrega relatos sobre surtos de doenças infecciosas a partir de notícias e outras fontes web. Não usa embeddings nem redes neurais — é regra + dicionário + classificador leve. O texto vira sinal por quatro passos: (a) casamento de dicionário — uma base de nomes de patógenos (humanos, vegetais e animais) e de nomes geográficos (país, província, estado, cidade) — para extrair doença e local; (b) um classificador bayesiano de aprendizado de máquina, treinado em relatos já caracterizados manualmente, para separar 'breaking news' (surto corrente) de notícia sobre vacinação, pesquisa ou política de saúde; (c) deduplicação/agrupamento por escore de similaridade entre manchete, corpo e categorias de doença/local; e (d) um 'heat index' (escore composto de atividade) que pondera confiabilidade da fonte (mais peso a relatos da OMS, menos a mídia local) e número de fontes distintas. A técnica é pré-neural, de 2008, e o custo real é a manutenção manual do dicionário.",
+  "representation": "Não há representação vetorial densa nem encoder. O texto é reduzido a rótulos discretos: entidades de doença e de lugar (via dicionário), uma etiqueta binária de relevância ('breaking news' ou não) e um escore de similaridade entre documentos para agrupar duplicatas. O 'número' que sai do texto é contagem/rótulo/escore, não um embedding — nada aqui informa escolha de encoder, pooling, normalização ou geometria do espaço. É o oposto do que interessa ao braço 02.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O sistema ingere relatos de 14 fontes que representam informação de mais de 20.000 sites, a cada hora, 24 horas por dia.",
+      "citacao": "Currently, the system collects reports from 14 sources, which in turn represent information from over 20,000 Web sites, every hour, 24 hours a day.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O volume médio é de 300 relatos por dia, e a maioria deles (85,1%) vem de fontes de mídia/notícia.",
+      "citacao": "The system collects an average of 300 reports per day, with the majority acquired from news media sources (85.1%).",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Numa avaliação de 43 semanas (1/10/2006 a 18/07/2007), só o feed do Google News rendeu 141 categorias distintas de doença infecciosa.",
+      "citacao": "We found that pathogen diversity was substantial across news sources, with 141 unique infectious disease categories reported through the Google News feed alone (Table 1).",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A frequência com que um patógeno aparece nas notícias se relaciona com a disrupção econômica e social potencial, e não com sua morbidade ou mortalidade.",
+      "citacao": "We found the frequency of reports about particular pathogens to be related not to their associated morbidity or mortality impact, but rather to the direct or potential economic and social disruption caused by the outbreak.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A cobertura de relatos é enviesada para países com mais veículos de mídia, mais recursos de saúde pública e mais infraestrutura de comunicação eletrônica.",
+      "citacao": "There was a clear bias towards increased reporting from countries with higher numbers of media outlets, more developed public health resources, and greater availability of electronic communication infrastructure (approximated by number of Internet hosts) (Figure 3B).",
+      "pagina": 3
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem dependência de humano: 'while improvements in machine learning techniques are undoubtedly critical, they cannot currently replace human analysis' (p. 5). Reconhecem fragilidade operacional e de curadoria: 'Currently, only one analyst reviews and corrects the posts' (p. 4), porque a base de doença/local é mantida à mão — 'the expansion and editing of the database requires extensive manual data entry' (p. 4), já que nomes são 'often ambiguous, colloquial, and subject to change' (p. 4). Declaram lacunas de cobertura: 'population and geography gaps in the coverage of the monitored sources need to be better understood and accounted for' (p. 5). E apontam avaliação pendente: 'The fundamental characteristics of different news source types need to be quantified, including sensitivity, specificity, and timeliness' (p. 5).",
+  "evidence": "Evidência descritiva, sem baseline. Os autores reportam contagens de uma avaliação de 43 semanas: 141 categorias de doença só no feed do Google News (Tabela 1); 174 países com relatos; maiores volumes nos EUA (n = 4351), Reino Unido (n = 1018), Canadá (n = 880) e China (n = 737) (Figura 3A). Documentam viés geográfico explícito e viés de tópico (aviária e doenças transmitidas por alimento super-representadas; a frequência segue disrupção econômica/social, não a carga de doença). NÃO há precision/recall/F1, nenhuma curva de acurácia do classificador bayesiano e nenhuma comparação quantitativa com GPHIN, MedISys, Argus ou EpiSPIDER, embora os cite na conclusão. Não mede ganho contra baseline algum — é relato de sistema, não benchmark.",
+  "needs": "Para rodar: fontes de notícia web (gratuitas); um dicionário extenso de patógenos (humanos, vegetais e animais) e de nomes geográficos (país/província/estado/cidade), mantido por entrada manual; relatos rotulados manualmente para treinar o classificador bayesiano; e curadoria humana (à época, um único analista). Idioma: a maioria dos relatos em inglês, monitorando também chinês, espanhol, russo e francês, com português, hindi e árabe 'under development' (p. 2). Não reporta GPU, tamanho de modelo nem tempo de computação. Custo operacional declarado: 'operational costs are minimal' (p. 2), porque os relatos vêm de fontes de notícia gratuitas.",
+  "cost_here": "Barato em CPU: casamento de dicionário + classificador bayesiano leve não exige GPU e roda em segundos sobre 4.369 artigos — nada aqui pede torch/transformers, ou seja, sem dependência nova de peso. O custo real não é computação (o artigo não o reporta) e sim a construção e manutenção manual do léxico de patógenos e topônimos e a rotulagem manual para treinar o classificador. Português não estava suportado em 2008 (listado como 'under development', p. 2), então o léxico PT-BR teria de ser construído por nós do zero.",
+  "transferable": "Transfere: a tese de que notícia é sinal de vigilância (aqui 85,1% dos relatos) e o achado de que a cobertura de mídia segue disrupção econômica/social e número de veículos, não a carga de doença — isso dialoga direto com o viés de localização do nosso corpus de 28 locations (BR + 27 UFs). Transfere também a ideia de deduplicar por similaridade entre manchete/corpo e de compor um escore de confiança por fonte (heat index). NÃO transfere: nada de embeddings (não informa o braço 02), o domínio é notícia global majoritariamente em inglês e não PT-BR, e não há métrica de NLP a reaproveitar. Distância de domínio pequena (notícia + vigilância de doença), mas distância de técnica grande: é pré-neural, 2008, regra + dicionário + Naive Bayes.",
+  "red_flags": [
+    "Sem baseline: nenhum precision/recall/F1 e nenhuma comparação quantitativa com GPHIN, MedISys, Argus ou EpiSPIDER, que são citados na conclusão.",
+    "Avaliação apenas descritiva (contagens de cobertura e de categorias de doença), não de acurácia do classificador bayesiano.",
+    "Tabela 1 e a avaliação de cobertura (Figura 3) cobrem só notícia em inglês ('English language news reports').",
+    "Viés de mídia reconhecido mas não corrigido nem quantificado.",
+    "Resultado operacional depende de um único analista humano que revisa e corrige as classificações do sistema.",
+    "Não é artigo de representação: sem encoder, pooling, normalização ou dimensionalidade a extrair."
+  ]
+}

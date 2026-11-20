@@ -1,0 +1,51 @@
+{
+  "key": "dieng2019dynamicembedded",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/20_dieng_2019_dynamic_embedded_topic_model.pdf",
+  "author": "Dieng et al.",
+  "year": 2019,
+  "read": "Li o PDF inteiro (16 páginas). Capa e abstract (p.1), Introdução (p.1-3), Related Work (p.3-4), Background/LDA-ETM-D-LDA (p.4-5), The Dynamic Embedded Topic Model com Model Description e Inference Algorithm (p.5-8), Empirical Study (p.8-13) incluindo Tabela 1 (estatísticas dos corpora), Tabelas 2-5 (perplexity e qualidade de tópico), Figuras 1-3 (grafo do modelo e evolução temporal de palavras), Algorithm 1, e Conclusão (p.13). Pulei a lista de referências (p.14-16).",
+  "technique": "O D-ETM é um modelo de tópicos probabilístico que combina word embeddings com o modelo dinâmico D-LDA. Cada tópico NÃO é uma distribuição sobre o vocabulário, e sim um vetor (topic embedding) que varia no tempo dentro do mesmo espaço vetorial das palavras. A probabilidade de uma palavra sob um tópico é o softmax do produto interno entre o embedding da palavra e o embedding do tópico naquele instante; palavras semanticamente próximas tendem a receber tópicos parecidos. Os topic embeddings evoluem por um random walk gaussiano (cadeia de Markov), e as proporções tópico-documento também variam no tempo via um prior logistic-normal cuja média segue outro random walk. O ajuste é feito por inferência variacional amortizada e estruturada, usando uma LSTM para capturar a dependência temporal e gradientes por reparameterization/black-box VI otimizados com Adam. É um modelo generativo não supervisionado que exige um timestamp por documento.",
+  "representation": "Como o texto vira número: cada termo do vocabulário é mapeado a um vetor de 300 dimensões (skip-gram), formando uma matriz de embedding rho de tamanho L×V. O tópico k no instante t é um vetor alpha_k^(t) em R^L, no MESMO espaço das palavras. A distribuição palavra-por-tópico é beta_k = softmax(rho^T alpha_k), ou seja, o produto interno entre o embedding da palavra e o embedding do tópico, normalizado. O documento vira uma mistura de tópicos (proporções theta_d via logistic-normal, que muda com o tempo). Assim texto discreto vira geometria: a proximidade entre vetores no espaço de embedding determina a atribuição de tópicos, e a única contagem que sobra é o saco-de-palavras normalizado usado como entrada das redes de inferência.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O D-ETM supera a D-LDA e a D-LDA-REP em perplexity numa tarefa de document completion em quase todos os corpora, mas perde no corpus SCIENCE.",
+      "citacao": "The D-ETM outperforms both D-LDA and D-LDA-REP on all but one corpus.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "O D-ETM ajusta bem mais rápido que a D-LDA: menos de 6 horas por dataset contra quase dois dias da D-LDA.",
+      "citacao": "For example fitting D-LDA took almost two days on each dataset whereas we only required less than 6 hours for the D-ETM.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "No D-ETM cada tópico é um vetor que varia no tempo, e a probabilidade de uma palavra sob um tópico é o produto interno exponenciado e normalizado entre o embedding da palavra e o embedding do tópico no instante correspondente.",
+      "citacao": "the probability of a word under a topic is given by the (normalized) exponentiated inner product between the embedding representation of the word and the topic's embedding at the corresponding time step",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O D-ETM usa embeddings de palavras de 300 dimensões treinados com skip-gram.",
+      "citacao": "For the D-ETM, we first fit 300-dimensional word embeddings using skip-gram",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Os autores atribuem a maior diversidade e coerência dos tópicos do D-ETM ao uso de embeddings.",
+      "citacao": "the D-ETM finds more diverse and coherent topics. We posit this is due to its use of embeddings.",
+      "pagina": 13
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção de limitações; a ressalva que os autores declaram é uma simplificação do próprio procedimento de inferência: 'unlike Blei and Lafferty (2006), we do not use structured variational inference for the topics. Instead, we use the mean-field family for the approximation over the topic embeddings' (p.8). Há também uma simplificação declarada para os embeddings (nota de rodapé da p.10): 'More advanced methods can be used to learn word embeddings. We used skip-gram for simplicity and found it leads to good performance.'",
+  "evidence": "Baselines explícitos: D-LDA (Blei & Lafferty 2006) e D-LDA-REP (a mesma D-LDA reajustada com o procedimento de inferência do D-ETM, para isolar o efeito do modelo do efeito da inferência). Métricas: perplexity em document completion (menor melhor) e qualidade de tópico = coerência (TC) × diversidade (TD) (maior melhor). Números da Tabela 2 (perplexity): UN 1970.7 (D-ETM) vs 2393.5 (D-LDA) vs 2931.3 (D-LDA-REP); ACL 4120.6 vs 4324.2 vs 5836.7; mas no SCIENCE o D-ETM perde: 4206.1 vs 3600.7 (D-LDA). Tabela 3 (UN): TQ 0.0809 (D-ETM) vs 0.0799 (D-LDA) vs 0.0318 (D-LDA-REP). Tabela 5 (ACL): TQ 0.1351 vs 0.0844 vs 0.0262. Custo: a D-LDA levou quase dois dias por dataset contra menos de 6 horas do D-ETM. A Tabela 4 (SCIENCE) mostra TQ 0.1888 (D-ETM) vs 0.1556 (D-LDA) vs 0.0140 (D-LDA-REP).",
+  "needs": "Modelo: skip-gram para embeddings de palavras (300 dim) + LSTM de 4 camadas × 400 unidades + rede feed-forward para theta_d (2 camadas × 800 unidades). Treino: 1000 épocas no SCIENCE e ACL e 400 no UN; batch de 200 documentos (100 no ACL); Adam com lr 0.001 (UN/SCIENCE) e 0.0008 (ACL). Corpora de 8.936 a 196.290 documentos; vocabulários de 12.466 a 35.108 termos. 50 tópicos fixos. Não precisa de dados rotulados (não supervisionado), mas exige um timestamp por documento. GPU: o artigo não reporta tempo de relógio em hardware específico nem diz que roda em CPU; a configuração (LSTM 4×400, 1000 épocas) é de treino neural profundo e o texto menciona suporte de NVIDIA — o único custo medido é a comparação relativa (<6h do D-ETM vs ~2 dias do D-LDA).",
+  "cost_here": "Alto. O D-ETM não é uma biblioteca instalável como o tomotopy dos nossos braços 01-03: é um modelo neural (LSTM + redes de inferência) treinado por inferência variacional com reparameterization gradients, e exigiria nova dependência (implementação própria ou o código github.com/adjidieng/DETM) e treino iterativo. A configuração do artigo (1000 épocas, LSTM 4×400, vocabulário de dezenas de milhares) é improvável de rodar em minutos em CPU sobre 4.369 documentos × 965 semanas. O artigo não reporta tempo em CPU nem em GPU específica — só a razão relativa contra a D-LDA. Não é barato.",
+  "transferable": "O que transfere: a ideia central — representar cada TÓPICO como um vetor num espaço de embedding compartilhado com as palavras, e deixar o tópico derivar no tempo por um random walk — é independente de domínio e mapeia bem no nosso problema (28 locations × 965 semanas, tópicos que devem evoluir com a epidemia). O prior temporal explícito ataca a estrutura temporal que o nosso braço 03 (DMR/tomotopy) trata de outra forma, e o mecanismo de usar embeddings permite atribuir tópicos a palavras fora do vocabulário. O que NÃO transfere direto: (a) idioma — todos os três corpora são em inglês; os embeddings skip-gram teriam que ser re-treinados ou trocados por um modelo PT-BR; (b) domínio — política internacional, artigos de ciência e abstracts de CL, nada de notícia nem de vigilância de doença; (c) unidade de documento — o artigo processa parágrafos e abstracts, não artigos de notícia inteiros; (d) escala/estrutura — o maior corpus tem 196k documentos, mas nenhum dos três tem a dimensão de localização (28 séries) do nosso caso; (e) infraestrutura — não é uma lib instalável como tomotopy, então a distância de engenharia é grande.",
+  "red_flags": [
+    "O ganho sobre o baseline some em um dos três corpora: no SCIENCE o D-ETM perde em perplexity (4206.1 vs 3600.7 do D-LDA), então o 'outperforms' do abstract tem exceção que o resumo esconde.",
+    "Coerência (TC) e diversidade (TD) são medidas de qualidade intrínseca, sem validação contra nenhum desfecho externo do domínio.",
+    "Todos os benchmarks em inglês — nada de PT-BR.",
+    "Configuração de treino pesada (1000 épocas, LSTM 4×400) sem custo de hardware reportado; a comparação de tempo é relativa e pode não reproduzir.",
+    "As métricas de coerência dependem de contagens empíricas de co-ocorrência e são sensíveis ao pré-processamento; os autores variam o limiar de frequência por dataset (30/100/10 documentos), o que dificulta a comparação cruzada.",
+    "O baseline dinâmico é o D-LDA de 2006; não há comparação com modelos de tópicos neurais mais recentes (ex.: NVDM ou ETM temporal alternativos).",
+    "O número de tópicos é fixado em 50 sem busca, e o nosso projeto tem um braço inteiro (fichas 09-14, 23) dedicado à escolha de K."
+  ]
+}

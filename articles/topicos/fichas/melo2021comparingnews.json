@@ -1,0 +1,52 @@
+{
+  "key": "melo2021comparingnews",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/28_melo_2021_comparing_news_articles_tweets.pdf",
+  "author": "de Melo & Figueiredo",
+  "year": 2021,
+  "read": "Li o artigo completo (19 páginas do PDF): capa e abstract (p.1); Introduction/Prior Work/Goals (p.2-3); Methods - Data Collection e Characterization (p.3-4); Data Preprocessing (p.5); Topic Modeling, escolha do número de tópicos e Calculation of Topic-Based Sentiment Scores (p.5-6); Named Entity Recognition e Textbox 1 (p.7-8); Results - Tables 4 e 5 de tópicos/temas (p.9-10); similarity de tópicos (p.10-12); Entity Distribution and Network (p.13); Topic and Sentiment Changes (p.14-15); Discussion/Principal Results e a seção Limitations (p.16); Conclusions e References (p.16-19). Conferi a página de cada citação com pdftotext -f/-l.",
+  "technique": "Não usa embeddings. É um pipeline clássico de NLP: (1) pré-processamento (lowercase, remoção de URL/usuário/pontuação/stopwords PT do NLTK, normalização de espaços; lematização e stemming foram testados e descartados por baixa qualidade em português); (2) LDA bag-of-words (implementação MALLET, parâmetros default) para descobrir 20 tópicos em cada coleção, com o número de tópicos escolhido por curva de coherence; (3) categorização manual dos 20 tópicos em 8 temas (Confirmed Cases, Economic Influences, Entertainment, Medical Supplies, Medical Treatment and Research, Political, Prevention and Control, Stories) a partir das 10 palavras mais prováveis; (4) similaridade de cosseno entre tópicos; (5) sentimento via VADER (léxico + regras, feito para inglês) aplicado sobre o texto traduzido para inglês pelo googletrans (API do Google Tradutor); (6) NER com modelo spaCy em português treinado do zero por estratégia semissupervisionada, com 5 categorias próprias (PER, ORG, DIS, SYMP, DRUG) semeadas por palavras-chave.",
+  "representation": "O texto vira número de duas formas, nenhuma delas vetor denso de embedding: como contagens de palavras (bag-of-words) alimentando o LDA, que devolve uma distribuição de probabilidade do documento sobre 20 tópicos; e como um escore de polaridade único entre -1.0 e 1.0 (VADER) para o documento, calculado sobre a versão em inglês do texto. A 'geometria' que aparece é a similaridade de cosseno entre as distribuições de tópicos, usada para medir cobertura temática. Como é artigo de aplicação, o que ele mediu no domínio é a diferença de distribuição de temas, de diversidade de entidades e de polaridade de sentimento entre notícia formal (UOL) e Twitter no Brasil durante a COVID-19.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A coleta final reuniu 1.597.934 tweets de 1.299.084 usuários (sem retweets) e 18.413 artigos do portal UOL, todos em português, de janeiro a maio de 2020.",
+      "citacao": "The final Twitter collection did not contain any retweets, and it contained 1,597,934 tweets posted by 1,299,084 users.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "O modelo de tópicos é um LDA com 20 tópicos gerado pelo MALLET com parâmetros default, e a coherence ficou em 0,511 para a notícia contra 0,446 para o Twitter.",
+      "citacao": "the coherence scores were 0.511 and 0.446 for news media and Twitter, respectively",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Por falta de recursos robustos de sentimento em português, os autores traduziram todo o texto para o inglês antes de rodar o VADER, apoiados em estudos que mostram desempenho melhor nessa versão.",
+      "citacao": "showed that methods that translate data set texts to English for sentiment analysis perform better than versions in Portuguese",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O modelo de NER próprio em português atingiu acurácia média de cerca de 85% entre os 20 termos mais frequentes de cada entidade.",
+      "citacao": "We assessed that our NER analysis method had an average accuracy of approximately 85% among the 20 most frequently mentioned terms.",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "No resultado de sentimento, a mídia social ficou mais negativa em todos os temas, enquanto a mídia formal ficou quase neutra em média.",
+      "citacao": "social media tended to have a more negative polarity for all themes, while formal media seemed to present almost neutral polarity on average",
+      "pagina": 16
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram limitações na seção Limitations (p.16), nas palavras deles: 'We retrieved data using a set of keywords; therefore, our data may have excluded tweets from users who wrote about the COVID-19 pandemic using different target keywords.' Também: 'Twitter and UOL do not publish data about the profiles of their users, such as age, gender, or social class. Therefore, it was not possible to perform a stratified analysis of the users, and the results thus may not reflect the entire Brazilian population.' E ainda: 'our findings may not be generalizable to other social media platforms or other communication media, such as television or radio.'",
+  "evidence": "Não há comparação com baseline de método — é um artigo descritivo/aplicado, não um benchmark. A evidência que os autores dão é interna ao próprio pipeline: coherence de 0,511 (UOL) e 0,446 (Twitter) para o LDA; acurácia média autoatribuída de ~85% para o NER nos 20 termos mais frequentes de cada categoria; e leitura qualitativa de gráficos de sentimento por tema ao longo das semanas (polaridades ~-0.25 para Confirmed Cases e Political no UOL, ~+0.25 para Entertainment e Stories). Os resultados de comparação são entre as duas fontes (UOL vs Twitter), não entre métodos concorrentes.",
+  "needs": "MALLET (LDA, roda em CPU), modelo spaCy em português treinado do zero (100 iterações, dropout 0.2; o treino só exige palavras-chave-semente, não um corpus rotulado grande), googletrans (API do Google Tradutor, exige rede/internet) e o léxico VADER (inglês). Nenhum modelo de embedding, nenhuma GPU. Corpus de entrada: 18.413 notícias + 1,6 milhão de tweets. Tempo de execução e memória não são reportados no artigo.",
+  "cost_here": "Roda em CPU, sem GPU — compatível com nossa máquina. Porém o googletrans depende da API do Google Tradutor (rede e serviço externo), o que conflita com o princípio de extras fixados e offline no pyproject.toml. O LDA via MALLET é barato no nosso corpus de 4.369 artigos (trivial perto de 1,6M de tweets). O artigo não reporta tempo de execução nem custo computacional, então não há número para citar. Alternativa sem tradução externa exigiria um léxico de sentimento em PT-BR, que o artigo não usa.",
+  "transferable": "O domínio é muito próximo do nosso: notícia em português, vigilância de doença, Brasil, com comparação explícita entre mídia formal e redes sociais. Transfere: (a) o achado de que notícia formal e rede social divergem em distribuição de tema, diversidade de entidades e polaridade de sentimento; (b) as categorias de entidade relevantes para arbovirose (Disease, Symptoms, Drugs — ex.: dengue e cloroquina aparecem como entidades); (c) a advertência de que o LDA vai mal em texto curto, relevante se algum dia somarmos tweets. NÃO transfere nada sobre representação/embedding: o artigo não usa embeddings, então não informa pooling, normalização, geometria nem dimensionalidade do nosso braço 02. A distância de domínio é pequena, mas a distância de técnica é total — é bag-of-words + léxico, não vetor denso.",
+  "red_flags": [
+    "Sentimento calculado sobre texto traduzido automaticamente para o inglês (googletrans), não em português nativo — o erro de tradução se soma ao erro do léxico VADER.",
+    "Acurácia do NER de ~85% é autoavaliada pelos próprios autores sobre os 20 termos mais frequentes, sem conjunto de teste separado nem anotação de referência independente.",
+    "Sem baseline: não compara o método com nenhuma alternativa, então não há ganho medido contra nada.",
+    "Coherence do Twitter é baixa (0,446) e os próprios autores admitem que o LDA não lida bem com texto curto.",
+    "O número de tópicos foi fixado em 20 apesar de a curva de coherence estabilizar em 10 — escolha não totalmente justificada.",
+    "Categorização dos tópicos em 8 temas é manual e subjetiva, feita pelos autores a partir das 10 palavras mais prováveis.",
+    "Fonte única de notícia (UOL) e plataforma única (Twitter), janela de só 5 meses (jan-mai 2020), o que limita a generalização.",
+    "Viés de veículo reconhecido pelos autores: uma fonte de notícia específica pode ter inclinação política que afeta o sentimento."
+  ]
+}

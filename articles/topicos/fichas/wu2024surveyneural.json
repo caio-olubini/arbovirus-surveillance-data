@@ -1,0 +1,50 @@
+{
+  "key": "wu2024surveyneural",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/41_wu_2024_survey_neural_topic_models.pdf",
+  "author": "Wu et al.",
+  "year": 2024,
+  "read": "Li as 30 paginas via pdftotext: capa e abstract (p.1); Introducao (p.1-4); Preliminary - problema, notacao e metricas de avaliacao (perplexity, coherence, diversity, desempenho em tarefa downstream, visualizacao) e o NTM basico em VAE (p.4-9); Secao 3, revisao de metodos por estrutura de rede (priors, embeddings, metadados, GNN, GAN, PLMs, contrastive learning, RL) e por cenario (hierarquico, texto curto, cross-lingual, dinamico, correlacionado, lifelong) (p.9-17); Aplicacoes (p.17-18); Desafios (p.18-20); a metrica propria TSD, com Tabelas 1-3 e resultados de correlacao (p.20-23); toolkits e conclusao (p.23). Nao ha secao formal de limitacoes.",
+  "technique": "Survey (revisao) de Neural Topic Models (NTMs): modelos de topicos construidos sobre redes neurais, principalmente o Variational AutoEncoder (VAE). Fluxo central: o documento vira um vetor Bag-of-Words; um encoder (MLP) o mapeia para uma variavel latente gaussiana r em R^K; um softmax produz a distribuicao doc-topico theta (simplex de K topicos); um decoder reconstroi as palavras via matriz topico-palavra beta. O survey organiza as variantes pela estrutura de rede (priors, embeddings, metadados, GNN, GAN, PLMs, contrastive learning, RL) e pelos cenarios (texto curto, cross-lingual, dinamico, etc.). Como contribuicao propria, propoe a metrica TSD (Topic Semantic-aware Diversity), que mede diversidade por pares de palavras em vez de palavras unicas. Nao propoe um modelo novo.",
+  "representation": "Como texto vira numero: o documento e um vetor Bag-of-Words (ou a concatenacao deste com embeddings contextuais de Sentence-BERT/mBERT nas variantes com PLMs). O encoder produz uma gaussiana latente r em R^K e theta = softmax(r) e a distribuicao doc-topico no simplex de K topicos. Os topicos sao distribuicoes topico-palavra beta em R^{V x K}. Em NTMs com embeddings, beta e fatorado como beta = W^T T, com W em R^{D x V} sendo embeddings de palavras (inicializados com Word2Vec/GloVe) e T em R^{D x K} embeddings de topico, onde D e a dimensao do espaco de embedding. Variantes usam grafos de biterms, embeddings hiperbolicos (para hierarquia) e distancias de transporte otimo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Modelos de topicos convencionais nao escalam: um modelo dinamico probabilistico leva dois dias para 10 mil documentos, o que motivou a busca por NTMs.",
+      "citacao": "dynamic topic model on a dataset with 10k documents takes two days (Dieng et al 2019).",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Em NTMs que modelam topicos como embeddings, os embeddings de topico tendem a colapsar juntos no espaco latente, produzindo topicos repetitivos (topic collapsing).",
+      "citacao": "topic embeddings mostly collapse together in the space of NTMs with embeddings, which leads to topic collapsing, i.e., repetitive topics.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Modelos de topicos falham em textos curtos porque a informacao de co-ocorrencia de palavras e escassa neles (data sparsity).",
+      "citacao": "information is extremely sparse in short texts due to their limited context.",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "NTMs cross-lingual buscam descobrir topicos alinhados entre idiomas diferentes, permitindo analise de texto sem supervisao.",
+      "citacao": "Cross-lingual topic models aim to discover aligned topics in different languages.",
+      "pagina": 15
+    },
+    {
+      "afirmacao": "A metrica proposta TSD correlaciona mais com o julgamento humano que as metricas anteriores: media de 0.986 contra 0.957 de TU e 0.957 de TD nos 4 datasets.",
+      "citacao": "We notice that our TSD achieves relatively higher correlation scores with human ratings.",
+      "pagina": 22
+    }
+  ],
+  "ressalva_do_autor": "não declara",
+  "evidence": "O survey nao traz comparacao experimental propria dos metodos; e sintese de literatura e reporta resultados de terceiros (ex.: 'They show that their model outperforms traditional multilingual topic models', p.15). A unica evidencia experimental original e para a metrica TSD: a Tabela 3 (p.22) da a correlacao de Pearson com avaliacao humana em 4 datasets - NeurIPS, ACL, NYT, Wikitext103 - com media TSD 0.986 contra TU 0.957 e TD 0.957. O ganho e pequeno (~0.03) e compara apenas dois baselines de diversidade. Os modelos usados para gerar os topicos avaliados sao LDA (convencional) e NSTM (neural). Nao ha baseline de NTM medido pelo proprio survey.",
+  "needs": "Para ler, nada (e um PDF). Para usar as tecnicas descritas: NTM em VAE e nao supervisionado (nao exige dados rotulados); NTMs com embeddings exigem embeddings de palavras pre-treinados (Word2Vec/GloVe); variantes com PLMs exigem Transformers (BERT/mBERT/Sentence-BERT). O survey afirma que NTMs escalam em datasets grandes 'harnessing parallel computing facilities like GPUs' (p.2). A metrica TSD exige apenas as top words e as frequencias de pares de palavras; a coherence recomendada (Palmetto) usa um corpus de referencia (Wikipedia). Datasets dos experimentos de TSD: NeurIPS, ACL, NYT, Wikitext103, todos em ingles.",
+  "cost_here": "Não reportado. O survey nao da tempo de treino em CPU para NTMs. O unico numero de custo e de um modelo dinamico probabilistico convencional (nao neural): 'training a probabilistic dynamic topic model on a dataset with 10k documents takes two days' (p.2), usado como motivacao de que modelos convencionais sao caros, nao como custo de NTM. Nosso corpus (4.369 artigos) e menor que o exemplo de 10 mil documentos, entao modelos convencionais sao viaveis em CPU, mas o custo de NTM em CPU nao e reportado. A metrica TSD em si e barata (contagem de pares de palavras).",
+  "transferable": "Transfere: o enquadramento de documento para distribuicao de topicos; o achado de que embeddings de topico colapsam juntos em NTMs com embeddings, gerando topicos repetitivos (relevante para o braco 02 de embeddings e para o braco 03 DMR/tomotopy); o achado de data sparsity em texto curto (nossas noticias sao relativamente curtas); e as ressalvas de avaliacao (coherence/diversity podem discordar do julgamento humano; configuracoes de pre-processamento mudam os resultados). Nao transfere: o survey e em ingles e avalia so em datasets em ingles (NeurIPS, ACL, NYT, Wikitext103) - sem PT-BR e sem vigilancia de doenca; os ganhos quantitativos sao de terceiros e em ingles. O trabalho cross-lingual citado e ingles-chines, entao a distancia de lingua e dominio para PT-BR e grande.",
+  "red_flags": [
+    "E um survey; a unica evidencia experimental original e a metrica TSD.",
+    "Ganho da TSD sobre os baselines TU/TD e pequeno (media 0.986 vs 0.957) e compara apenas dois baselines de diversidade.",
+    "A avaliacao da TSD usa so dois modelos de topicos (LDA e NSTM) e quatro datasets, todos em ingles.",
+    "A correlacao e medida so contra uma avaliacao humana cujo tamanho e desenho nao sao detalhados aqui.",
+    "Sem avaliacao em PT-BR, em noticia de vigilancia, ou em qualquer dominio proximo do nosso; sem baseline de NTM re-medido pelo proprio survey.",
+    "Varios achados de metodo sao sintese de resultados de terceiros, sem re-execucao."
+  ]
+}

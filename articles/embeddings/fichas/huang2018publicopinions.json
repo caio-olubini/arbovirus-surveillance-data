@@ -1,0 +1,53 @@
+{
+  "key": "huang2018publicopinions",
+  "grupo": "aplicacao",
+  "pdf": "articles/embeddings/23_huang_2018_public_opinions_diseases_news_media.pdf",
+  "author": "Huang et al.",
+  "year": 2018,
+  "read": "PDF completo, 12 páginas. Abstract (p.1); Introduction (p.2); Methods — Workflow, Data Collection, Data Cleaning, Summary Statistics, Sentiment Analysis, Topic Modeling (pp.2–5), com Tabela 1 (estatísticas dos 3 corpora Reuters, p.4); Results — PheWAS Disease Concepts, Summary Statistics, Sentiment Analysis (pp.5–6), Figura 2 (cobertura e sentimento dos 53 PheWAS, p.6), Figura 3 (tópicos dos 6 conceitos, p.7), Topic Modeling (p.8); Discussion — Combined Analysis (pp.8–9) e Tabela 2 (termos de tabaco, p.8); Limitations (p.9); Conclusions (p.9); References (pp.10–11); Abreviações e metadados de citação (p.12). As limitações estão na seção 'Limitations' (p.9), não no abstract.",
+  "technique": "Não usa embeddings. É text mining clássico de notícia em inglês: (1) 3 corpora Reuters (RCV1 1996/97, TRC2 2008, RC16 2016), indexados no Apache Solr; (2) filtro de artigos que citam doença por tabela de sinônimos do UMLS, com mapeamento CUI -> ICD-9-CM -> código PheWAS; (3) estatística descritiva da fração de artigos por doença; (4) sentimento com VADER (léxico + regras, no NLTK), sentença a sentença, score composto em [-1, 1] depois agregado por média por conceito de doença; (5) tópicos com LDA (Gensim), um modelo por doença, com K=1 tópico, top 50 palavras e >=500 iterações. É estudo infodemiológico: mede cobertura, sentimento e tópicos da mídia sobre doenças ao longo de 3 décadas.",
+  "representation": "O texto não vira vetor denso. Há duas representações numéricas: (a) sentimento — cada sentença recebe um escalar único em [-1, 1] do léxico VADER, agregado por média por doença; (b) tópico — cada doença tem uma distribuição sobre palavras (top 50 do LDA), reportada em permilagem. Somam-se a contagem normalizada de artigos por doença (cobertura em %) e o vocabulário de sinônimos de doença do UMLS. Nenhum encoder, pooling, normalização ou geometria de espaço vetorial; o artigo não produz nem compara embeddings de texto.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O trabalho aplica estatística, análise de sentimento e modelagem de tópicos a mais de 3,5 milhões de notícias da Reuters ao longo de 3 décadas para descobrir padrões de cobertura, sentimento e tópicos de doenças.",
+      "citacao": "In our study, we applied statistical analysis, sentiment analysis, and topic modeling techniques to over 3.5 million news articles from Reuters media in the past 3 decades",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "A fração de notícias que menciona doenças é pequena mas cresce entre os três recortes: 0,44% (3516/806.791) em 1996/1997, 0,57% (8835/1.546.350) em 2008 e 0,81% (9633/1.182.761) em 2016.",
+      "citacao": "The percentages of articles that mentioned diseases and medical conditions were 0.44% (3516/806,791), 0.57% (8835/1,546,350), and 0.81% (9633/1,182,761) in the 3 study periods",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O sentimento agregado das doenças é quase sempre não-positivo: dos 231 conceitos PheWAS, 226 têm sentimento neutro ou negativo e os scores variam de -0,94 a 0,73.",
+      "citacao": "The sentiment scores of the 231 PheWAS disease concepts ranged from –0.94 to 0.73, with 226 of them having neutral or negative sentiments in news articles.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Os tópicos capturam eventos ao longo do tempo: 'HIV' surge no tópico de outras doenças infecciosas em 1996/1997 e 'Zika' em 2016, sugerindo que esses termos explicam a flutuação da cobertura pela mídia.",
+      "citacao": "Two interesting terms that stand out in its topic content are HIV in 1996/1997 and Zika in 2016, suggesting that HIV and Zika virus probably attributed to the large fluctuation in news media coverage in the past 3 decades.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "As palavras de tópico mais frequentes no conjunto dos 231 conceitos são genéricas de biomedicina/notícia, não específicas de doença: drug, patient, health, study, risk, disease, treatment, researcher, trial e FDA.",
+      "citacao": "the top 10 topic words occurring in the news articles about the 231 PheWAS disease concepts were drug, patient, health, study, risk, disease, treatment, researcher, trial, and FDA",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores têm seção 'Limitations' explícita (p.9). Primeiro, amostragem temporal esparsa: \"the data source from Reuters media in this study is limited to 3 sparse time periods: 1996/1997 (RCV1), 2008 (TRC2), and 2016 (RC16)\" e \"These datasets do not include all the news articles from 1996 to 2016 and might create biases in the temporal trend analysis for the last 3 decades\". Segundo, viés de fonte única: \"the news data used in this study might not be representative of all English-language news articles in the world\" e \"Reuters could have biases in their news report that were not taken into account in our analysis\". Terceiro, cobertura imperfeita do dicionário de doenças: \"the disease synonym list may not guarantee all the mentions of disease and medical conditions in the Reuters news articles\", com erro de mapeamento ambíguo admitido em até \"6%\". Quarto, os métodos não foram validados no domínio: sobre o VADER, \"it has not been evaluated or tuned for Reuters news articles\"; sobre o LDA, \"LDA for topic modeling requires manual tuning parameters, including the number of topics, which can be more art than science\". Por fim, admitem que fixaram K=1 tópico por doença por praticidade, já que ajustar o número ótimo \"is not practical to do for 231 PheWAS disease concepts\".",
+  "evidence": "Não há baseline de modelo: o artigo é descritivo/infodemiológico e não compara VADER nem LDA contra alternativa alguma, e não reporta acurácia, F1 nem ablação. A evidência é de plausibilidade por correspondência com fatos externos: os termos de tabaco em outras neoplasias malignas caem de 1,5/0,8/0,7 permil (1996/1997) para 0,0 em 2008 e 2016 (Tabela 2, p.8), batendo com a queda da prevalência de fumo nos EUA (42,4% em 1965 para 16,8% em 2016); a cobertura de depressão dobra em 2016, alinhada a relatório do CDC; e 'Zika' surge em 2016, batendo com o surto no Brasil. Números-chave: 231 conceitos PheWAS comuns aos 3 corpora; 226/231 com sentimento neutro ou negativo; scores de -0,94 a 0,73; 53 doenças com cobertura >1% respondem por 90,27% (3174/3516) dos artigos com doença em RCV1.",
+  "needs": "Para rodar como o artigo: 3 corpora de notícia em inglês (RCV1 e TRC2 sob solicitação ao NIST, RC16 raspado do arquivo Reuters), Apache Solr para indexação, o Metathesaurus do UMLS mais as tabelas de mapeamento CUI->ICD-9-CM->PheWAS, e VADER/NLTK + LDA/Gensim em Python. Não exige GPU nem modelo neural. Dados rotulados: nenhum para treino (VADER é léxico e LDA é não supervisionado). O gargalo é licença/dado: UMLS exige conta e termos de uso, e os corpora Reuters não são de livre download. Tempo de execução: não reportado.",
+  "cost_here": "Custo computacional em CPU baixo e sem dependência nova pesada — VADER (léxico) e LDA (Gensim) são leves, e tomotopy (já instalado no extra 'topics') cobre LDA. Não reportado: nenhum tempo de execução é dado. O custo alto para o nosso caso é de DADOS/idioma, não de máquina: o pipeline depende do UMLS (licença) para achar sinônimos de doença em inglês, que não temos para dengue/arbovirose em PT-BR, e depende de corpora Reuters licenciados. Sobre os nossos 4.369 artigos PT-BR o pipeline em si rodaria em minutos em CPU, mas o mapeamento doença->menções teria de ser construído (ou reaproveitar o léxico do braço 01), e o VADER não cobre português.",
+  "transferable": "Transfere: a moldura geral — notícia como sinal de atenção pública a doença, e o uso de tópicos para rastrear quais termos/eventos puxam a cobertura ao longo do tempo (o caso 'Zika 2016' é exatamente um evento de arbovirose). Transfere também a ideia de medir cobertura e sentimento como séries temporais. NÃO transfere: a técnica — não há embedding algum aqui, então nada deste artigo diz como representar texto em vetor para os braços 02/03; e a distância de domínio é grande: Reuters em inglês (não Agência Brasil em PT-BR), 3 recortes anuais esparsos (não 965 semanas contínuas), 231 doenças genéricas (não dengue), sentimento por léxico inglês (VADER não cobre PT-BR). Os resultados de sentimento e tópicos são específicos do corpus inglês da Reuters e não devem ser assumidos como válidos no nosso.",
+  "red_flags": [
+    "Nenhum baseline: VADER e LDA não são comparados com nenhum método alternativo; não há métrica de acurácia, F1 ou erro.",
+    "Avaliação só qualitativa/plausibilidade: os resultados são 'confirmados' por correspondência narrativa com relatórios externos (CDC, estatísticas de câncer), não por validação contra verdade.",
+    "VADER é léxico otimizado para redes sociais em inglês e, pelos próprios autores, nunca foi avaliado nem ajustado para notícia Reuters.",
+    "LDA fixado em K=1 tópico por doença, escolha assumidamente 'art more than science', sem validação do número de tópicos.",
+    "Correção de sentimento medida com um único modelo (VADER), sem segundo anotador ou modelo.",
+    "Amostragem temporal esparsa (3 anos isolados em 30) pode fabricar tendências que não existem no contínuo.",
+    "Dicionário de sinônimos do UMLS não garante capturar todas as menções de doença; erro de mapeamento ambíguo admitido em até 6%.",
+    "Fonte única (Reuters) e idioma único (inglês), com viés editorial não controlado.",
+    "Corpus de 3,5 milhões de artigos mas só ~0,44-0,81% mencionam doença — a base útil é ordens de magnitude menor que o número divulgado."
+  ]
+}

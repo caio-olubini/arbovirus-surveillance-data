@@ -1,0 +1,49 @@
+{
+  "key": "klenner2009coreference",
+  "grupo": "representacao",
+  "pdf": "articles/features-texto/38_klenner_2009_coreference_ilp.pdf",
+  "author": "Klenner & Ailloud",
+  "year": 2009,
+  "read": "Li o PDF inteiro, as 9 páginas (numeradas 442-450 na folha de rosto). Conferi título, autoria e filiação na p.1; abstract e introdução (p.1); Seção 2, Zero-One ILP e algoritmo de Balas (p.1-2); Seção 3, baseline TiMBL e corpus TüBa-D/Z (p.2-3); Seção 4, o modelo de restrições e a função objetivo (p.3-4); Seção 5, representação intensional das restrições (p.4-5); Seção 6, a variante do algoritmo de Balas (p.5-6); Seção 7, evidência de que a otimização não é necessária (p.6-7); Seção 8, Balas-First vs. baseline e vs. ordem linear, Tabelas 2 e 3 (p.7-8); Seções 9-10, trabalhos relacionados e conclusão (p.8-9); e as Referências (p.9). Extraí o texto por pdftotext e reconferi cada citação contra a extração do pypdf (a mesma que o script de conferência usa). PÁGINAS: uso a numeração do PDF a partir de 1, não a impressa (PDF p.1 = impressa 442). NOTA DE ARQUIVO: este PDF chegou ao repositório com o nome 23_chae_2009_fluency_shallow_structural_features.pdf, emprestado de outro artigo da família; foi renomeado para 38_klenner_2009_coreference_ilp.pdf em 2026-11-10, e o nome antigo passou a conter o artigo que ele prometia.",
+  "technique": "Resolução de correferência formulada como agrupamento (clustering) via programação linear inteira 0-1 (Zero-One ILP). Um classificador de pares baseado em memória (TiMBL, k-vizinhos) pontua cada par de menções dentro de uma janela de 3 sentenças; esse placar vira um 'custo de classificação' (Fig. 1, p.3) que alimenta a função objetivo de um ILP. O ILP particiona os pares em conjuntos de correferência sob restrições globais: exclusividade (um par é ou não correferente), transitividade e 'boundness enforcement' (pronomes relativos/possessivos precisam entrar em algum par). O gargalo do ILP clássico é que toda restrição precisa ser extensionalizada (instanciada por completo), e a transitividade sobre ~150 NPs já gera ~1.500.000 equações. Os autores adaptam o algoritmo de Balas para tratar as restrições de forma INTENSIONAL — instanciando sob demanda, sem enumerar todos os pares — e param na primeira solução consistente ('Balas-First'), testando se a otimização completa muda o resultado. É um artigo de método/otimização aplicado à correferência, não de embeddings.",
+  "representation": "Aqui o texto NÃO vira vetor denso: não há encoder, pooling, normalização nem geometria de espaço vetorial. O texto é reduzido a um conjunto de pares candidatos de menções (markables) dentro de uma janela de 3 sentenças; cada par recebe um peso numérico (custo de classificação) w_ij = |neg| / |neg ∪ pos|, isto é, a fração de vizinhos negativos que o TiMBL encontra para aquele par. Esses pesos são os coeficientes de uma função objetivo sobre variáveis binárias c_ij sujeitas a restrições lógicas. As features são linguísticas e explícitas (distância em sentenças, POS da cabeça, função gramatical, paralelismo de funções, casamento de cabeças, posição do pronome, saliência, classe semântica). A 'representação' aqui é um problema de decisão/otimização sobre variáveis binárias, não uma representação vetorial de texto.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A primeira solução consistente encontrada pela adaptação do algoritmo de Balas (Balas-First) já é a solução ótima em mais de 90% dos casos, de modo que a busca de otimização completa é dispensável.",
+      "citacao": "The first observation we made when running our algorithm was that in more than 90% of all cases, Balas-First already constitutes the optimal solution.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Buscar a solução ótima além do Balas-First não leva de forma confiável a uma F-measure melhor: a função que mapeia valor da função objetivo para F-measure é 'errática' e não monotônica.",
+      "citacao": "As can be seen from the figure, the function (at least empirically) is rather erratic.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Contra o baseline (a saída crua do classificador de pares TiMBL), o Balas-First melhora a F-measure em 2,4% no cenário de todas as menções e em 7,43% no cenário só de menções verdadeiras.",
+      "citacao": "In the 'all mentions setting', 2.4% F-measure improvement was achieved, with 'true mentions' it is 7.43%.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A própria ordem de Balas importa: comparada à ordem linear natural dos pares, a ordenação de Balas rende mais 1,44% de F-measure (todas as menções) e 2,82% (só menções verdadeiras).",
+      "citacao": "The F-measure improvement is 1.44% ('all mentions') and 2.82% ('true mentions').",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Tratar as restrições de forma intensional elimina o custo de enumerá-las: modelos de restrição sem as 'boundness enforcement constraints' podem ser resolvidos em tempo quadrático, em vez do tempo exponencial do ILP extensional.",
+      "citacao": "constraint models without boundness enforcement constraints (cf. Section 5) pose no computational burden, they can be solved in quadratic time.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram explicitamente que não conseguem provar matematicamente o comportamento que observam: \"Unfortunately, we cannot prove mathematically any hypotheses about the optimal values and their behavior.\" (p.6). E deixam a generalidade em aberto na conclusão, prometendo testar outros domínios: \"But we will also consider other domains in order to find out whether our results actually are widely applicable.\" (p.8).",
+  "evidence": "Baseline = a saída crua do classificador de pares TiMBL (todos os pares classificados como correferentes, fundidos em conjuntos). Métrica ECM (Entity-Constrained Measure), validação cruzada de 5 folds sobre 1.100 textos alemães do TüBa-D/Z. Balas-First sobe a F de 61,83 para 64,27 (todas as menções, +2,4%) e de 71,47 para 78,90 (só menções verdadeiras, +7,43%) (Tabela 2, p.7). Ordem Balas vs. ordem linear: +1,44% e +2,82% (Tabela 3, p.8). Balas-First vs. solução ótima: sem diferença significativa de F, com o ótimo chegando a piorar em −0,086% na média (p.7). Não há baseline de embeddings nem comparação entre encoders; o baseline é o próprio classificador de pares.",
+  "needs": "Requer um classificador de pares de correferência (TiMBL) e um corpus-ouro anotado com correferência (TüBa-D/Z, alemão), mais anotações linguísticas auxiliares (IDs de subcláusula, POS, fronteiras de NP). Roda só em CPU; nenhuma GPU. Corpus: 1.100 textos alemães, 5-fold CV. Tempo e tamanho absolutos de execução: não reportado — os autores reportam apenas a complexidade (quadrática sem boundness constraints, exponencial no pior caso com elas, mas 'unproblematic' na prática).",
+  "cost_here": "O algoritmo em si é barato em CPU: é um reimplemento do Balas (busca sobre variáveis binárias), sem embeddings e sem GPU, então não exigiria extra pesado nem contrariaria o teto de dependências do pyproject. Mas ele resolve correferência, tarefa que não existe no nosso pipeline (léxico / embeddings / DMR sobre notícias de dengue PT-BR); adotá-lo exigiria construir um corpus PT-BR anotado em correferência e um classificador de pares, custo de dados alto e não reportado pelo artigo. Custo computacional em si (tempo de parede): não reportado.",
+  "transferable": "Transfere a ideia metodológica: restrições globais (exclusividade, transitividade) podem ser tratadas intencionalmente em vez de extensionalizadas, e a primeira solução consistente de um processo de otimização com restrições costuma empatar com o ótimo — parar cedo economiza tempo sem perda de F. Também transfere o alerta de que a função objetivo pode não ser monotônica em relação à métrica final. NÃO transfere o domínio: é correferência em notícia alemã (TüBa-D/Z), não notícia PT-BR de dengue, e exige anotação de menções/correferência que não temos. E não transfere nada sobre embeddings: o artigo não usa encoder nem pooling, então não diz nada sobre a escolha de representação do nosso braço 02. Distância de domínio grande.",
+  "red_flags": [
+    "Sem embeddings: o artigo não usa encoder, pooling nem geometria vetorial. Foi classificado como 'representacao' apenas por ser um método geral e independente de domínio, mas não contribui para 'como transformar texto em número'.",
+    "O resultado central ('otimização não é necessária') apoia-se em diferenças minúsculas (-0,086%) e na estatística 'mais de 90% dos casos', sem teste de significância formal reportado.",
+    "Avaliação em um único corpus, uma única língua (alemão, TüBa-D/Z) e um único learner (TiMBL); nada em português, nada de notícia PT-BR.",
+    "Métrica ECM (não MUC), o que dificulta comparar os números com a literatura padrão de correferência.",
+    "A tarefa (correferência) não é a do projeto: nenhum dos nossos braços precisa decidir quando duas menções se referem à mesma entidade."
+  ]
+}

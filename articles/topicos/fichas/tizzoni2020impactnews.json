@@ -1,0 +1,50 @@
+{
+  "key": "tizzoni2020impactnews",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/47_tizzoni_2020_impact_news_exposure_collective.pdf",
+  "author": "Tizzoni et al.",
+  "year": 2020,
+  "read": "Li o PDF completo (18 paginas), nao so o abstract: Abstract e Author summary (p.1-2); Introduction (p.2-3); Results - perfil temporal da atencao e da cobertura de midia (p.3-4), padroes espaciais por estado e cidade (p.5-6), analise de series temporais com VAR e causalidade de Granger (p.7), modelo de regressao de tempo-igual e Tabela 1 (p.7-9); Discussion com as limitacoes declaradas (p.9-11); Materials and methods - fontes de dados e modelos (p.11-14); Supporting information e References (p.14-18). Tambem conferi as legendas das Figuras 1, 2 e 3 (p.4, 6 e 7) e a Tabela 1 (p.9).",
+  "technique": "Nao usa embeddings. O texto vira contagem: numero de noticias que mencionam 'Zika' (GDELT, 65 linguas) e numero de mencoes de 'Zika' em legendas de TV (TV News Archive), agregados por dia/semana. A atencao coletiva e medida por pageviews diarios de 128 paginas da Wikipedia sobre Zika (96 linguas), geo-localizados por estado e cidade. A analise usa correlacao de Pearson; modelos de Vetor Autorregressivo (VAR, pacote R VARS) com teste de causalidade de Granger e teste tipo Wald de causalidade instantanea; e uma regressao linear de tempo-igual que preve pageviews semanais por estado (rescalados pela populacao) a partir das mesmas semanas de cobertura de midia, com features adicionais de kernel de memoria exponencial.",
+  "representation": "Nao ha espaco vetorial, encoder nem pooling. O texto e representado por uma contagem escalar: cada noticia que menciona 'Zika' conta como um item e cada legenda de TV conta uma mencao, somadas em series temporais diarias/semanais; as paginas da Wikipedia sao representadas por contagens de pageviews. A unica transformacao numerica e a contagem e a rescalagem por populacao do estado (PV proporcional a Ns^beta, com beta = 1.1397).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O volume de casos de Zika nos EUA nao elevou a atencao publica: a atencao ficou alta no inicio do surto e nao acompanhou o crescimento posterior das notificacoes.",
+      "citacao": "the surge of reported ZIKV cases in the United States did not result in an increased level of attention with respect to the initial spike observed at the beginning of the outbreak",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A dinamica temporal da atencao foi altamente sincronizada entre todos os 50 estados, apesar do risco local de transmissao variar geograficamente.",
+      "citacao": "the temporal dynamics of attention to the Zika-related Wikipedia pages in 2016 was highly synchronized across all the 50 States",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Um modelo de regressao de tempo-igual so com sinais nacionais de midia ja explica boa parte dos pageviews estaduais: so TV da R2 = 0.61 e r = 0.80; so Web news da R2 = 0.52 e r = 0.78.",
+      "citacao": "using exclusively TV close captions we obtain R2 = 0.61 and r = 0.80, while using only Web news we obtain R2 = 0.52 and r = 0.78",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Adicionar um kernel de memoria exponencial (persistencia da noticia na atencao) aumenta o coeficiente de determinacao em cerca de 20%, chegando a R2 medio de 0.76 com escala de tempo de aproximadamente 2 semanas.",
+      "citacao": "The introduction of a memory kernel increases the determination coefficient by about 20%, reaching an average R2 = 0.76",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Na analise de series temporais (VAR), cada variavel Granger-causa as outras duas, com efeito menor da Web news do que da TV e dos pageviews; o perfil epidemiologico nao Granger-causa as demais.",
+      "citacao": "each variable does Granger-cause the other two variables in the model, with a smaller effect of Web news (p < 0.05) with respect to TV",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem que os resultados podem nao generalizar: \"One might argue that our results may not generalize to all epidemic outbreaks. Indeed, the peculiar characteristics of the ZIKV infection, such as its association to mild symptoms and the relatively small size of the population at risk, due to the spatial distribution of the vector, may have influenced the attention dynamics during the outbreak.\" (p.11). Tambem: \"we relied on the automatic tagging system provided by GDELT to identify news items mentioning Zika. However, the classification algorithm may have limitations and some items could be less relevant than others.\" (p.10) e \"we considered the content of mass media outlets only, and did not look into other news sources, such as online social networks\" (p.10).",
+  "evidence": "Compara contra um baseline epidemiologico: a regressao informada so pela incidencia de ZIKV por estado tem desempenho ruim, R2 = -0.398, r = -0.032 e rho = 0.152. As features de midia sao muito melhores: so TV da R2 = 0.61 / r = 0.80; so Web news R2 = 0.52 / r = 0.78; TV+Web R2 = 0.63 / r = 0.82; com kernels de memoria R2 = 0.76 (tau de cerca de 2 semanas). A avaliacao usa validacao cruzada state-wise K-fold (k = 10) e leave-one-out sobre 43 estados com mais de 1 milhao de habitantes. Na analise de correlacao, pageviews vs Web news r = 0.74 e vs TV r = 0.80, enquanto pageviews vs incidencia r = -0.15 (p = 0.26). O ganho, portanto, e sobre um baseline fraco (apenas epidemiologia), nao sobre outros modelos de atencao.",
+  "needs": "Exige dados majoritariamente nao publicos: pageviews geo-localizados da Wikipedia, liberados pela Wikimedia Foundation apenas sob acordo de confidencialidade (90% de acuracia a nivel de estado nos EUA); GDELT via Google Cloud/BigQuery; TV News Archive; e dados do CDC (publicos, no GitHub). Analise em R (pacote VARS). Sem GPU, sem modelo de embeddings e sem dados rotulados. Escala: 128 paginas da Wikipedia, 112.706 noticias de 7.737 veiculos, 23.855 mencoes de TV de 1.410 programas / 64 emissoras, 50 estados e 788 cidades, EUA em 2016, ingles e espanhol.",
+  "cost_here": "A parte de maquina e barata em CPU: correlacoes, VAR e regressao linear rodam em segundos a minutos, sem download de modelo e sem GPU. Mas o desenho depende de insumos que nao temos: pageviews geo-localizados da Wikipedia (nao publicos, sob NDA) e GDELT/arquivo de TV. O custo relevante nao e de computacao, e sim de indisponibilidade de dado: rodar o metodo sobre a Agencia Brasil exigiria uma variavel-resposta comportamental externa que o nosso corpus nao contem. Nao reportado custo em nosso cenario exato; o que da para reaproveitar (contagem de mencoes + regressao com lags) tem custo de CPU desprezivel.",
+  "transferable": "Transfere: a tese de que o volume de noticia, e nao a contagem de casos, dirige a atencao do publico; a ideia barata de contar mencoes de palavra-chave em noticia como feature; e o kernel de memoria exponencial (a atencao decai, com escala de cerca de 2 semanas). Nao transfere: a variavel-resposta (pageviews da Wikipedia) nao existe para o nosso corpus PT-BR; o dominio e Zika nos EUA em 2016, em ingles, e nao dengue no Brasil em portugues; a cobertura do GDELT sobre a Agencia Brasil e incerta; e, para nos, 'cobertura de noticia' seria medida no mesmo corpus que queremos explicar, com risco de circularidade. A distancia de dominio e grande - idioma, geografia, doenca e fonte de dados todos diferem.",
+  "red_flags": [
+    "Um unico surto (Zika/EUA/2016), um unico ano, em ingles e espanhol, sem replicacao em outra doenca, pais ou lingua.",
+    "Baseline fraco: a comparacao e apenas contra uma regressao informada pela incidencia epidemiologica; nao ha comparacao com outros modelos de atencao.",
+    "Circularidade potencial: o sinal preditor (cobertura de noticia) e a fonte do corpus sao ambos texto jornalistico.",
+    "Nao usa embeddings nem representacao vetorial - nao traz evidencia sobre pooling, normalizacao, geometria de espaco ou dimensionalidade.",
+    "A variavel-resposta (pageviews geo-localizados) e nao publica (NDA), o que limita a reprodutibilidade.",
+    "Os proprios autores apontam limitacoes do auto-tagueamento do GDELT e que nao examinaram o conteudo textual das noticias."
+  ]
+}

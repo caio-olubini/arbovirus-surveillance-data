@@ -1,0 +1,52 @@
+{
+  "key": "kim2021outbreakmedia",
+  "grupo": "aplicacao",
+  "pdf": "articles/embeddings/16_kim_2021_outbreak_media_ml.pdf",
+  "author": "Kim & Ahn",
+  "year": 2021,
+  "read": "Li o PDF completo (13 paginas). Capa, titulo e abstract (p.1); Introducao com MERS/Ebola e a revisao de trabalhos que usam noticia para vigilancia (p.2); secao Methods com a descricao do Medisys, o corpus de 115.279 artigos e a normalizacao 0-1 (p.3), Figs. 3-6 com o pipeline de rotulagem (p.4-6); parametros de SVM/SSL/DNN e a secao Experiments com a definicao das metricas AUC/Accuracy/F1 (p.7); secao Results com as Tabelas 1 e 2 (p.7-9); Discussion com as limitacoes declaradas (p.8-9); Conclusion (p.10-11); Fig. 11 com o experimento de correlacao >=0,6 (p.9 e p.12); Data availability e referencias (p.12-13). Nao li so o abstract: os numeros estao nas Tabelas 1 e 2 (p.9) e as ressalvas na Discussion (p.8-9).",
+  "technique": "Nao ha encoder de texto nem embedding neste artigo. E um estudo de aplicacao: usa tres classificadores classicos -- Support Vector Machine (SVM), semi-supervised learning (SSL, com aprendizado auto-supervisionado por vizinhanca) e uma Deep Neural Network (DNN de 3 camadas) -- sobre uma matriz tabular. Cada exemplo e um par pais-doenca e cada coluna e o numero de artigos publicados sobre aquela doenca naquele pais num periodo. O texto dos artigos do Medisys (titulo, descricao, data, doenca, latitude/longitude) e reduzido a uma contagem: quantas noticias daquela doenca sairam naquele pais. O modelo preve se uma doenca que nao foi reportada nos 6 (ou 3) meses anteriores vai emergir (+1) ou nao (-1) nos 3 meses seguintes.",
+  "representation": "Nao e representacao vetorial de texto. O que o artigo chama de dado e uma matriz de contagens: linhas = pares pais-doenca, valores = numero de artigos por doenca por pais, normalizados entre 0 e 1 dentro de cada pais para corrigir escalas diferentes (populacao, acesso digital). Nao existe encoder, pooling, normalizacao de embedding, dimensionalidade reduzida nem geometria de espaco. A 'representacao' de uma doenca num pais e literalmente o numero de mencoes na imprensa. Isso e o oposto do que um artigo de representacao faz, e e a razao de classificar esta ficha como aplicacao.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus do estudo tem 115.279 artigos de noticias coletados do Medisys, cobrindo 237 paises ao longo de 2019.",
+      "citacao": "This data consisted of 115,279 articles published in 237 different countries.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A unica feature de entrada e a contagem de artigos por doenca por pais, normalizada entre 0 e 1 dentro de cada pais.",
+      "citacao": "data is normalized between 0 and 1 by each country to adjust values measured on different scales.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "O conjunto tem em media cerca de 1300 artigos por dia, distribuidos por 115 doencas e 237 paises.",
+      "citacao": "and the average count of the number of daily articles is about 1300",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Entre os tres modelos, o SSL teve o melhor desempenho medio de acuracia: 0,838 com treino de 6 meses e 0,834 com treino de 3 meses.",
+      "citacao": "In terms of the accuracy, SSL shows the best performance, with an average accuracy of (0.838 and 0.834).",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Restringir o treino aos paises com correlacao de padrao de surto >= 0,6 piorou o desempenho, em vez de melhora-lo.",
+      "citacao": "It was expected that the prediction results using data would consist of countries having disease outbreak pattern correlation coefficients of over 0.6; however, generally they showed worse performance.",
+      "pagina": 9
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram duas limitacoes explicitas na Discussion. (1) A divisao treino/validacao foi arbitraria: \"the periods of training data and validation data were set by dividing the period of the year by the fourth quarter or half of the year from the data used for prediction, but a more systematic data time-setting strategy is needed, such as considering seasonal infectious diseases\" (p.8). (2) Escassez de dados: \"as Medisys does not provide old posts data, only about a year's worth of data has been accumulated now since we started to collect Medisys data from the end of 2018\" (p.8). Os autores tambem admitem que o experimento de filtrar paises correlacionados \"generally they showed worse performance\" (p.9).",
+  "evidence": "A evidencia e uma comparacao apenas entre SVM, SSL e DNN (Tabelas 1 e 2, p.9), em media sobre 4 janelas de validacao de 3 meses em 2019. SSL ganha em todas as metricas: acuracia media 0,838 (treino 6 meses) e 0,834 (3 meses); ROC 0,791 e 0,805; F1 0,832 e 0,802. SVM: acuracia 0,732 e 0,748; ROC 0,650 e 0,654; F1 0,769 e 0,765. DNN: acuracia 0,806 e 0,813; ROC 0,746 e 0,756; F1 0,819 e 0,801. Os proprios autores resumem que SVM e DNN tambem foram razoaveis. Nao ha baseline trivial (classe majoritaria, persistencia ou sazonalidade), nem intervalo de confianca, nem teste de significancia: o 'baseline' e o outro modelo de ML. O balanceamento de classes tambem nao e reportado.",
+  "needs": "Apenas classificadores classicos (SVM, SSL, DNN pequena: 3 camadas, batch 20, dropout 0.3, Adam, ate 500 epocas). Roda em CPU, sem GPU e sem modelo de linguagem pre-treinado. Dados: artigos do Medisys, nao publicos (\"available from the corresponding author on reasonable request\"), em ingles/feed internacional, classificados por doenca. Rotulos construidos automaticamente a partir da propria ocorrencia de artigos nos meses seguintes -- sem rotulagem manual. Tempo de execucao e hardware: nao reportados.",
+  "cost_here": "Custo computacional baixo em CPU: o DNN e minusculo e SVM/SSL sao sklearn-like; nao ha novo pacote alem de scikit-learn. Nao ha nada de embedding a baixar, entao nao pesa sobre os extras ja fixados. O custo real nao e computacional, e de dados: o metodo exige contagens por par doenca-pais em escala multi-doenca, enquanto nosso corpus e so dengue (4.369 artigos PT-BR). Com uma unica doenca, a matriz pais x doenca degenera e o sinal cross-disease que sustenta o metodo some. O proprio custo de coleta do Medisys nao e reportado; a dependencia de uma fonte rotulada por doenca que nao temos e alta.",
+  "transferable": "Transfere so a ideia geral ja conhecida -- volume de noticia como proxy de atividade de doenca -- que e o que o nosso braco 01 (lexico) ja explora. Nao transfere nada de representacao de texto, porque o artigo nao usa embedding: nao ha encoder, pooling nem geometria para aproveitar. A distancia de dominio e grande em varios eixos: eles tem 115 doencas x 237 paises, feed internacional em ingles, ~115 mil artigos em 1 ano; nos temos 1 doenca (dengue), 1 fonte (Agencia Brasil), PT-BR, 4.369 artigos em 965 semanas e 28 locations. O alvo deles e binario por par doenca-pais (emergiu / nao emergiu em 3 meses); o nosso e serie semanal de casos suspeitos, que nao mapeia direto. O achado negativo (filtrar paises correlacionados piora) e o unico resultado com valor metodologico transferivel, como aviso contra feature selection ingenua.",
+  "red_flags": [
+    "Nao ha baseline trivial (classe majoritaria, persistencia ou sazonalidade): so compara SVM, SSL e DNN entre si, entao acuracia ~0,8 nao prova ganho sobre o obvio.",
+    "Ganho sem intervalo de confianca, sem teste de significancia e sem reportar o equilibrio de classes; acuracia alta pode refletir desbalanceamento.",
+    "Circularidade: o rotulo (doenca 'ocorreu') e derivado da contagem de artigos, a mesma fonte que serve de feature -- prever contagem a partir de contagem.",
+    "Apenas ~1 ano de dados (4 janelas dentro de 2019), sem tratamento de sazonalidade; os proprios autores admitem.",
+    "Nao e artigo de representacao de texto apesar do titulo 'media articles with machine learning models': as features sao contagens de artigos, nao embeddings -- risco de ser citado como se fosse.",
+    "Dados nao publicos e fonte unica (Medisys), sem validacao externa nem reprodutibilidade.",
+    "'237 paises' e implausivel como contagem real de paises, sinal de ruido na extracao dos dados.",
+    "As acuracias baixas de alguns paises sao explicadas por terem poucas doencas a prever, mas o efeito de N pequeno nao e quantificado."
+  ]
+}

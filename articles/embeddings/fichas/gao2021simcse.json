@@ -1,0 +1,51 @@
+{
+  "key": "gao2021simcse",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/02_gao_2021_simcse.pdf",
+  "author": "Gao et al.",
+  "year": 2021,
+  "read": "Li o PDF inteiro (17 páginas). Texto principal: abstract, §1 Introdução, §2 Contrastive Learning, §3 Unsupervised SimCSE (Tabelas 1-3, Figuras 1-2), §4 Supervised SimCSE (Tabela 4), §5 Connection to Anisotropy, §6 Experiment (Tabela 5 de STS, Tabela 6 de pooling, Tabela 7 de negativos difíceis, Figura 3), §7 Analysis (Tabela 8, recuperação qualitativa), §8 Related Work, §9 Conclusion. Apêndices A-G: detalhes de treino (Tabela A.1), protocolos de avaliação de STS e reavaliação de baselines (Tabelas B.1-B.3, C.1), ablações de normalização/temperatura/MLM (Tabelas D.1-D.2), transfer tasks (Tabela E.1), distribuição de valores singulares (Figura F.1) e de similaridade de cosseno (Figura G.1).",
+  "technique": "SimCSE é um framework de fine-tuning contrastivo para sentence embeddings, não um modelo pronto. Parte de um encoder pré-treinado (BERT/RoBERTa) e treina com um objetivo contrastivo: aproximar os embeddings de um par positivo e afastar os negativos do mesmo mini-batch (cross-entropy com negativos in-batch e temperatura τ). Na versão não supervisionada, o par positivo é a própria frase passada duas vezes pelo encoder — as duas cópias diferem só pela máscara aleatória de dropout, que funciona como aumento de dados mínimo. Na versão supervisionada, os pares positivos vêm de dados de NLI: pares de entailment são positivos e pares de contradiction são usados como negativos difíceis.",
+  "representation": "O texto vira número em dois passos. (1) O encoder (BERT/RoBERTa) produz a representação da frase; os autores usam o vetor [CLS] (com uma camada MLP no topo, descartada no teste na versão não supervisionada) e testam também a média das camadas primeira/última na Tabela 6. (2) O objetivo contrastivo molda esse espaço: os embeddings são comparados por similaridade de cosseno (com temperatura; τ=0.05 é o melhor, Tabela D.1) e o treino empurra os negativos para longe, o que achata o espectro de valores singulares da matriz de embeddings e deixa o espaço mais uniforme/isotrópico. A qualidade é medida por alignment (distância entre pares positivos) e uniformity (quão espalhados estão os embeddings no espaço).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O SimCSE eleva o estado da arte em STS: sem rótulos, o SimCSE-BERTbase sobe a média de Spearman de 72,05% para 76,25% (comparável a baselines supervisionados) e, com NLI, chega a 81,57%.",
+      "citacao": "Specifically, our unsupervised SimCSE-BERTbase improves the previous best averaged Spearman's correlation from 72.05% to 76.25%, even comparable to supervised baselines. When using NLI datasets, SimCSE-BERTbase further pushes the state-of-the-art results to 81.57%.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O dropout é o ingrediente essencial da versão não supervisionada: sem dropout (p=0) ou usando a mesma máscara fixa para as duas cópias do par, os dois embeddings ficam idênticos e o desempenho desaba (Tabela 3: 71,1 e 43,6 no STS-B, contra 82,5 com p=0,1).",
+      "citacao": "In both cases, the resulting embeddings for the pair are exactly the same, and it leads to a dramatic performance degradation.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Entre as fontes de pares positivos testadas, os pares de entailment do NLI (SNLI+MNLI) dão o melhor embedding (84,9 no STS-B dev, contra 81,8 do QQP e 78,7 do ParaNMT); os autores atribuem isso ao menor overlap lexical desses pares (39% vs 60% do QQP e 55% do ParaNMT).",
+      "citacao": "we find that the lexical overlap (F1 measured between two bags of words) for the entailment pairs (SNLI + MNLI) is 39%, while they are 60% and 55% for QQP and ParaNMT",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O objetivo contrastivo ataca a anisotropia: minimizar o termo de negativos reduz o maior autovalor da matriz de embeddings, achata o espectro de valores singulares e torna o espaço mais uniforme.",
+      "citacao": "contrastive learning is expected to alleviate the representation degeneration problem and improve uniformity of sentence embeddings.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O SimCSE não é sensível ao tamanho do batch desde que a learning rate seja ajustada (batches de 64 a 512), o que contraria a noção de que aprendizado contrastivo exige batches grandes.",
+      "citacao": "We find that SimCSE is not sensitive to batch sizes as long as tuning the learning rates accordingly",
+      "pagina": 13
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção formal de limitações. A ressalva mais próxima, nas palavras dos autores, está na análise das transfer tasks: 'We find that supervised SimCSE performs on par or better than previous approaches, although the trend of unsupervised models remains unclear' (p. 15), e admitem que a uniformidade não se traduz em melhor embedding para transferência: 'showing that good uniformity of representations does not lead to better embeddings for transfer learning' (p. 16). Ou seja, o ganho do modelo não supervisionado fora de STS fica incerto.",
+  "evidence": "Evidência quantitativa contra baselines fortes. Em 7 tarefas STS (Spearman médio, Tabela 5): SimCSE-BERTbase não supervisionado 76.25, contra o melhor anterior 72.05 (CT-BERTbase); SimCSE-BERTbase supervisionado 81.57; SimCSE-RoBERTa-large supervisionado 83.76. Baselines: média de GloVe 61.32, BERT-base (média primeira/última) 56.70, BERT-flow 66.55, BERT-whitening 66.28, IS-BERT 66.58, SBERT 74.89. Ablações quantificam cada escolha: dropout (Tabela 3), pooling [CLS] vs média primeira/última (Tabela 6), negativos difíceis 84.9 a 86.2 (Tabela 7), temperatura (Tabela D.1). Há também análise intrínseca de alignment/uniformity, um experimento de recuperação qualitativo (Tabela 8) e 7 transfer tasks (Tabela E.1).",
+  "needs": "Não é um modelo pronto: é um fine-tuning, então exige um encoder pré-treinado (BERT-base ~110M ou RoBERTa-base/large) e treino. A versão não supervisionada usa 10^6 frases não rotuladas (Wikipedia em inglês), 1 época, batch 64. A supervisionada usa pares rotulados de NLI (SNLI+MNLI, 314k), 3 épocas, batch 512. Todos os experimentos são em inglês; não há avaliação em outra língua. Hardware e tempo de treino: não reportado (não informam GPU nem horas).",
+  "cost_here": "O artigo não reporta custo de CPU nem wall-clock: não reportado. Sobre o nosso corpus (4.369 artigos PT-BR, CPU): as dependências (torch+transformers) já estão instaladas, mas seria preciso trocar o encoder inglês por um PT (ex. BERTimbau) e fazer o fine-tuning; o nosso corpus é ordens de magnitude menor que as 10^6 frases do artigo, então o treino não supervisionado é viável, porém o tempo em CPU não é reportado pelo artigo. A versão supervisionada exigiria pares de NLI em português, que não temos. O achado de insensibilidade ao batch (64-512) ajuda em CPU, mas é observação de apêndice, não custo medido.",
+  "transferable": "Transfere (independente de domínio): a técnica em si — usar dropout como aumento de dados no objetivo contrastivo, a escolha de pooling ([CLS] com MLP vs média primeira/última), normalização/temperatura, e o diagnóstico por alignment/uniformity. Isso é aplicável a um encoder PT (BERTimbau) sobre as nossas notícias. Não transfere: todos os números (76.25/81.57) são de BERT/RoBERTa em inglês sobre STS, tarefa de frases curtas; o nosso corpus é notícia PT-BR, de outro domínio e com textos mais longos. A versão supervisionada precisa de dados rotulados de NLI em inglês, sem equivalente em PT. A distância de domínio é grande: não há validação em português nem em texto longo.",
+  "red_flags": [
+    "Todos os benchmarks são em inglês (STS, SNLI/MNLI); nenhuma avaliação em outra língua, então nada garante que os ganhos transfiram para PT-BR.",
+    "Ganhos medidos só com BERT/RoBERTa (uma família de encoders); correção observada em um único tipo de modelo.",
+    "A teoria de achatar o espectro e as métricas de alignment/uniformity são intrínsecas; os autores admitem que boa uniformity não melhora transfer tasks, então a teoria é específica de STS.",
+    "O resultado não supervisionado depende do dropout específico dos Transformers e é sensível à taxa: Tabela 3 mostra p=0.5 caindo para 71.0 e Fixed 0.1 para 43.6.",
+    "Os próprios autores mostram que os protocolos de avaliação de STS são incoerentes entre artigos e precisaram reavaliar baselines, então comparações entre papers são frágeis.",
+    "Sem hardware nem wall-clock reportados: o custo real de treino é desconhecido.",
+    "Vários números de baselines foram reproduzidos/reavaliados pelos próprios autores, não vêm dos papers originais."
+  ]
+}

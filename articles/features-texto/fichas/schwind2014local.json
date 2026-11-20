@@ -1,0 +1,51 @@
+{
+  "key": "schwind2014local",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/28_schwind_2014_local_media_surveillance_hotspots.pdf",
+  "author": "Schwind et al.",
+  "year": 2014,
+  "read": "Li o PDF inteiro (9 páginas). Capa com título, lista de autores, abstract, citação, editor, datas, copyright e financiamento (p.1); Introduction e Materials and Methods com Project Description, Implementation, Data Sources e Data Analysis (p.1-4); Results and Discussion com as subseções Usefulness, Simplicity, Flexibility, Acceptability, Timeliness e Stability (p.4-7); Table 1 (características por país: fontes inventariadas, fontes na vigilância semanal, eventos de risco/doença, tempo médio por semana, zoonóticos) e Table 2 (LMS vs HealthMap por país, com eventos exclusivos, sobreposição e % de artigos únicos) na p.5; Figuras 1-3 (p.3, p.4, p.6); a discussão final com limitações, benefícios não previstos e conclusão (p.7-8); e a lista de referências (p.9). Não me baseei só no abstract: o custo (p.7), a latência de 7+ dias (p.8) e a ressalva sobre verificação de acurácia (p.8) estão no corpo e na discussão.",
+  "technique": "Vigilância de mídia local (Local Media Surveillance, LMS): método de vigilância epidemiológica conduzido por pessoas, não por software. Em cada país, leitores semanais contratados varrem de 3 a 6 fontes de mídia impressa local por semana, selecionam notícias de eventos de doença e de risco, preenchem um formulário semanal e enviam a versão escaneada do artigo a um moderador do projeto PREDICT, que revisa, traduz para o inglês e repassa ao HealthMap (agregador digital). A avaliação segue os atributos de sistemas de vigilância do CDC (usefulness, simplicity, flexibility, acceptability, representativeness, timeliness, stability), com contagem de eventos e questionário pós-participação. Não há NLP, modelo treinado, encoder nem embeddings.",
+  "representation": "O artigo NÃO transforma texto em número: não há encoder, pooling, normalização, espaço vetorial nem dimensionalidade. O texto continua sendo artigo de jornal impresso escaneado. A única 'codificação' é manual e categórica — cada notícia é classificada por um humano como 'disease event' ou 'risk event', contada e geolocalizada à mão. É um artigo de aplicação/vigilância de doença, não de representação de texto; não há nada aqui para plugar nos braços 02 (embedding) ou 03 (tópicos).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O piloto de vigilância de mídia local reportou 87 eventos de saúde em 16 semanas, dos quais 71 eram relatos únicos que a ferramenta digital HealthMap não encontrou.",
+      "citacao": "A total of 87 health events were reported through the LMS pilot in the 16-week monitoring period, including 71 unique reports not found by the HealthMap digital detection tool.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "A maior parte dos eventos captados pelo LMS não estava no HealthMap justamente porque essas notícias não existiam em formato digital.",
+      "citacao": "we found that the majority of health events reported locally through LMS were not captured by HealthMap's digital aggregation algorithms (71 out of 87 articles), because these reports were not available digitally.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O desempenho variou por país a ponto de Uganda não registrar nenhum evento pelo LMS enquanto o HealthMap reportava 106 no mesmo período.",
+      "citacao": "Throughout the 16-week implementation in Uganda, the team did not identify any health events through the local media surveillance efforts. Alternatively, HealthMap reported a total of 106 reports, which primarily dealt with three major outbreaks, Ebola virus disease, Marburg virus, and measles, which occurred during the evaluation period.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O custo do método foi baixo em um caso concreto: na Tanzânia, US$ 62,33 por 16 semanas de vigilância de jornais, com cerca de 60 minutos de triagem por semana em tempo de pessoal.",
+      "citacao": "In Tanzania, for example, the total cost for newspaper surveillance during the 16-week evaluation period was $62.33 with an average of 60 minutes spent screening media in personnel time.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O gargalo medido foi a latência: entre o relato semanal e a publicação no HealthMap, o dado levava em média 7 dias ou mais até chegar aos tomadores de decisão.",
+      "citacao": "With a weekly reporting time frame and delays in pushing submitted reports to the public interface on HealthMap, upwards of 7+ days were average before LMS data could be viewed by stakeholders and decision makers.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Nas palavras dos autores, na discussão (p.8): \"No attempt was made to verify the accuracy of the details reported through the local media. As such, caution must be given when trying to interpret the findings from all surveillance systems that utilize non-traditional methods for data, such as newspapers and search engine queries.\" E, em seguida: \"the variation of results across countries highlighted that our approach was extremely reliant on proper source selection.\" Ou seja, os autores admitem (1) que nunca verificaram a acurácia do que foi relatado e (2) que o resultado depende fortemente da escolha manual das fontes.",
+  "evidence": "O baseline é o HealthMap, o agregador digital de vigilância já existente (GoogleNews, RSS, ProMED, Twitter etc.). A evidência é comparação descritiva de contagens, principalmente a Table 2 (p.5): de 87 eventos LMS, 71 (a maioria) não apareceram no HealthMap; o percentual de artigos únicos por país foi 75% (Bangladesh), 63% (Bolívia), 100% (Camarões), 100% (Tanzânia) e N/A (Uganda); e o HealthMap identificou 236 eventos adicionais fora do LMS. No abstract (p.1) o número de eventos exclusivos do HealthMap é dado como 236. NÃO há teste estatístico, intervalo de confiança nem F1; os demais números (satisfação, tempo, aceitabilidade) vêm de formulário pós-participação auto-relatado. Não há medida de acurácia do conteúdo relatado nem comparação contra um segundo método automatizado.",
+  "needs": "Não exige modelo, GPU, dados rotulados nem código: exige pessoas. Requer leitores semanais capazes de ler os dialetos locais (Kiswahili, Bangla, francês, espanhol, Luganda, Runyakitara) e resumir/traduzir para o inglês; acesso físico às edições impressas (3-6 fontes por semana por país); um moderador para revisar e repassar ao HealthMap; e 16 semanas de operação contínua. O único custo medido é da Tanzânia (p.7): US$ 62,33 no período de 16 semanas e ~60 min/semana de triagem. Custo por artigo, por país ou por leitor não é reportado; requisitos de software são inexistentes.",
+  "cost_here": "Sobre o NOSSO corpus (4.369 artigos da Agência Brasil, texto PT-BR, já digital, CPU-only) o método não roda como software: não usa embeddings nem tópicos, então não consome torch/tomotopy. O 'custo' análogo é trabalho humano de triagem de mídia impressa, que não temos nem é o nosso material. Além disso a premissa central do artigo — notícia local sem contraparte digital, em idioma não suportado por agregadores — não vale para nós: a Agência Brasil é uma agência nacional online em português, exatamente o tipo de material que um agregador digital já cobriria. Custo de nova dependência de software: nenhum. Custo em horas humanas para cobrir 965 semanas: não reportado.",
+  "transferable": "O que transfere é o DESENHO DE AVALIAÇÃO, não o método: medir a contribuição ÚNICA de um canal candidato contra o baseline que já existe (contagem de eventos que só o canal novo traz, sobreposição e % de artigos únicos) — o mesmo esqueleto que usamos para comparar os braços 01/02/03. Transfere também o achado qualitativo de que um canal pode capturar o que o agregador digital perde, e a ideia de declarar explicitamente a limitação de 'não verificamos a acurácia'. O que NÃO transfere: o procedimento em si (leitura manual de jornal impresso por leitores locais). A distância de domínio é grande — o artigo é sobre mídia IMPRESSA em países de baixa/média renda e idiomas locais, enquanto nosso corpus é uma agência de notícias digital brasileira em PT-BR; e os 'eventos' deles são zoonoses/dengue em contexto de vigilância de surtos, não o nosso alvo de arbovírus em série temporal. Um resultado bom aqui não implica que embeddings sobre notícia digital em PT-BR vão revelar lacunas semelhantes, porque a premissa de informação não digitalizada simplesmente não existe no nosso caso.",
+  "red_flags": [
+    "Sem teste estatístico, intervalo de confiança ou qualquer medida de incerteza: os resultados são contagens descritivas e auto-relato.",
+    "Acurácia do conteúdo nunca verificada — os próprios autores declaram que 'no attempt was made to verify the accuracy of the details'.",
+    "Resultado sensível à escolha manual das fontes: os autores admitem dependência de 'proper source selection' e citam viés de seleção (Uganda com 0 eventos).",
+    "Aceitabilidade, simplicidade e tempo medidos por questionário pós-participação auto-relatado (ex.: 94% consideraram importante), não por desempenho observado.",
+    "Custo medido em um único país (Tanzânia), sem moeda explicitada na extração e sem generalização para os demais.",
+    "É um piloto único, sem replicação e sem baseline forte — o 'baseline' (HealthMap) é o próprio sistema que o método complementa.",
+    "Nenhum benchmark de NLP nem avaliação de representação: não é comparável com as famílias de embeddings e usá-lo como se fosse seria erro de categoria."
+  ]
+}

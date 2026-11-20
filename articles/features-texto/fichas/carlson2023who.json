@@ -1,0 +1,50 @@
+{
+  "key": "carlson2023who",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/18_carlson_2023_who_disease_outbreak_news_database.pdf",
+  "author": "Carlson et al.",
+  "year": 2023,
+  "read": "Li o PDF inteiro (13 páginas). Capa e abstract (p.1); Introdução (p.1-2); Materials and methods, incluindo a descrição do esqueleto de metadados e a decisão de truncar em 2019 (p.2-4); Results, com contagens de relatórios por ano e por país (p.5-6); Table 1 (top países, doenças e pares país-doença) e Box 1 (p.7); as três vinhetas de uso (p.7-9): surtos 'perdidos' de febre hemorrágica, subtipos de influenza ao longo do tempo, e a biogeografia via k-means; Discussion, incluindo as limitações declaradas e a discussão sobre formato não estruturado e erros nos relatos (p.9-11); Author Contributions e References (p.11-13). Confirmei que o artigo NÃO propõe nenhum encoder, pooling ou representação vetorial de texto — a única construção numérica é uma matriz de contagens país×doença (com transformação de raiz) alimentando k-means.",
+  "technique": "O artigo não é um método de representação de texto; é a construção de um banco de dados. Os autores leram manualmente 2.789 relatos em prosa do Disease Outbreak News (DON) da OMS (1996-2019) e os codificaram à mão num 'esqueleto' de metadados semi-estruturado: campos categóricos padronizados (DONid, Headline, doença em dois níveis, país/ISO, região), campos de datas de progressão do surto (início, detecção, verificação, confirmação laboratorial, notificação, comunicação, intervenção, fim), campos de contagem (casos totais, suspeitos, prováveis, confirmados, mortes) e um campo livre de notas. É curadoria humana, não NLP aprendido: nenhum modelo treinado, nenhum embedding. As 'análises' ilustrativas incluem uma matriz de contagens doença×país, com transformação de raiz, submetida a k-means com k=7 escolhido arbitrariamente.",
+  "representation": "Não há vetorização de texto. O texto em prosa é convertido em número por anotação manual: nomes de doença viram categorias de dois níveis; a geografia vira código ISO de país mais um campo de epicentro não padronizado; as datas viram triplas ano/mês/dia; os números de casos e mortes viram campos de contagem; e sobras viram texto livre. A única estrutura numérica usada em análise é uma matriz país×doença de frequências de relato (cada célula = quantas vezes uma doença foi relatada naquele país), transformada por raiz quadrada e então agrupada por k-means. Nenhum modelo de linguagem, nenhum encoder, nenhum espaço vetorial semântico.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O banco cobre 2.789 relatos do DON, do primeiro uso até dezembro de 2019, constituindo o registro retrospectivo da base.",
+      "citacao": "To do so, we reviewed a total of 2,789 reports from the first 25 years of the DON (1996–2019), an interval that spans the start of their adoption as a formal system through the earliest days of the COVID-19 pandemic.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Os relatos são textualmente inconsistentes: a mesma doença é nomeada com vários termos diferentes, o que exige padronização retrospectiva.",
+      "citacao": "For example, reports variously use all of the terms ‘Ebola,’ ‘Ebola Haemorrhagic Fever,’ ‘EHV,’ ‘Ebola Virus Disease,’ and ‘EVD’ to refer to the same clinical disease presentation.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O volume anual de relatos varia de 59 (2011) a 205 (2014), com média de 116,2 relatos por ano, sem tendência de aumento ou queda.",
+      "citacao": "The number of reports published annually ranged from 59 reports in 2011 to 205 reports in 2014 (Fig 1), with an average of 116.2 reports per year.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "A cobertura é concentrada em poucos países e doenças, refletindo patógenos-chave (influenza, Ebola, MERS-CoV) e não a carga real de doença.",
+      "citacao": "Other countries that dominate reporting are China (due to influenza and, to a lesser degree, SARS-CoV reports), Indonesia (again for flu), the Democratic Republic of the Congo (for Ebola), and Saudi Arabia (for MERS-CoV).",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "A única análise quantitativa de similaridade entre países usa uma matriz doença×país transformada por raiz e agrupada por k-means com k escolhido arbitrariamente.",
+      "citacao": "we counted the number of times a given disease was reported in each country, root-transformed this matrix (given how many updates have been filed in a small number of epidemics), and sent this matrix through a k-means clustering algorithm (with an arbitrarily chosen k = 7 clusters).",
+      "pagina": 9
+    }
+  ],
+  "ressalva_do_autor": "There is no standard format or structure for DON reports; they vary greatly in length, and the information included has changed over time, and is often contingent on the specific disease, country, level of emergency, and report author.",
+  "evidence": "A evidência é descritiva, não comparativa: contagens e distribuições (2.789 relatos; 59 a 205 por ano; média de 116,2; top doenças Influenza A 776, MERS-CoV 316, Ebola virus 308, Cholera 278, em Table 1) mais três vinhetas ilustrativas de uso. Não há baseline, não há métrica de desempenho, não há validação preditiva nem comparação com outro corpus ou método. O próprio abstract declara que o valor retrospectivo 'is visibly limited by inconsistent reporting'.",
+  "needs": "Nenhum modelo, GPU ou treino. Exige curadoria humana especializada de 2.789 relatos em prosa, com um sistema ad hoc de ontologia de doenças e códigos ISO; os scripts e o banco estão em R, públicos no GitHub (DOI Zenodo 10.5281/zenodo.6374495). A língua é inglês (relatos da OMS). Não exige dados rotulados prévios, mas o resultado É o rótulo, produzido à mão. Esforço de anotação em horas: não reportado.",
+  "cost_here": "Como técnica de modelagem, custo aqui é não aplicável: não há componente de representação para rodar em CPU sobre nosso corpus, e nada no artigo sugere um pipeline reutilizável de embeddings. O que ele custaria para reproduzir no nosso caso seria a curadoria manual de 4.369 artigos da Agência Brasil em PT-BR — esforço humano não reportado e não estimável a partir do artigo. Nenhuma dependência nova, nenhum tempo de inferência a medir.",
+  "transferable": "Transfere a constatação de domínio: texto de vigilância de surtos em prosa é inconsistente (nomes de doença, totais de caso, geografia), o que motiva padronização — exatamente o problema que enfrentamos em notícia PT-BR de dengue. A distância de domínio é pequena no tema (notícia de surto, vigilância) mas grande no idioma e no formato: DON é relato oficial da OMS em inglês, escrito por uma instituição; nosso corpus é notícia jornalística em português, de um veículo. Não transfere nenhuma técnica de representação, porque não há uma: nada sobre encoder, pooling, normalização ou dimensionalidade. A transformação de raiz + k-means sobre matriz de contagens é trivial e independente de domínio, mas também não mede qualidade de embedding.",
+  "red_flags": [
+    "Sem baseline e sem métrica: só estatística descritiva e vinhetas ilustrativas, nada que permita dizer que o banco 'funciona' melhor que qualquer alternativa.",
+    "Curadoria manual sem relato de confiabilidade entre anotadores (inter-annotator agreement); não dá para saber a taxa de erro da anotação.",
+    "Formal analysis, methodology e software atribuídos a um único autor (Colin J. Carlson), o que enfraquece a robustez da codificação subjetiva.",
+    "A própria análise de cluster admite k escolhido 'arbitrarily' (k=7), sem critério de seleção nem estabilidade dos agrupamentos.",
+    "Avaliação limitada ao inglês e a uma única fonte institucional (OMS), sem replicação em outro idioma ou corpus.",
+    "A afirmação de que o banco é 'may be the only record' de relatos perdidos não é verificável externamente."
+  ]
+}

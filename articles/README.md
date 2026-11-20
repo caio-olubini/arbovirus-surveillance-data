@@ -28,10 +28,25 @@ reanalyses:
 
 **Download status (this checkout):**
 
-- `05_munoz_sabater_2021_era5_land.pdf` — obtained from Copernicus ESSD open-access PDF (`essd-13-4349-2021.pdf`).
-- `04_hersbach_2020_era5_global_reanalysis.pdf` — **not obtained here** (re-checked 2026-10-07). The article is open access (CC BY, published version), but Wiley serves it behind a **Cloudflare JS challenge** (`Just a moment...` → HTTP 403 to every automated request). Unpaywall, OpenAlex, Semantic Scholar and OpenAIRE all resolve to the same blocked Wiley URL — there is no green-OA repository copy to fall back on, and the Wiley TDM endpoint needs a token. Header/browser spoofing does not clear the challenge. **Download it manually in a browser** from [doi:10.1002/qj.3803](https://doi.org/10.1002/qj.3803) (or the direct link `https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.3803`) and save as `04_hersbach_2020_era5_global_reanalysis.pdf`.
+Every item in `references.csv` that is an article and is open access is on disk,
+except the Hersbach ERA5 description. The five in the tables above were already
+present; the two added on **2026-11-10** are the project's own data descriptor
+and the format-restriction paper carried over from the author's library:
 
-The two short filenames (`02_lstm_shap_dengue_brazil_climate_lags.pdf`, `03_ensemble_ml_dengue_outbreaks_climate.pdf`) are failed downloads — 4 KB HTML error pages, not PDFs — and duplicate the longer-named files above; ignore or delete them.
+| File | Citation | Source of the file |
+|------|----------|--------------------|
+| `00_borges_2026_arboili_data_descriptor.pdf` | Borges et al., *Sci Data* (2026) [doi:10.1038/s41597-025-06155-6](https://doi.org/10.1038/s41597-025-06155-6) | nature.com published PDF (gold OA) — the reference article for this dataset |
+| `06_tam_2024_let_me_speak_freely.pdf` | Tam et al., EMNLP Industry Track (2024) [doi:10.18653/v1/2024.emnlp-industry.91](https://doi.org/10.18653/v1/2024.emnlp-industry.91) | ACL Anthology published PDF (gold OA) |
+
+- `05_munoz_sabater_2021_era5_land.pdf` — obtained from Copernicus ESSD open-access PDF (`essd-13-4349-2021.pdf`).
+- `04_hersbach_2020_era5_global_reanalysis.pdf` — **the one article still missing** (re-checked 2026-11-10). The article is open access (CC BY, published version), but Wiley serves it behind a **Cloudflare JS challenge** (`Just a moment...` → HTTP 403 to every automated request). Unpaywall, OpenAlex, Semantic Scholar and OpenAIRE all resolve to the same blocked Wiley URL — there is no green-OA repository copy to fall back on, the Wiley TDM endpoint needs a token, the Wayback Machine has no snapshot of the PDF, and the ECMWF eLibrary path 404s. Header/browser spoofing does not clear the challenge. **Download it manually in a browser** from [doi:10.1002/qj.3803](https://doi.org/10.1002/qj.3803) (or the direct link `https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.3803`) and save as `04_hersbach_2020_era5_global_reanalysis.pdf`.
+
+The two short filenames (`02_lstm_shap_dengue_brazil_climate_lags.pdf`, `03_ensemble_ml_dengue_outbreaks_climate.pdf`) are failed downloads — 4 KB HTML error pages ("Preparing to download", the PMC proof-of-work challenge), not PDFs — and duplicate the longer-named files above; ignore or delete them.
+
+PDFs under `articles/` are **git-ignored** (`articles/**/*.pdf`) on purpose: they
+are local reading artefacts. What is versioned is the bibliography itself —
+`references.csv`, `search.json`, `ranking.md`, `relatorio.md` and the READMEs.
+A fresh clone therefore has the metadata but none of the PDFs.
 
 ## Shared transformation pattern
 

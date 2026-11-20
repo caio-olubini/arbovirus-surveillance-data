@@ -1,0 +1,35 @@
+{
+  "familia": "embeddings",
+  "relatorio": "articles/embeddings/relatorio.md",
+  "relatorio_sha256": "d3d4484e03a22facbbf2ede3154a56e111390bee02800184e58c482a313bee4f",
+  "conforme": false,
+  "divergencias": [
+    "L109: o capítulo afirma que a dengue aparece 'em surtos da Índia e da China', mas a ficha ghosh2017 documenta dengue apenas na China (evidência: 'dengue China 1.078 vs 0.549'; a Índia aparece só como um dos três corpora, 1.204 artigos, sem resultado de dengue) e o próprio relatório diz na L73 'a dengue aparece apenas no recorte da China' — a menção à Índia não tem apoio na ficha e contradiz a L73."
+  ],
+  "claims_conferidas": 110,
+  "claims_orfas": 0,
+  "numeros_divergentes": 0,
+  "citacoes_sem_ficha": 0,
+  "autores_inventados": 0,
+  "vocabulario_proibido": 0,
+  "forca_nao_refletida": 0,
+  "estilo": {
+    "script_rodou": true,
+    "oracoes_empilhadas": 0,
+    "termos_sem_glosa": 0,
+    "paragrafos_densos": 0,
+    "adjetivos_inflados": 0,
+    "muletas": 0,
+    "hedges": 0,
+    "medidas": {
+      "palavras_por_frase_mediana": 23,
+      "palavras_por_frase_max": 75,
+      "palavras_por_frase_desvio": 17.1,
+      "passiva_por_mil": 1.83,
+      "travessao_por_mil": 11.66
+    },
+    "prosa_opaca": [],
+    "glossas_vazias": []
+  },
+  "gerado": "2026-11-10"
+}

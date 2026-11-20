@@ -1,0 +1,52 @@
+{
+  "key": "albalawi2020topicmodeling",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/36_albalawi_2020_topic_modeling_methods_short.pdf",
+  "author": "Albalawi et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (14 páginas) por extração de texto (pdftotext, página a página, ordem de leitura). Cobri: capa/abstract e introdução com as contribuições (pp.1-2); revisão de literatura com a Tabela 1 de trabalhos relacionados (pp.3-5); toolkits de TM e descrição detalhada dos cinco métodos — LSA, LDA, NMF, PCA, RP — com a Tabela 2 de vantagens/desvantagens e as Figuras 2-5 (pp.6-9); pré-processamento e TF-IDF (p.9); a seção Evaluation (procedimento, Equações 4-6, Tabelas 3-6 com recall/precisão/F-score por nº de tópicos e nº de features, e Figura 6), os resultados e a Discussion/Conclusion (pp.10-12); referências (pp.13-14). Não li só o abstract — as tabelas de resultado e a ressalva de fechamento foram conferidas no corpo.",
+  "technique": "Não propõe técnica nova: é uma análise comparativa de cinco métodos clássicos de modelagem de tópicos aplicados a texto curto. LSA (decomposição SVD da matriz termo-documento num espaço semântico), LDA (modelo probabilístico generativo, cada documento é mistura de tópicos), NMF (fatoração de matriz não-negativa), PCA (redução de dimensionalidade linear) e RP (projeção aleatória, Johnson-Lindenstrauss). Pipeline único: NLTK para pré-processamento (remoção de stopwords, stemming Snowball, lematização, tokenização, n-gramas, minúsculas, remoção de pontuação) e matriz termo-documento ponderada por TF-IDF, que cada método fatora/reduz. Mede qual método extrai tópicos melhores em texto curto social.",
+  "representation": "O texto vira número em duas etapas: (1) matriz termo-documento com pesos TF-IDF (frequência do termo x raridade no corpus); (2) cada método reduz/representa essa matriz de forma diferente — LSA aplica SVD fatorando X em S·W·P; NMF fatora D ≈ U·V em matriz termo-tópico U e tópico-documento V (não-negativas); LDA modela cada documento como mistura aleatória de tópicos, cada tópico sendo distribuição de probabilidade sobre palavras (Dirichlet); PCA projeta num subespaço de dimensão d que maximiza a variância; RP mapeia para dimensão menor com matriz aleatória preservando distâncias. Nenhum usa embeddings neurais, encoder ou pooling — é álgebra linear/probabilística clássica sobre TF-IDF.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O resultado principal é que, entre os cinco métodos comparados, LDA e NMF produziram os tópicos extraídos mais significativos e obtiveram bons resultados.",
+      "citacao": "latent Dirichlet allocation and non-negative matrix factorization methods delivered more meaningful extracted topics and obtained good results",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "Nos escores estatísticos, o PCA teve a maior probabilidade termo-tópico, NMF, LDA e LSA tiveram desempenho semelhante entre si, e o RP teve os piores escores.",
+      "citacao": "PCA produced the highest term–topic probability; NMF, LDA, and LSA models provided similar performance; and RP statistical scores were the worst compared to other methods",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Com o maior número de features, o LDA supera os outros métodos, e o RP recebe o menor F-score na maioria das execuções.",
+      "citacao": "LDA method outperforms other TM methods with most features, while the RP model receives the lowest F-score in most runs in our experiments",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "Há trade-off de tempo: o LDA foi mais lento que o NMF, tornando o NMF a escolha para sistemas em tempo real; o LDA só compensa quando o tempo não é restrição.",
+      "citacao": "when comparing LDA and NMF methods based on their runtime, LDA was slower, and it would be a better choice to apply NMF specifically in a real-time system",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "Extrair menos palavras-chave levou a um escore de coerência mais alto nos métodos LDA e NMF.",
+      "citacao": "extracting fewer numbers of keywords led to a high coherence score in LDA and NMF TM methods",
+      "pagina": 11
+    }
+  ],
+  "ressalva_do_autor": "The dataset provided in our experiment tested over a certain number of topics and features, though additional investigation would be essential to make conclusive statements.",
+  "evidence": "Não há baseline externo: os cinco métodos são comparados entre si. Métricas: recall, precisão, F-score (Equações 4-6) variando nº de features f = 10, 100, 1.000, 10.000 e nº de tópicos t = 5, 10, 20, 50, mais coherence (sem valor numérico reportado). Números das tabelas: Tabela 4 (p.10, t=10): PCA F=0,5582 > NMF F=0,4763 > LSA F=0,1881 > RP F=0,1140 > LDA F=0,1147. Tabela 5 (p.11, t=50): PCA F=0,7066 > NMF F=0,6934 > LDA F=0,2336 > LSA F=0,2295 > RP F=0,1068. Tabela 6 (p.11, f=10.000 features): LDA F=0,6168 > PCA F=0,5531 > NMF F=0,4785 > LSA F=0,1871 > RP F=0,1148. Ou seja, o 'melhor' depende do recorte: PCA lidera por nº de tópicos, LDA lidera com muitas features — os próprios autores dizem que o vencedor muda com o recorte. No dataset de conversas do Facebook, LDA e NMF produzem tópicos mais coerentes que os demais, mas a coerência é reportada só qualitativamente.",
+  "needs": "CPU é suficiente: são métodos de álgebra linear/probabilísticos clássicos, sem GPU e sem redes neurais. Dependências: Python, NLTK (pré-processamento) e Gensim (LSA, LDA, NMF, RP, TF-IDF); NMF/PCA/RP também existem no scikit-learn. Língua: inglês (stopwords e stemming Snowball em inglês). Não exige dados rotulados (todos não-supervisionados), mas exige definir manualmente o nº de tópicos T. Datasets: 20-newsgroup (20.000 documentos, comprimento médio 28 palavras) e 20 conversas do Facebook (~87 frases, 7.250 palavras). Tempo de execução absoluto: não reportado (só qualitativo — LDA mais lento que NMF/LSA).",
+  "cost_here": "Sobre nosso corpus (4.369 notícias PT-BR, 965 semanas, 28 locations) em CPU: LSA/NMF/PCA/RP são álgebra linear e rodam em minutos (não horas) sobre ~4,4k documentos; o LDA é o mais lento do conjunto, mas o extra 'topics' (tomotopy) já cobre essa família, então essa parte é quase gratuita. Custo real é dependência nova: NMF/PCA/RP puxam scikit-learn (não está nos extras) e o pré-processamento do artigo usa NLTK com recursos de inglês, que não servem para PT-BR. O artigo não reporta tempo absoluto nem tamanho de vocabulário → 'não reportado' para custo medido. PCA em espaço TF-IDF de alta dimensão é o item mais caro do conjunto.",
+  "transferable": "Transfere: (a) a comparação de métodos clássicos (LSA/LDA/NMF/PCA/RP) e o trade-off LDA (melhor tópico, mais lento) x NMF (mais rápido, tempo real) — relevante para o braço 03 (DMR/tomotopy); (b) a lição de que o 'melhor método' muda com o recorte (nº de features vs nº de tópicos) e que métrica estatística alta (PCA) não garante tópicos interpretáveis, o que reforça não escolher configuração só por número. Não transfere bem: o domínio é texto curto de rede social em inglês (tweets/conversas, comprimento médio ~28 palavras), enquanto nosso corpus é notícia em português, mais longa e estruturada — a distância de domínio é grande. O artigo não testa português, não testa notícia de doença, não usa embeddings/transformers e não mede nenhum desfecho do nosso domínio (previsão de casos). A avaliação por recall/precisão/F tratando 'palavra-chave detectada como tópico' é idiossincrática e difícil de reproduzir.",
+  "red_flags": [
+    "Só inglês; nenhum teste em português nem em notícia — o 20-newsgroup é tratado como 'texto curto' (comprimento médio 28 palavras), o que não é o nosso caso (notícia).",
+    "O dataset de texto curto é minúsculo: 20 conversas do Facebook, ~87 frases, 7.250 palavras — a conclusão sobre o caso short-text repousa em pouquíssimos dados.",
+    "O 'melhor método' é inconsistente entre as tabelas: PCA lidera por nº de tópicos (Tabela 5, t=50, F=0,7066) e LDA lidera por nº de features (Tabela 6, f=10.000, F=0,6168).",
+    "Métrica de avaliação não-padrão: recall/precisão/F-score tratando 'palavra-chave detectada como tópico' como verdadeiro-positivo, sem conjunto-ouro nem protocolo de anotação descrito.",
+    "Baseline é só os próprios métodos entre si; nenhum modelo neural de tópicos (BTM, ETM, BERTopic) nem embeddings é comparado.",
+    "Coerência é reportada apenas qualitativamente ('we observed that extracting fewer...'), sem valor numérico, apesar de ser um dos critérios centrais.",
+    "Sem teste de significância; as diferenças podem estar dentro do ruído e a conclusão do abstract (LDA/NMF melhores) contradiz as Tabelas 4-5, onde o PCA pontua mais alto.",
+    "Os autores admitem que o recorte de tópicos/features pode impedir conclusões firmes ('additional investigation would be essential to make conclusive statements')."
+  ]
+}

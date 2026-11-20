@@ -1,0 +1,51 @@
+{
+  "key": "dewandaru2020eventgeoparser",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/10_dewandaru_2020_event_geoparser_numerical_argument_indonesian.pdf",
+  "author": "Dewandaru et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (39 páginas, ISPRS Int. J. Geo-Inf. 2020, 9, 712). Capa/folha de rosto (p.1) para identificação; Introdução e Related Works (pp.1-9) para o enquadramento de escopo toponym/document/event-level e a taxonomia de topônimos; Seção de dataset e anotação (pp.15-17, Tabela 2 e 3); Seção de features/metodologia (pp.19-28, Tabelas 4 e 5); Resultados (pp.28-33: Tabelas 6, 7, 8, 9, 10, 11 e Figura 10 de ablation); Seção 6 Discussion (pp.33-34); Seção 7 Conclusion (pp.35-36) para a ressalva declarada; e a lista de Referências (pp.36-39) apenas para conferir que as métricas vêm do corpo, não de citação.",
+  "technique": "Geoparser de eventos para notícia em indonésio (Bahasa Indonesia): um pipeline de três estágios que acopla reconhecimento de topônimos (geotagging) com extração de eventos. Cada passo é tratado como etiquetagem de sequência e resolvido por um modelo LSTM-CRF (BiLSTM-CRF via toolkit NCRF++), com embeddings de palavra GloVe treinados no corpus na camada de baixo. Os estágios são: (1) extração de entidades (LOC, ARG, ORG, EVE), (2) extração de evento (trigger + argumentos), (3) identificação de pseudo-localização (separar LOC real de PLOC não-locativo) e (4) resolução de topônimo (SMCD-ADM, uma variante de Spatial Minimality). As features são handcrafted: tags POS, match em gazetteer (GADM/GeoNames), regras de expressão regular derivadas de um semantic gazetteer, o nível administrativo mínimo (SAL) do topônimo e palavras-chave de evento obtidas de um Aggregated Topic Model (ATM) sobre o corpus grande. É artigo de APLICAÇÃO: usa embeddings (GloVe) como insumo, mas o que ele mede é o desempenho do pipeline de geoparsing no domínio de notícia indonésia, não como transformar texto em vetor.",
+  "representation": "O texto vira número de forma simples e estática: cada token recebe um embedding GloVe (vetor de palavra pré-treinado no próprio corpus) e o modelo de sequência LSTM-CRF consome essa representação junto com features categóricas/numéricas handcrafted (POS tag, presença em gazetteer, match de regex, nível administrativo SAL). Não há encoder contextual nem estudo de pooling, normalização, geometria de espaço ou dimensionalidade — a representação é um meio, não o objeto do artigo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O trabalho foi treinado sobre um corpus grande de 645.679 documentos de notícia indonésia (13 anos) mais um corpus pequeno anotado de 83 artigos/927 sentenças.",
+      "citacao": "645,679 editorially tagged news (i.e., with news keywords) documents of 13 years publication of Indonesian online news corpus",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "No primeiro estágio (extração de entidades), as features de evento e regex melhoraram o reconhecimento apenas marginalmente, 2,46% de weighted F1 — sinal de que a geotagging já é resolvida por métodos padrão.",
+      "citacao": "it had improved entity recognition by a small margin of 2.46% (weighted F1 on first entity extraction step on Table 6)",
+      "pagina": 33
+    },
+    {
+      "afirmacao": "A tarefa central de identificar pseudo-localização melhorou 23,43% de F1 sobre o baseline de gazetteer + POS tag ao incluir a feature de evento.",
+      "citacao": "Including the event feature will further increase the F1 score, outperforming the baseline gazetteer and postag feature by 23.43% margin.",
+      "pagina": 33
+    },
+    {
+      "afirmacao": "A extração de argumentos (passo 3) teve ganho de 13,88% sobre o baseline, ganho que cresce nos estágios a jusante que usam a semântica de evento.",
+      "citacao": "In the third step (argument extraction on Table 8), the improvement margin was 13.88%.",
+      "pagina": 33
+    },
+    {
+      "afirmacao": "O Aggregated Topic Model proposto tem coerência melhor que LDA VB K=600 e LDA Gibbs K=100, sustentando um número muito maior de tópicos (K=44.280) onde o Labeled LDA estoura a memória.",
+      "citacao": "In terms of coherence metric, our proposed method is placed better than LDA VB K = 600 and LDA Gibbs K = 100.",
+      "pagina": 32
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem, na conclusão, que o custo de execução cresce com as camadas de processamento: \"Lastly, it must be noted that the integrated event extraction as described will add several layers of processing. This may be a disadvantage in terms of runtime of execution of the model, especially in large scale settings such as in GDELT or ICEWS scale.\" (p.36). Declaram também, no corpo, uma limitação de recursos do próprio experimento: \"testing and analyzing all 29 combinations is prohibitive for our resource\" (p.29) e que \"The Labeled LDA that was tested on our system (32 GB RAM) crashed due to insufficient memory if being initialized with K more than 15,000 labels.\" (p.32).",
+  "evidence": "Compara sempre contra o mesmo baseline declarado: LSTM-CRF com features de gazetteer + POS tag, sem as features de evento-keyword e regex. Números no corpo: entidade (Tabela 6, p.29) weighted F1 0.814 -> 0.834 (micro 0.813 -> 0.836); trigger de evento (Tabela 7, p.29) weighted F1 0.892 -> 0.988; extração de argumento (Tabela 8, p.29) weighted F1 0.785 -> 0.894; identificação de pseudo-localização (Tabela 9, p.30) weighted F1 0.734 -> 0.906; resolução de topônimo (Tabela 11, p.33) acurácia 0.70 (Spatial Minimality) -> 0.74 (SMCD-ADM) sobre 791/792 topônimos. Coerência de tópico (Tabela 10, p.32): ATM -393.96/-394.31 vs LDA VB K=600 -453.82/-417.77 e LDA Gibbs K=600 -285.51/-397.41. Não há comparação com encoders contextuais/transformers.",
+  "needs": "Modelo LSTM-CRF (toolkit NCRF++), embeddings GloVe treinados no corpus indonésio, gazetteer hierárquico (GADM com 368.735 áreas administrativas, GeoNames) e basemap GADM, toolkit de topic model (MALLET/Gensim) para o ATM, Word2vec para os keywords do semantic gazetteer, corpus anotado (83 artigos/927 sentenças, 16.444 tokens) e 32 GB RAM no experimento (o Labeled LDA estourou). Tudo em Bahasa Indonesia. O artigo não reporta tempo de execução nem custo computacional por passo — não reportado.",
+  "cost_here": "Não reportado pelo artigo. Ele mede o custo apenas qualitativamente (\"add several layers of processing... disadvantage in terms of runtime\") e não dá tempo, FLOPs ou memória por execução. Para o nosso caso o custo real não está no modelo em si (o treino usou 927 sentenças/16.444 tokens, viável em CPU), mas nas dependências de domínio: gazetteer de topônimos brasileiros, regras regex e topic model sobre o corpus, mais um corpus anotado de eventos que não temos.",
+  "transferable": "Transfere a ideia central, que é conceitual e não de representação: integrar semântica de evento (trigger + argumentos) às features de geolocalização ajuda a separar a localização REAL de um evento de menções de topônimo não-locativas (ex.: cidade-destino de um veículo vs. cidade do acidente). Isso dialoga com o nosso problema de ancorar notícia de dengue a 28 localidades. NÃO transfere: a língua (indonésio), os tipos de evento (enchente, terremoto, incêndio, acidente) e, sobretudo, a dependência de um gazetteer hierárquico indonésio e de um corpus anotado de eventos — nenhum dos dois existe para PT-BR no nosso projeto. O GloVe usado é estático e treinado no corpus deles. A distância de domínio é grande: notícia indonésia de desastre natural não é notícia brasileira de arbovirose, e as features de topônimo/resolução não portam sem um gazetteer local.",
+  "red_flags": [
+    "Um único modelo (LSTM-CRF) e uma única arquitetura — nenhum encoder contextual ou transformer para comparar.",
+    "Avaliação em corpus pequeno e auto-construído (83 artigos / 927 sentenças), não em benchmark padrão da área.",
+    "Números de teste minúsculos em alguns passos (791/792 topônimos na resolução; 4 tipos de evento), então os ganhos percentuais podem estar dentro do ruído.",
+    "Ganhos reportados como diferença percentual sobre o baseline sem intervalo de confiança nem teste de significância.",
+    "A comparação de coerência de tópico (Tabela 10) cruza modelos com K muito diferentes (2.588, 44.280, 100, 600), o que não é uma comparação de igual para igual.",
+    "Dataset e anotações são dos próprios autores e específicos do domínio indonésio, dificultando replicação e generalização.",
+    "Sem avaliação de erro sistemática além de um exemplo anedótico (Figura 11)."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "key": "pagliardini2018sent2vec",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/20_pagliardini_2018_sent2vec_compositional_ngram.pdf",
+  "author": "Pagliardini et al.",
+  "year": 2018,
+  "read": "Li as 13 paginas do PDF em ordem de leitura: capa/abstract e introducao (p.1), modelo formal e contribuicoes (p.2-3), related work (p.4-5), tarefas de avaliacao (p.5), resultados e discussao com Tabelas 1 e 2 (p.6-7), Tabela 3 com tempos de treino e Tabela 4 vs Arora et al. (p.8), conclusao e analise de bigramas/normas (p.9), referencias (p.10-11), apendices A (parametros de treino, Tabela 5) e B (regularizacao L1) com Tabelas 6-8 (p.12-13). Cada citacao foi conferida contra o texto extraido do PDF, por pagina.",
+  "technique": "Sent2Vec e um modelo raso (sem encoder neural) que estende o C-BOW do word2vec da janela de contexto para a sentenca inteira. Cada palavra tem dois vetores aprendidos (fonte v_w e alvo u_w) e, opcionalmente, cada bigrama tambem. O texto vira numero assim: tokeniza-se a sentenca, monta-se a lista R(S) de unigramas + bigramas presentes, e o embedding da sentenca e a MEDIA dos vetores-fonte desses itens, resultando num unico vetor denso de h=600-700 dimensoes. O treino e nao supervisionado: preve-se uma palavra-alvo a partir da media dos demais n-gramas da sentenca, com negative sampling, subsampling de palavras frequentes e dropout de n-gramas. Implementacao em C++ sobre a biblioteca FastText (hashing trick para os n-gramas).",
+  "representation": "Encoder = media (mean-pooling) de embeddings de palavras e n-gramas aprendidos conjuntamente; pooling = media simples; normalizacao = nenhuma explicita, mas o modelo aprende sozinho a norma dos vetores (down-weighting de tokens frequentes). Geometria: espaco denso de ~600-700 dims, composicao puramente aditiva e bag-of-n-grams (nao modela ordem das palavras). A contribuicao de representacao e mostrar que uma media aprendida de unigramas+bigramas compete com encoders neurais muito mais caros, mantendo custo de treino e inferencia igual ao de uma media.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Sent2Vec monta o vetor da sentenca como a media dos embeddings-fonte dos unigramas E dos n-gramas presentes, aprendidos conjuntamente pelo objetivo nao supervisionado (C-BOW com negative sampling).",
+      "citacao": "We augment this model furthermore by also learning source embeddings for not only unigrams but also n-grams present in each sentence, and averaging the n-gram embeddings along with the words",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O custo e O(1) operacoes vetoriais por palavra tanto no treino quanto na inferencia - nao ha encoder neural, so media.",
+      "citacao": "The computational complexity of our embeddings is only O(1) vector operations per word processed, both during training and inference of the sentence embeddings.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "No macro-average sobre tarefas supervisionadas e de similaridade, o modelo ganha 3,8 pontos sobre o estado da arte quando treinado no Toronto books, e 2,2 pontos considerando todos os metodos supervisionados/semi-supervisionados comparados.",
+      "citacao": "For models trained on the Toronto books dataset, we report a 3.8 % points improvement over the state of the art.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Bigramas ajudam na classificacao supervisionada mas nao na avaliacao nao supervisionada de similaridade.",
+      "citacao": "addition of bigrams to our models doesn’t help much when it comes to unsupervised evaluations but gives a significant boost-up in accuracy on supervised tasks.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Sent2Vec treina em CPU (single node, 30 threads) em horas - cerca de 1h no Toronto books (0,9B palavras) e 6,5h no Twitter (19,7B palavras) - contra 336h em GPU do SkipThought.",
+      "citacao": "indicates trained on a single node using 30 threads",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Our models are weaker on the MSRP task (which consists of the identification of labelled paraphrases) compared to state-of-the-art methods.",
+  "evidence": "Baselines fortes e varios: SkipThought, C-BOW, FastSent(+AE), ParagraphVec, SAE/SDAE, TF-IDF, Siamese C-BOW, C-PHRASE e o baseline de Arora et al. (2017)/SIF. Tabela 1 (supervisionado, Toronto books): Sent2Vec uni+bi media 82,0 contra C-BOW 79,1, Unigram TF-IDF 80,7, SDAE+embs 80,4, e SkipThought 83,8 (o unico acima); Sent2Vec uni+bi e estado da arte na tarefa CR (80,3). Tabela 2 (similaridade nao supervisionada, Toronto books): melhor media, Sent2Vec uni .65/.68 (Spearman/Pearson) contra C-BOW .60/.65, Skipgram .60/.63, FastSent .61/.63 e C-PHRASE .63/.67. Tabela 3 (macro): Sent2Vec twitter uni+bi 75,9 contra C-BOW 70,2, FastSent 70,0, DictRep 73,7, C-PHRASE 72,7; SkipThought cai para 63,1 por ir mal em similaridade. Tabela 4: supera o baseline SIF de Arora et al. mesmo usando embeddings GloVe de corpus 42x maior.",
+  "needs": "Corpus grande de texto cru em ingles (Toronto books 0,9B palavras; Wikipedia 1,7B; Twitter 19,7B), sem dados rotulados (nao supervisionado). Dimensao h=600-700. Tokenizacao Stanford NLP (livros/Wikipedia) ou NLTK (tweets). Implementacao C++ construida sobre FastText; treino paralelizavel em CPU. Nenhum modelo pre-treinado em portugues e reportado - so ingles. Para atingir os numeros do artigo e preciso o volume de bilhoes de palavras.",
+  "cost_here": "Nao reportado para PT-BR nem para corpus do nosso tamanho. No artigo: treino CPU de 1h (Toronto books, 0,9B palavras, 30 threads) a 6,5h (Twitter, 19,7B palavras) - CPU-only, sem GPU, compativel com nossa maquina. Nosso corpus e ~4.369 noticias PT-BR (ordem de ~1-2M palavras), ~1000x menor: treino em minutos, mas provavelmente sem embeddings uteis, porque o ganho do artigo vem do volume. O custo real aqui e a dependencia: Sent2Vec e C++/FastText, fora dos nossos extras fixados (embeddings=torch+transformers; topics=tomotopy) - nova dependencia nativa, custo alto pelo contexto.",
+  "transferable": "Transfere o conceito: media de embeddings de unigramas+bigramas e uma representacao barata, CPU-friendly, que dispensa encoder neural - util como mais uma configuracao de embedding no nosso braco 02, e os bigramas como recurso extra. NAO transfere a evidencia: (a) tudo e em ingles; nao ha validacao em PT-BR nem multilingue; (b) o ganho e medido em tarefas de sentenca curta (STS/SICK, ~8-17 palavras) e similaridade, nao em noticia longa nem em serie temporal/geografica como a nossa; (c) os numeros vem de corpora de bilhoes de palavras, ~1000x o nosso. A distancia de dominio e grande - tweet/livro/Wikipedia em ingles para noticia em portugues.",
+  "red_flags": [
+    "So ingles (Toronto books, Wikipedia, Twitter); nenhuma avaliacao em PT-BR ou multilingue.",
+    "Avaliacao em nivel de sentenca curta (STS/SICK/classificacao), nao em documento, temporal ou geografico - dominio distante do nosso.",
+    "Ganhos obtidos com corpora de bilhoes de palavras; nao ha evidencia de que se reproduzam em corpus de ~4k artigos.",
+    "Corpora de treino desiguais entre os modelos comparados (os proprios autores notam que C-PHRASE usou 3x os dados e o baseline de Arora usou GloVe de corpus 42x maior), o que confunde a comparacao.",
+    "Ganho de bigramas e direcional e oposto entre tarefas (ajuda supervisionado, prejudica similaridade) - o efeito depende da tarefa.",
+    "Nenhum modelo pre-treinado em portugues disponibilizado."
+  ]
+}

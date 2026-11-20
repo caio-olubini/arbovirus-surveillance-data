@@ -1,0 +1,50 @@
+{
+  "key": "snow2008crowdsourcing",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/37_snow_2008_crowdsourcing_annotations.pdf",
+  "author": "Snow et al.",
+  "year": 2008,
+  "read": "Li o PDF inteiro, 10 páginas (Proceedings of EMNLP 2008, pp. 254-263). Capa/abstract/introdução (p.1), Related Work e Task Design (p.2), as cinco tarefas de anotação com Tabelas 1-3 e Figuras 1-6 (p.3-6), a Seção 5 de correção de viés com os ganhos numéricos (p.7-8), a Seção 6 (treino com não-especialistas) e a Tabela 4 (p.9), e a Conclusão (p.9). Procurei por seção de limitações/caveats explicitamente: não há. NOTA DE ARQUIVO: este PDF chegou ao repositório com o nome 21_pitler_2008_revisiting_readability_text_quality.pdf, emprestado de outro artigo da família; foi renomeado para 37_snow_2008_crowdsourcing_annotations.pdf em 2026-11-10, e o nome antigo passou a conter o artigo que ele prometia.",
+  "technique": "Não é uma técnica de representação de texto. O artigo mede a qualidade de anotações humanas de não-especialistas coletadas na Amazon Mechanical Turk (AMT) em cinco tarefas de NLP (afeto em manchetes, similaridade de palavras, textual entailment, ordenação temporal de eventos, desambiguação de sentido) e as compara a gabaritos de especialistas. Propõe uma correção de viés: um modelo multinomial tipo Naive Bayes (na linha de Dawid & Skene) que reescala o voto de cada anotador pelo seu log-likelihood-ratio, estimado a partir de um pequeno conjunto com gabarito; votos de anotadores com mais de 50% de acerto contam positivo, ruído puro conta zero e anticorrelacionados contam negativo.",
+  "representation": "Como é artigo de aplicação (anotação humana), não há 'texto vira número' por embedding. O texto entra apenas como item a rotular; a saída numérica é a anotação humana (escolha múltipla ou escala numérica), agregada por voto majoritário ou média. O que o artigo mede no domínio é a concordância inter-anotador entre não-especialistas e especialistas, e o efeito dessa rotulagem no treino de classificadores.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Anotações de não-especialistas via Amazon Mechanical Turk custaram cerca de US$2,00 para 7.000 rótulos na tarefa de afeto, o que os autores leem como pelo menos 875 rótulos equivalentes a especialista por dólar.",
+      "citacao": "Given that we paid US$2.00 in order to collect the 7000 non-expert annotations, we may interpret our rate of 3500 non-expert labels per USD as at least 875 expert-equivalent labels per USD.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Na média das sete tarefas, bastam 4 anotações não-especialistas por item para igualar a concordância inter-anotador de um único especialista.",
+      "citacao": "Pooling judgments across all 7 tasks we find that on average it requires only 4 non-expert annotations per example to achieve the equivalent ITA as a single expert annotator.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A recalibração dos votos pelo viés de cada trabalhador (modelo multinomial estimado com um pequeno gabarito de especialista) melhora, mas pouco: em afeto o ganho médio de correlação de Pearson foi de +0,6%.",
+      "citacao": "On the affect task, this yielded a small but consistent increases in Pearson correlation at all numbers of annotators, averaging a +0.6% gain.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "No consenso de não-especialistas sobre o sentido de 'president', uma discordância de 9 contra 1 revelou um erro no próprio gabarito; corrigido o erro, a acurácia não-especialista foi de 100% nos 177 exemplos.",
+      "citacao": "After correcting this error, the non-expert accuracy rate is 100% on the 177 examples in this task.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Um classificador treinado com um único conjunto de rótulos não-especialistas superou o treinado com os rótulos de um único especialista em 5 das 7 subtarefas de afeto/valência.",
+      "citacao": "we find that for five of the seven tasks, the average system trained with a single set of non-expert annotations outperforms the average system trained with the labels from a single expert.",
+      "pagina": 9
+    }
+  ],
+  "ressalva_do_autor": "não declara",
+  "evidence": "O baseline explícito é a anotação de especialistas e a votação majoritária simples. Concordância média não-especialista vs. todos = 0,510 contra 0,580 do especialista (Tabela 1, p.3). Com 10 não-especialistas a concordância sobe a 0,694 vs. 0,603 de 1 especialista (Tabela 2, p.4). RTE: 89,7% de acurácia com 10 anotadores (p.5); WSD: 0,994 (p.6). Correção de viés sobre votação majoritária simples: +4,0% (RTE), +3,4% (eventos) e +0,6% de correlação (afeto) (p.8). Classificador treinado com não-especialistas supera o treinado com um especialista em 5 de 7 subtarefas (Tabela 4, p.9).",
+  "needs": "Não usa modelo pré-treinado, não usa GPU e não usa embeddings. Exige: a plataforma AMT com trabalhadores pagos, 10 anotadores por item, um pequeno gabarito rotulado por especialista para calibrar o viés, e dados em inglês. Custo reportado: US$25,82 e 143,9 h para 21.690 anotações nas cinco tarefas (Tabela 3, p.6). Não reportado: qualquer medida de modelo/tamanho (não há modelo).",
+  "cost_here": "A técnica não é um encoder que se roda em CPU: exige anotadores humanos e um gabarito de especialista, custo monetário e de tempo, não de FLOPs. O artigo reporta ~US$0,0012 por rótulo (840 rótulos/USD no total; 3500/USD no afeto) e ~150 rótulos/hora, para trabalhadores de inglês na AMT. Para o nosso corpus (4.369 artigos PT-BR) o custo em português não é reportado, e AMT cobre mal PT-BR; não há como instalar isso como um extra de pyproject.toml. Zero GPU. Não estimo para baixo: para o nosso caso é 'não reportado'.",
+  "transferable": "Transfere: a tese de que rótulos baratos e ruidosos, agregados (voto/média) e recalibrados com um pequeno gabarito, podem igualar ou superar um único anotador especialista; e o achado de que o consenso de não-especialistas pode até flagrar erro do próprio gabarito. Não transfere: é inglês e anotação humana, não representação vetorial — nada aqui informa escolha de encoder, pooling, normalização ou dimensionalidade. A distância de domínio é grande: os itens são manchetes curtas de afeto/SemEval, não notícias longas em PT-BR; e a recalibração de viés pressupõe um gabarito de especialista que nós não temos.",
+  "red_flags": [
+    "Corpus e tarefas 100% em inglês (SemEval, RTE-1, TimeBank, Miller & Charles); nada em PT-BR.",
+    "Os ganhos da correção de viés são pequenos e a Tabela 4 mostra subtarefas (Joy, Fear) em que a calibração não ajuda; o +0,6% de correlação em afeto está perto do ruído.",
+    "A correção de viés exige um gabarito de especialista para estimar as matrizes de confusão dos trabalhadores — não é método sem supervisão.",
+    "A avaliação é de concordância/desempenho de anotação, não de qualidade de embedding; não há encoder, pooling nem dimensionalidade — não serve para escolher representação.",
+    "O resultado surpreendente (não-especialista supera especialista em 5/7) é oferecido pelos autores como 'one possible hypothesis', não demonstrado.",
+    "Anotadores da AMT são uma população específica (trabalhadores de inglês, remunerados por tarefa); a generalização para anotação em português não é medida."
+  ]
+}

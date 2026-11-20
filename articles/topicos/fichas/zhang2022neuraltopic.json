@@ -1,0 +1,50 @@
+{
+  "key": "zhang2022neuraltopic",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/07_zhang_2022_neural_topic_modelling_better.pdf",
+  "author": "Zhang et al.",
+  "year": 2022,
+  "read": "Li o PDF inteiro (8 páginas, NAACL 2022). Capa/abstract/introdução (p.1); Seções 2 e 3 (Modelos comparados e seleção de palavras do tópico, p.2-3); Seção 4 com Datasets (Tabela 1), métricas (TU/NPMI/CV) e Resultados (p.3-4); Tabela 2 com coerência/diversidade de todos os modelos e Figura 2 (p.4); Seção 4.4 Ablation com Tabela 3 (métodos de seleção de palavras) e Tabela 4 (runtime) e Figura 3 (p.5); Conclusão e Acknowledgement (p.5); Referências (p.6-7); Apêndices A (configurações) e B (Tabela 5, comparação de palavras) (p.8). Extraí o texto com pdftotext (layout e não-layout) e confirmei a página de cada citação.",
+  "technique": "Estudo empírico que compara dois paradigmas de topic modeling sobre os mesmos dados: (a) NTMs neurais — LDA, ProdLDA, CombinedTM e ZeroShotTM, todos baseados em VAE sobre BoW ou embeddings — e (b) clustering de embeddings contextuais de frase, batizado CETopic: codificar o documento com um transformer, reduzir a dimensionalidade com UMAP e agrupar com K-Means, tratando cada cluster como um tópico. A pergunta central é se vale a complexidade do VAE quando já se tem embeddings de frase de alta qualidade.",
+  "representation": "Cada documento é codificado por um transformer (BERT, RoBERTa, SBERT ou SimCSE) num único vetor de frase de 768 dimensões (base) ou 1024 (large). Esse vetor é então reduzido pelo UMAP — o método principal usa dim=5 e o teste de runtime usa dim=50 — e o K-Means agrupa documentos semanticamente próximos; cada grupo vira um tópico. As palavras que descrevem o tópico não vêm do modelo: são escolhidas por peso TFIDF × IDFi, que combina a importância global da palavra no corpus (TFIDF) com a raridade dela entre os clusters (IDFi), penalizando palavras comuns a vários tópicos.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Clustering de embeddings de frase de alta qualidade (SBERT/SimCSE) atinge a melhor coerência média de tópicos entre os três datasets, batendo tanto LDA quanto os NTMs (em M10, SBERTbase+UMAP tem CV 0.715 contra 0.433 do ZeroShotTM e 0.336 do LDA).",
+      "citacao": "SBERT and SimCSE-based clustering models achieve the best averaged topic coherence among the three datasets",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A escolha do método de seleção de palavras é decisiva: o proposto TFIDF × IDFi supera claramente os demais (Avg CV 0.702 e Avg NPMI 0.145, contra 0.555/0.081 do TFi e 0.626/0.110 do TFIDFi, em 20Newsgroups com K=30).",
+      "citacao": "TFIDF × IDFi achieves significantly better results among all methods.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Reduzir a dimensionalidade do embedding com UMAP tem efeito desprezível na qualidade dos tópicos (dimensões de 100 a 700 dão resultado equivalente), mas diminui o tempo de execução.",
+      "citacao": "the embeddings dimensionality negligibly affects topic quality for all word selecting methods.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O clustering com embeddings de alta qualidade é robusto ao comprimento do documento e supera LDA e NTMs de forma consistente, com a maior vantagem no dataset de texto curto M10 (média de 5.9 palavras por documento).",
+      "citacao": "clustering-based models with high-quality embeddings (SBERT and SimCSE) consistently perform better than conventional LDA and NTMs, especially on the short text dataset M10",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O clustering é mais rápido que o NTM contextualizado: em 20Newsgroups com K=30, SBERT+UMAP até dim=50 roda em 101s e SBERT puro em 113s, contra 149s do CombinedTM (média de 5 runs).",
+      "citacao": "Runtime comparison on 20Newsgroups with K = 30. Results are averaged across 5 runs.",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção de limitações. O único ressalvo declarado pelos autores é de escopo, na conclusão, ao oferecer o clustering apenas como alternativa situacional e não como substituto universal dos NTMs: \"which can be applied in some situations as an alternative.\"",
+  "evidence": "Comparação contra baselines fortes em 3 datasets (20Newsgroups, M10, BBC News): LDA, ProdLDA, CombinedTM, ZeroShotTM, BERT+KM e BERTopic. Métricas intrínsecas NPMI e CV (coerência) e TU (diversidade), médias sobre K={ground-truth,25,50,75,100} e 5 runs. Ganhos concretos: em M10, SBERTbase+UMAP CV 0.715 vs ZeroShotTM 0.433 e LDA 0.336; em 20Newsgroups, CV 0.690 vs CombinedTM 0.601 e LDA 0.511. O método de seleção de palavras proposto (TFIDF × IDFi) tem Avg CV 0.702 vs 0.555 do TFi. O artigo não reporta testes de significância estatística.",
+  "needs": "Encoders em inglês: BERT, RoBERTa e SBERT (HuggingFace) e SimCSE (repositório oficial); dimensões 768 (base) e 1024 (large). Algoritmos: UMAP + K-Means. Pipeline baseado em BERTopic e OCTIS. Não exige dados rotulados (não supervisionado). Os experimentos de runtime rodaram em uma GPU NVIDIA T4; o método em si é K-Means sobre vetores. Língua: somente inglês.",
+  "cost_here": "O paper não reporta custo em CPU. Custo medido em GPU T4: encoding de 16.309 documentos (20Newsgroups) leva 113s; com UMAP até dim=50, 101s — contra 149s do CombinedTM. Nosso corpus tem 4.369 documentos (menos de um terço do 20Newsgroups) e é PT-BR. O gargalo é o forward pass do encoder, que em CPU será mais lento que na T4, mas o volume é pequeno; UMAP + K-Means sobre ~4.369 vetores de 768 dimensões é barato. Exigiria um encoder PT-BR ou multilíngue, que o artigo não avalia — custo em CPU: não reportado.",
+  "transferable": "Transfere: (1) a mensagem central — com embeddings de frase de alta qualidade, clustering (UMAP + K-Means) é alternativa simples, rápida e robusta a NTMs, o que dialoga direto com o nosso braço 03 (DMR/tomotopy); (2) reduzir dimensionalidade com UMAP custa pouco e não piora a qualidade; (3) a seleção de palavras por TFIDF × IDFi é praticamente agnóstica de idioma, pois depende só de tokenização e frequência. Não transfere: (a) os encoders testados são apenas em inglês — nosso corpus é PT-BR e exigiria BERTimbau/multilíngue, que o artigo não avalia; (b) as métricas de coerência (NPMI/CV) usam co-ocorrência em inglês; (c) os datasets são benchmarks genéricos de notícia em inglês, sem relação com dengue ou vigilância. A distância de língua é grande; a de tipo de texto (notícia) é pequena.",
+  "red_flags": [
+    "Avaliação apenas intrínseca (coerência e diversidade de tópicos); nenhuma tarefa downstream nem validação humana.",
+    "Só inglês: nenhum dataset nem encoder PT-BR ou multilíngue.",
+    "Sem testes de significância — diferenças de ~0.02 a 0.05 em NPMI podem estar dentro do ruído.",
+    "As médias incluem o K do ground truth, o que pode favorecer métodos que acertam o número de tópicos.",
+    "Runtime medido apenas em GPU (T4); nenhum custo em CPU reportado.",
+    "O componente decisivo (seleção de palavras TFIDF × IDFi) é proposta dos próprios autores e não é testada por terceiros."
+  ]
+}

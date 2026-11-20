@@ -1,0 +1,50 @@
+{
+  "key": "hu2023location",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/33_hu_2023_location_reference_recognition.pdf",
+  "author": "Hu et al.",
+  "year": 2023,
+  "read": "Li a capa, os metadados e o abstract (p.1-2), a introdução (p.2-3), a seção 2 com os sete domínios de aplicação e o parágrafo de vigilância de doenças (p.4-5), o survey das abordagens em quatro famílias — regras, casamento de gazetteer, aprendizado estatístico e híbridas — (p.6-15), a seção 4.1 com a Tabela 3 dos 27 sistemas avaliados (p.16-19), a seção 4.2 com a Tabela 4 dos 26 datasets e a definição das métricas (p.19-22), a seção 4.3 com a Fig. 6 de resultados globais (p.22-23), a seção 4.4 de análise de erro por tipo de texto, categoria de lugar e forma (Fig. 7-10, p.23-25), a seção 4.5 de eficiência computacional (Fig. 11, p.25-26), o sumário com as Tabelas 5-6 (p.27) e a seção 5 de conclusões e perspectivas (p.27-28). Não li a lista de referências (p.28-37).",
+  "technique": "É um survey com benchmark; não propõe técnica nova. Trata do primeiro passo do geoparsing — reconhecer a menção de lugar (topônimo) no texto, sem resolvê-la em coordenadas. Agrupa as abordagens existentes em quatro famílias: baseadas em regras, em casamento de gazetteer (dicionários de topônimos), em aprendizado estatístico (NER genérico de CRF a BiLSTM-CRF e transformers como BERT e Flair, e extratores de topônimo treinados como NeuroTPR) e híbridas (fusões, inclusive por votação entre vários sistemas, como SPENS e RS). Em seguida, roda 27 dessas abordagens sobre os mesmos 26 datasets públicos e as compara.",
+  "representation": "O artigo não define um encoder próprio — compara encoders alheios como caixas-pretas. Nas abordagens de aprendizado estatístico o texto vira número por rotulagem de sequência: cada token recebe um rótulo BIO (B-LOC/I-LOC) e o modelo decide a partir de features feitas à mão (capitalização, forma da string, contexto) ou aprendidas automaticamente (character embeddings, word embeddings e contextual string embeddings dos transformers), decodificadas por CRF ou softmax. O que o artigo entrega não é uma representação nova, e sim a medição cruzada de desempenho das representações existentes em diferentes contextos.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O benchmark compara as 27 abordagens sobre 26 datasets públicos — 3 de texto formal (notícia) e 23 de texto informal (tweet) — somando 39.736 referências de lugar no total.",
+      "citacao": "The datasets comprise 3 formal datasets (i.e., news) and 23 informal datasets (i.e., tweets), containing 39,736 place names in total",
+      "pagina": 19
+    },
+    {
+      "afirmacao": "As abordagens são de alta precisão e baixo recall: 21 das 27 passam de 0,7 de precisão, mas só 2 (GazPNE2 e LORE) passam de 0,7 de recall, ou seja, a maioria perde muitas referências de lugar.",
+      "citacao": "Most of the employed approaches demonstrate high precision, with 21 out of the total 27 achieving a precision exceeding 0.7. In contrast, most of these approaches exhibit significantly low recall, with only two approaches, GazPNE2 and LORE, achieving a recall surpassing 0.7.",
+      "pagina": 23
+    },
+    {
+      "afirmacao": "O melhor conjunto de abordagens depende do tipo de texto: as treinadas em texto formal vencem em notícia, e as feitas para tweet vencem em tweet.",
+      "citacao": "Notably, Flair NER (Ont), Flair NER, SPENS, Stanford NER, and Stanza exhibit superior performance on formal texts, whereas GazPNE2 and nLORE outperform others on informal texts.",
+      "pagina": 23
+    },
+    {
+      "afirmacao": "Reconhecer lugares de granularidade fina é muito mais difícil que unidades administrativas: só 2 das 27 abordagens passam de 60% em vias de trânsito, contra 6 em feições naturais e 4 em POIs.",
+      "citacao": "However, most approaches struggle to recognize fine-grained places. Only 2 of 27 successfully identify over 60% of traffic ways, while 6 of 27 and 4 of 27 achieve the same for natural features and POIs, respectively.",
+      "pagina": 25
+    },
+    {
+      "afirmacao": "O custo computacional varia enormemente entre as abordagens: processar o mesmo corpus de 1.092.093 palavras leva de 6 minutos a 33 horas.",
+      "citacao": "The time required for these approaches to process all of the datasets, which contain 1,092,093 words, ranges from 6 minutes to 33 hours.",
+      "pagina": 26
+    }
+  ],
+  "ressalva_do_autor": "Owing to these disparities in place definitions, accurately evaluating the performance of these approaches on formal and informal texts poses challenges.",
+  "evidence": "A evidência é uma comparação pareada, não contra um baseline único: as mesmas 27 abordagens rodadas nos mesmos 26 datasets de ouro, com precisão, recall e F1 calculados somando TP/FP/FN de todos os datasets (pooled). Números centrais: 21/27 com precisão >0,7 e só 2/27 com recall >0,7 (p.23); o top-5 global (GazPNE2, Flair NER (Ont), nLORE, Flair NER, Stanza) é todo deep learning e recente, e dois sistemas de votação (SPENS e RS) empatam com Stanza e Flair NER (p.23); 13/27 detectam >60% das unidades administrativas, mas só 2/27 das vias de trânsito, 6/27 das feições naturais e 4/27 dos POIs, com GazPNE2 passando de 70% nas quatro categorias (p.24-25); 6 min a 33 h para 1.092.093 palavras, com o deep learning entre os mais lentos (p.26). Não há testes de significância nem baseline único declarado.",
+  "needs": "Rodar exige reunir 27 sistemas (toolkits em Java, Python e C++), modelos pré-treinados (Stanford NER, spaCy, Stanza, Flair, BERT, BERTweet, NeuroTPR), gazetteers globais (GeoNames, OpenStreetMap) e os 26 datasets rotulados de ouro. Roda em CPU: os autores usaram dois laptops (Intel i7 6-core 2,2 GHz com 16 GB e Intel i5 4-core 2,5 GHz com 3,8 GB de RAM). Língua: modelos e corpora são majoritariamente em inglês (CoNLL-2003, OntoNotes, tweets em inglês); Polyglot cobre mais de uma língua. Tamanho dos modelos em disco: não reportado. Dados rotulados: sim, os datasets de ouro são pré-requisito da avaliação.",
+  "cost_here": "Nosso corpus é PT-BR e nada no artigo foi medido em português, então o custo em PT-BR é 'não reportado'. O que dá para ancorar: 1.092.093 palavras custaram de 6 minutos a 33 horas em CPU de laptop, e as abordagens de deep learning (as de maior F1) estão entre as que passam de 5 horas. As rápidas — cerca de 20x mais rápidas que o deep learning (spaCy, Cliff, LORE, Polyglot, OpenNLP) — têm o F1 mais baixo e são, em geral, treinadas em inglês. Adotar isso como braço novo exigiria um extrator multilíngue/PT e um gazetteer do Brasil: é dependência nova, e o texto não dá sinal de que ela seja barata.",
+  "transferable": "Transfere o alerta central: o melhor extrator depende do tipo de texto, e o nosso é notícia formal em PT-BR — o regime em que as ferramentas feitas para tweet (GazPNE2, nLORE) perdem e as treinadas em texto formal (Flair, Stanza, Stanford NER) ganham. Transfere também o trade-off correção × custo em CPU (relevante porque somos CPU-only) e a dificuldade de granularidade fina (vias, POIs) contra admin units. Não transfere: nenhum dataset é PT-BR nem de vigilância de arbovírus, e a tarefa medida é reconhecer a menção do lugar, não ligá-la a contagem de casos. A distância de domínio é grande em língua e em definição de lugar — os dados são majoritariamente admin units em inglês.",
+  "red_flags": [
+    "Benchmark 100% em inglês: os 26 datasets são notícia/tweet em inglês, nenhum em PT-BR, a língua do nosso corpus.",
+    "Datasets heterogêneos com definições de 'lugar' diferentes entre si — os próprios autores dizem que isso dificulta a avaliação.",
+    "Métricas pooled (TP/FP/FN somados sobre todos os datasets), não média por dataset; pode mascarar desempenho ruim em datasets pequenos.",
+    "Tempo medido em duas máquinas diferentes (i7/16 GB e i5/3,8 GB), então a comparação de eficiência não é em hardware igual.",
+    "Sem testes de significância estatística: diferenças entre as abordagens do topo podem estar dentro do ruído.",
+    "Vários datasets são de enchentes/crises em tweets, não de doenças; 'disease surveillance' é citado como domínio de aplicação, mas não é o alvo do benchmark."
+  ]
+}

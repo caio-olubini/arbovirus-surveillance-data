@@ -1,0 +1,51 @@
+{
+  "key": "dieng2020topicmodeling",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/38_dieng_2020_topic_modeling_embedding_spaces.pdf",
+  "author": "Dieng et al.",
+  "year": 2020,
+  "read": "Li o corpo inteiro do PDF (15 páginas, pp. 439-453): abstract e introdução (p.1), Trabalhos Relacionados e Background (pp.3-4), a seção do modelo ETM com o processo generativo e a inferência variacional (pp.4-6), o Estudo Empírico com Tabela 1 (estatísticas dos corpora), Tabela 2 (embeddings aprendidos por cada modelo), Tabela 3 (tópicos no NYT), Figuras 4 e 5 (qualidade vs. previsão) e a seção 6.1 de stop words com a Tabela 4; a Conclusão (p.12) e as Referências. Não me baseei só no abstract.",
+  "technique": "O ETM (embedded topic model) é um modelo generativo de documentos que casa o LDA com word embeddings. Cada tópico k é um vetor no mesmo espaço L-dimensional em que vivem os embeddings das palavras; a distribuição de um tópico sobre o vocabulário é o softmax do produto interno entre o embedding da palavra e o embedding do tópico, de modo que a probabilidade de uma palavra num tópico cresce com a concordância entre os dois vetores. A proporção de tópicos de cada documento é amostrada de uma logística-normal e aproximada por inferência variacional amortizada com uma rede neural (autoencoder variacional). O ajuste maximiza o ELBO com amostragem de minilotes e o truque da reparametrização, otimizado com Adam. Os embeddings podem ser pré-treinados (skip-gram; variante ETM-PWE) ou aprendidos junto com o resto (ETM).",
+  "representation": "Texto vira número em duas camadas. Primeiro, cada termo do vocabulário ganha um vetor denso de dimensão L (a matriz de embeddings, L x V). Segundo, cada documento vira uma mistura de K tópicos (um vetor no simplex), e cada tópico é ele próprio um ponto nesse mesmo espaço L-dimensional. A ligação entre as duas é o produto interno: o modelo reconstrói a palavra observada via softmax do produto interno entre o embedding da palavra e o embedding do tópico atribuído. Não há pooling de um encoder contextual: a representação do documento é a proporção de tópicos e a do tópico é um ponto na geometria dos embeddings de palavra. A dimensão latente L e o número de tópicos K são os dois hiperparâmetros de dimensionalidade.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O ETM é um modelo generativo que coloca palavras e tópicos no mesmo espaço de embeddings: a distribuição de um tópico sobre o vocabulário tem parâmetro natural igual ao produto interno entre o embedding da palavra e o embedding do tópico — é a técnica de representação, não uma aplicação de domínio.",
+      "citacao": "The ETM assumes that topics and words live in the same embedding space, and that words are generated from a categorical distribution whose natural parameter is the inner product of the word embeddings and the embedding of the assigned topic.",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "O ETM supera o PRODLDA-PWE (LDA moderno com embeddings de palavra pré-treinados) na log-verossimilhança do document completion, sinalizando que o ETM integra melhor os embeddings a um modelo de tópicos; LDA é o que pior prevê na maioria dos cenários.",
+      "citacao": "More importantly, both versions of the ETM outperform the PRODLDA-PWE; signaling the ETM provides a better way of integrating word embeddings into a topic model.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "Com stop words no vocabulário, o ETM-PWE atinge a melhor qualidade de tópico (produto de coerência e diversidade): 0,0396 contra 0,0182 do LDA e 0,0187 do ∆-NVDM, no New York Times com K=300 tópicos (Tabela 4).",
+      "citacao": "The ETM-PWE is robust to stop words; it achieves similar topic coherence than when there are no stop words.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "O método escala a corpora grandes: foi avaliado em mais de 1,8 milhão de artigos do New York Times (1987-2007), com vocabulários chegando a 212.237 termos — muito acima dos 4.369 documentos do nosso corpus.",
+      "citacao": "The New York Times corpus is a larger collection of news articles. It contains more than 1.8 million articles, spanning the years 1987–2007.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O ETM mantém bom desempenho conforme o vocabulário cresce, enquanto o LDA se degrada; a Figura 1 mostra, no 20NewsGroup com 100 tópicos, que a perplexidade normalizada e a coerência do LDA pioram com vocabulário maior.",
+      "citacao": "While the performance of LDA deteriorates for large vocabularies, the ETM maintains good performance.",
+      "pagina": 2
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção de limitações. A única ressalva que os autores declaram é de escopo, na análise de stop words: 'our goal here is not to establish comparisons with these methods but to show the performance of the ETM-PWE in the presence of stop words' — ou seja, o experimento com stop words não compara o ETM com os métodos existentes projetados para lidar com stop words (Griffiths et al. 2004; Chemudugunta et al. 2006; Wallach et al. 2009a).",
+  "evidence": "Compara contra LDA, NVDM, ∆-NVDM, PRODLDA e PRODLDA-PWE, em dois corpora (20Newsgroups e New York Times) e em vários tamanhos de vocabulário. Duas métricas: (1) previsão — log-verossimilhança numa tarefa de document completion (metade do documento é observada, metade é avaliada); (2) qualidade de tópico — produto de coerência de tópico (PMI normalizada dos top-10 termos, Mimno et al. 2011) por diversidade de tópico (fração de palavras únicas nos top-25 de todos os tópicos, métrica introduzida pelos próprios autores). O resultado numérico principal está na Tabela 4: com stop words no NYT e K=300, a qualidade do ETM-PWE é 0,0396 contra 0,0182 do LDA, 0,0187 do ∆-NVDM e 0,0159 do PRODLDA-PWE. Qualitativamente, LDA e as duas variantes do ETM produzem tópicos interpretáveis, enquanto NVDM, ∆-NVDM e PRODLDA têm matriz de tópicos não-interpretável. Não há comparação com embeddings contextuais (BERT).",
+  "needs": "Precisa de: (a) vocabulário e contagens bag-of-words por documento; (b) embeddings de palavra de dimensão L — ou pré-treinados (skip-gram) ou aprendidos junto ao modelo; (c) uma rede de inferência (3 camadas no artigo) e treino por inferência variacional estocástica com Adam, minilotes de 1.000 documentos. O artigo NÃO reporta hardware nem tempo de treino ('não reportado') e não afirma usar GPU. Língua: avaliado apenas em inglês. Não exige dados rotulados (é não supervisionado).",
+  "cost_here": "Custo de dependência: ALTO. O ETM não existe no tomotopy (o extra 'topics' que já temos); exige PyTorch e uma implementação nova (o código dos autores, github.com/adjidieng/ETM). O torch já está no extra 'embeddings', então o peso adicional é o código e os embeddings de palavra. No nosso corpus (4.369 artigos, 965 semanas, 28 locations) o volume é cerca de três ordens de grandeza menor que o menor experimento do artigo (11,2 mil documentos / 100 tópicos), então rodar em CPU é plausível — mas o artigo não dá tempo de execução, então o custo em minutos é 'não reportado', não 'barato'.",
+  "transferable": "Transfere: a ideia de representação (tópico = ponto no espaço de embeddings, com probabilidade dada pelo produto interno) é independente de domínio e cabe num pipeline não supervisionado como o nosso. NÃO transfere direto: (1) língua — todos os experimentos são em inglês (20Newsgroups, NYT), então precisaríamos de embeddings de palavra em PT-BR; (2) tamanho — o ganho central do ETM é em vocabulário grande e cauda longa, e nosso corpus de 4.369 notícias tem vocabulário bem menor, então esse argumento pode não se aplicar; (3) o ETM é estático, não modela o eixo temporal (965 semanas) nem os 28 locations — para isso existe a variante dinâmica dos mesmos autores (Dieng et al. 2019, D-ETM). Distância de domínio grande: notícia em português não é post de newsgroup nem artigo do NYT em inglês.",
+  "red_flags": [
+    "Avaliação só em inglês (20Newsgroups e New York Times); nenhum corpus em outra língua.",
+    "Uma das duas métricas de qualidade de tópico — 'topic diversity' — é introduzida pelos próprios autores, e a qualidade é definida como o produto dela pela coerência: o alvo é parcialmente autodefinido.",
+    "A avaliação é intrínseca (log-verossimilhança em document completion e coerência de tópico), não uma tarefa externa com rótulo.",
+    "Os ganhos das Figuras 4 e 5 são apresentados qualitativamente ('top right corner'); só a Tabela 4 dá número, e apenas para o cenário com stop words.",
+    "O baseline de embeddings é skip-gram (CBOW), não embeddings contextuais — não há comparação com BERT.",
+    "Não reporta hardware, tempo de treino nem custo computacional; não dá para estimar o custo real em CPU.",
+    "A robustez a stop words é medida em um único modelo (ETM-PWE) e num único corpus (NYT)."
+  ]
+}

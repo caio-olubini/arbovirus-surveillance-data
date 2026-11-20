@@ -1,0 +1,50 @@
+{
+  "key": "schofield2017pullingout",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/25_schofield_2017_pulling_out_stops_rethinking.pdf",
+  "author": "Schofield et al.",
+  "year": 2017,
+  "read": "Li o PDF inteiro (5 páginas, páginas 432-436 do volume EACL 2017): Abstract, 1 Introdução, 2 Stopwords in Topic Models, 3 Evaluation Methods (3.1 Existing Methods, 3.2 New Methods), 4 Experiments (4.1 Mutual Information, 4.2 Log Likelihood, 4.3 Coherence, 4.4 Classification with Key Terms), 5 Conclusion, Acknowledgments e References, além da Figura 1 e das Tabelas 1 a 5. Extraí os números das Tabelas 2 (verossimilhança), 4 (NPMI) e 5 (acurácia) e as frases de resultado em prosa nas páginas 3 e 4. Não há seção de limitações.",
+  "technique": "Não propõe modelo novo: audita uma etapa de pré-processamento do LDA, a remoção de stopwords. Compara três configurações sob o mesmo corpus efetivo — (control) vocabulário completo, (pre) stopwords removidas do vocabulário antes de treinar, e (post) treinar com tudo e remover as stopwords depois, recomputando θ e φ a partir das atribuições de tópico. Usa LDA por Gibbs sampling (MALLET, 1000 iterações, com otimização de hiperparâmetros) com 10, 50 e 200 tópicos, em dois corpora em inglês (SOTU e uma amostra de 1% do NYT), avaliando com verossimilhança held-out, coerência NPMI, informação mútua documento-tópico MI(d,k) e classificação sobre os termos-chave.",
+  "representation": "O texto vira número do jeito clássico de topic model: contagem de tokens por documento (bag-of-words); cada documento vira uma distribuição sobre tópicos (θ) e cada tópico uma distribuição sobre palavras (φ), inferidas por amostragem de Gibbs. A variável que o artigo manipula é o VOCABULÁRIO — quais tipos de palavra entram na contagem. Remover stopwords reduz a dimensionalidade do vocabulário e a massa de probabilidade gasta em palavras funcionais muito frequentes. O achado é sobre a geometria/massa desse espaço: sem as stopwords mais frequentes, φ fica menos 'achatado' por termos não informativos, mas o efeito sobre os demais termos é pequeno e o momento da remoção (antes ou depois) muda pouco o resultado.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Numa lista fixa de cerca de 500 stopwords, elas respondem por 40-50% de todos os tokens do corpus — é a escala do problema que a remoção tenta atacar.",
+      "citacao": "In the corpora we have selected, a preset list of approximately 500 stopword types accounted for 40-50% of the corpus.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "Remover stopwords antes ou depois do treino dá verossimilhança praticamente idêntica: no NYT, 10 tópicos pre -10.830 vs post -10.826, 50 tópicos -10.708 vs -10.702, 200 tópicos -10.532 vs -10.529; a diferença não é estatisticamente significativa.",
+      "citacao": "the effect of post-removing stopwords after training is statistically indistinguishable from pre-removing them.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Na coerência (NPMI), remover depois pode até ganhar de remover antes: com 10 tópicos no NYT o control fica em 0.0280, pre em 0.0874 e post em 0.0931.",
+      "citacao": "Especially for only 10 topics, coherence of models where stopwords were removed after training can slightly outperform models with pre-removal.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Na classificação por termos-chave, remover antes só é significativamente melhor num dos quatro tratamentos (NYT-S: 54.0% pre vs 53.3% post) e é pior no NYT padrão (69.4% pre vs 69.9% post); no geral as duas formas empatam.",
+      "citacao": "Removing stopwords is often equally effective before and after training.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A conclusão dos autores é que remover stopwords depois do treino é tão eficaz quanto remover antes, contrariando a hipótese de que a remoção prévia melhora a inferência.",
+      "citacao": "Our results demonstrate that, as per our second hypothesis, removing stopwords after training is generally just as effective as removing them before.",
+      "pagina": 4
+    }
+  ],
+  "ressalva_do_autor": "não declara",
+  "evidence": "Comparação controlada com baseline explícito: (control) vocabulário completo, (pre) remoção antes do treino, (post) remoção depois do treino, todas com o mesmo corpus efetivo; métricas médias sobre 10 modelos por tratamento, em 2 corpora (NYT, SOTU) e 3 contagens de tópicos (10/50/200). Verossimilhança held-out (Tabela 2, NYT): pre vs post praticamente iguais (10 tópicos -10.830 vs -10.826; 50: -10.708 vs -10.702; 200: -10.532 vs -10.529). Coerência NPMI (Tabela 4): remover ajuda sobre o control, mas post ≈ pre (NYT 10 tópicos: control 0.0280, pre 0.0874, post 0.0931). Classificação por termos-chave (Tabela 5): NYT 69.4% (pre) vs 69.9% (post); NYT-S 54.0% (pre) vs 53.3% (post). MI(d,k) (Figura 1): pre ligeiramente maior, efeito pequeno. Não há baseline neural nem modelo externo — a comparação é interna às três configurações de pré-processamento.",
+  "needs": "Nada de GPU: LDA + Gibbs via MALLET, em CPU, 1000 iterações, hiperparâmetros otimizados. Exige um corpus de texto em inglês (SOTU 19.254 docs/1,264M tokens; NYT 18.820 docs/10,33M tokens), um stoplist padrão (MALLET, ~524 palavras) e código de topic model. Não exige dados rotulados: a tarefa de classificação usa como rótulo o próprio tópico dominante de cada documento. O artigo não reporta tempo de execução, memória nem número de máquinas.",
+  "cost_here": "Baixo e sem dependência nova. É uma ablação de pré-processamento sobre o braço 03 (DMR/tomotopy) que já existe: rodar o mesmo modelo (a) sem remover, (b) removendo antes, (c) removendo depois do treino — a variante 'post' é a mais barata, pois reaproveita um modelo já treinado. Sem GPU; tomotopy em CPU sobre 4.369 documentos roda em minutos. O único insumo ausente é um stoplist de português (o do artigo é inglês/MALLET e não serve para PT-BR). O artigo não reporta custo nem runtime próprios.",
+  "transferable": "Transfere bem o MECANISMO (palavras funcionais muito frequentes concentram massa de probabilidade e achatam φ; remover só as mais frequentes basta; remover depois do treino é suficiente), porque é sobre a inferência de LDA, não sobre o domínio — vale para notícia em PT-BR tanto quanto para SOTU/NYT em inglês. A variante 'post' é diretamente aproveitável: não exige retreinar o braço 03. NÃO transfere o stoplist (MALLET é inglês; precisamos de um stoplist PT-BR) nem os números absolutos. Distância de domínio moderada (inglês político/jornalístico dos EUA vs PT-BR jornalístico sobre dengue); como a técnica é pré-processamento, a distância pesa pouco — mas os autores nunca testaram PT-BR, texto curto nem modelo dinâmico (nosso caso é DMR com estrutura temporal, não LDA puro).",
+  "red_flags": [
+    "Só dois corpora, ambos em inglês (SOTU, discursos políticos de 1790-2009; NYT 1987-2007) — nada de PT-BR, nada de notícia de vigilância de doença, nada de texto curto.",
+    "Testa apenas LDA puro (Gibbs/MALLET); a conclusão 'post-removal é suficiente' não é verificada em modelo dinâmico (DMR) nem neural, que é justamente o nosso braço 03.",
+    "Efeitos no limite do ruído: diferenças de verossimilhança na terceira casa decimal (ex. -10.830 vs -10.826), dentro do erro-padrão; o 'MI ligeiramente maior' do pre não é apresentado como significativo.",
+    "Avaliação apenas automática (verossimilhança, NPMI, MI, acurácia de classificador) — sem avaliação humana de interpretabilidade, apesar de o artigo argumentar sobre 'interpretabilidade'.",
+    "Um único stoplist testado (MALLET, ~524 palavras) e um único arranjo de classificação (15 termos-chave por tópico) — correção medida num só modelo/arranjo.",
+    "Dois dos quatro experimentos (coerência e classificação) mostram post ≥ pre, o oposto da hipótese 1, o que enfraquece qualquer leitura de que remover antes 'melhora' o modelo."
+  ]
+}

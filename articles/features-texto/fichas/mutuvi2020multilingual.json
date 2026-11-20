@@ -1,0 +1,49 @@
+{
+  "key": "mutuvi2020multilingual",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/35_mutuvi_2020_multilingual_epidemiological_classification.pdf",
+  "author": "Mutuvi et al.",
+  "year": 2020,
+  "read": "Li as 12 paginas do PDF (paginadas 6172-6183 no rodape). Em detalhe: abstract e Introducao (p.1-2), Related Work (p.2-3), Dataset com Tabelas 1 e 2 (p.3-4), Experiments/Models com a Tabela 3 completa (p.4-5), Results com a Tabela 4 (p.6-7), transferencia zero-shot com Tabela 5 e Effect of Article Structure com Tabela 6 (p.7-8), Effect of Training Data Size com Figura 1 (p.8), Discussion (p.8-9) e Conclusions (p.9). Referencias (p.10-12) apenas folheadas. Nao ha secao de limitacoes.",
+  "technique": "Estudo comparativo (nao propoe modelo novo) sobre classificacao binaria de noticias: um documento e relevante (relata surto de doenca) ou nao. Compara tres familias: (1) ML classico - Regressao Logistica, Random Forest e SVM sobre vetores TF-IDF; (2) deep learning - CNN e BiLSTM sobre embeddings estaticos FastText de 300 dimensoes; (3) BERT multilingue (bert-base-multilingual-cased e -uncased), usado de dois jeitos, congelado como extrator de features alimentando CNN/BiLSTM, ou afinado (fine-tuned) ponta-a-ponta para classificacao de sequencia; e ainda um VGCN+BERT que soma embeddings de grafo de co-ocorrencia de palavras ao BERT. Tambem varia o trecho do documento usado (inicio, corpo, fim, inicio+fim), com limite de 512 tokens. O que ele mediu no dominio: qual dessas abordagens separa melhor noticia de surto de doenca, por lingua, e como estrutura do documento e tamanho dos dados afetam isso.",
+  "representation": "Como o texto vira numero: TF-IDF para os modelos de ML; embeddings estaticos FastText (300d) para CNN/BiLSTM; e embeddings contextuais do BERT para os modelos Transformer - na variante fine-tuned, o proprio encoder aprende a representacao usada pelo classificador. O artigo nao propoe uma representacao nova; ele mede qual encoder/representacao funciona melhor no dominio epidemiologico multilingue.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Modelos baseados em language models fine-tuned superam o baseline escolhido (o sistema especializado DANIEL mais modelos de ML) em mais de 50%.",
+      "citacao": "Our findings indicate that the performance of the models based on fine-tuned language models exceeds by more than 50% the chosen baseline models that include a specialized epidemiological news surveillance system and several machine learning models.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O melhor modelo (BERT multilingue uncased fine-tuned) atinge F1 64,03 treinando com apenas 5% dos dados, desempenho relevante para tao poucos dados.",
+      "citacao": "It is worth noting that the model achieves an F1 score of 64.03 using 5% of the training data, which is a significant performance for such a minimal amount of data.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "A combinacao do inicio com o fim do texto fornece as melhores features para classificar um documento como relevante ou nao para um surto.",
+      "citacao": "The results, as presented in Table 6, indicate that the combination of the beginning and the concluding text in the news documents provided the best features required to classify a document as either relevant or irrelevant to a disease outbreak.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Os modelos de ML classico (LR, RF, SVM) falham completamente nas linguas de baixo recurso, com F1 zero em polones e chines.",
+      "citacao": "all the machine learning models (LR, RF, SVM) display similar trends in their unequal performance based on language by not detecting (having the F1 values of zero) the relevant documents in Polish and Chinese.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Modelos treinados em ingles e frances transferem melhor (zero-shot) que os treinados nas demais linguas.",
+      "citacao": "The performance of models trained on the English and French documents is consistently higher than models trained on the other languages, as shown in Table 5.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "nao declara - o artigo nao tem secao de limitacoes nem admite limitacao do proprio metodo; a unica 'limitation' citada e de um sistema externo (BIOCASTER). A secao de Conclusions apenas aponta trabalho futuro (extracao de eventos em linguas de baixo recurso).",
+  "evidence": "Baselines: o sistema especializado de vigilancia DANIEL (nao supervisionado) e tres modelos de ML classico (LR, RF, SVM com TF-IDF). Resultado principal (Tabela 3, p.5): o melhor modelo, BERT (uncased) fine-tuned, atinge F1 86,25 (P 84,67 / R 87,88), contra F1 43,48 do DANIEL, F1 80,00 do SVM e F1 77,5 do CNN+FastText; o abstract resume isso como ganho de 'more than 50%' sobre o baseline. Na Tabela 4 (F1 por lingua), LR/RF/SVM zeram em polones e chines. Transferencia zero-shot (Tabela 5): treinar em ingles/frances rende mais que treinar nas outras linguas. Estrutura (Tabela 6): inicio+fim do texto da o melhor F1 (87,82). Tamanho de dados (Figura 1): F1 64,03 com apenas 5% dos dados.",
+  "needs": "Requer BERT multilingue pre-treinado (bert-base-multilingual-cased/uncased) e fine-tuning, alem de um corpus rotulado e balanceado por lingua; os autores usam 7.574 artigos (5.074 treino / 1.250 validacao / 1.250 teste) em 6 linguas, com ~10% de documentos relevantes. FastText pre-treinado por lingua para as variantes CNN/BiLSTM. Hardware e tempo de treino: nao reportado (o artigo nao informa GPU nem custo computacional).",
+  "cost_here": "No nosso corpus (4.369 artigos PT-BR, CPU only): a variante de features/inferencia do mBERT caberia no stack ja instalado (transformers/torch), mas o fine-tuning de mBERT em CPU e caro (~178M de parametros, ate 512 tokens por documento). O artigo NAO reporta hardware nem tempo, entao o custo real e 'nao reportado'; nao da para afirmar que roda 'em minutos'. A parte de ML classico (TF-IDF + LR/SVM) e barata e roda em CPU em minutos, mas exige dados rotulados.",
+  "transferable": "Transfere: (a) o achado de que inicio+fim do texto concentra o sinal, tratado pelos autores como propriedade estrutural do texto jornalistico independente de lingua - diretamente aplicavel ao nosso corpus de noticias; (b) o achado de que BERT fine-tuned > ML classico com TF-IDF no mesmo dominio. Nao transfere direto: o portugues NAO esta entre as 6 linguas testadas (ingles, grego, frances, russo, polones, chines); os resultados de baixo recurso (polones/chines zerando) nao descrevem o portugues, que e alto recurso como o frances. A tarefa deles e separar noticia relevante de irrelevante num corpus com ~10% de positivos ligados ao ProMED; o nosso corpus e 100% artigos da Agencia Brasil ja filtrados por 'dengue', entao a tarefa/estrutura do rotulo e diferente e a distancia de dominio e grande.",
+  "red_flags": [
+    "Inconsistencia interna: as Conclusions afirmam desempenho '> 90%' (p.9), mas o melhor F1 em qualquer tabela e 86,25 (Tabela 3) - o numero do texto de fechamento nao bate com os resultados.",
+    "Sem variancia: resultados de uma unica execucao, sem desvio-padrao, sementes ou intervalos de confianca; com apenas 1.250 documentos de teste e classes desbalanceadas (~10% positivos), diferencas pequenas (ex.: BERT fine-tuned 86,25 vs BERT como features 85,04) podem estar dentro do ruido.",
+    "Linguas de baixo recurso com teste minusculo (polones 46 docs, grego 63), produzindo F1 instaveis (oscilacoes de 0 a 100 entre modelos), entao as conclusoes sobre 'tipologia da lingua' repousam em amostras muito pequenas.",
+    "Portugues ausente do benchmark; nenhuma das 6 linguas e o nosso idioma-alvo.",
+    "Avaliacao em um unico dataset, sem validacao cruzada nem teste em corpus independente."
+  ]
+}

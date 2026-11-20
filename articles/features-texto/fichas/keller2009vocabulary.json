@@ -1,0 +1,51 @@
+{
+  "key": "keller2009vocabulary",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/32_keller_2009_vocabulary_discovery_geoparsing.pdf",
+  "author": "Keller et al.",
+  "year": 2009,
+  "read": "Li o artigo inteiro (9 páginas): capa/cabeçalho (autores, data de publicação, venue), Abstract, Background, Results (core idea, additional features, hiding words), Evaluation, Discussion, Conclusion e Methods, incluindo as Figuras 1-7 e a Tabela 1. Extraí o texto do PDF com pdftotext em ordem de leitura (as páginas internas são de duas colunas, o que quebra a leitura em modo -layout) e conferi cada citação abaixo literalmente contra o texto extraído, mapeando-a para a página correspondente.",
+  "technique": "Geo-parsing (achar referências geográficas) em alertas de surto de doença, sem corpus anotado por humano. A supervisão vem de um gazetteer do HealthMap (~4.000 frases, ~500 negativas) que rotula as palavras dos alertas. Treina-se uma rede neural (MLP siamesa) que, para cada palavra, dá P(loc|palavra) a partir de uma janela de contexto de 2*hw palavras. O truque central é o word withholding: palavras raras (frequência abaixo de um limiar λ) têm o índice no dicionário apagado e passam a ser vistas só pelo POS tag e pela capitalização, forçando o modelo a aprender o CONTEXTO em vez de memorizar o léxico. É um pipeline de informação-extraction, não um encoder de texto de uso geral.",
+  "representation": "Cada palavra vira um vetor esparso com três blocos: índice no dicionário D (one-hot; zerado quando a palavra foi escondida), índice do POS tag entre K tags, e 3 features de capitalização (nenhuma / primeira letra / tudo maiúsculo). Um primeiro MLP φ mapeia essa representação esparsa para um vetor denso aprendido do zero, φ(xi) ∈ R^d (embedding de palavra treinado no próprio corpus, inspirado no modelo de linguagem de Bengio et al.); as saídas de φ na janela são concatenadas em z ∈ R^(d×n) e um segundo MLP ψ com softmax produz P(loc|w). Não usa embeddings pré-treinados.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Palavras que são referências geográficas são mais raras no corpus do que palavras 'típicas' (frequência média 4,9×10⁻⁵ contra 8,9×10⁻⁵), e é essa diferença de frequência que sustenta o critério de esconder palavras.",
+      "citacao": "The strategy we implemented is based on the idea that words referring to specific locations have a lower frequency (ie number of occurrences/corpus size) (average frequency = 4.9/105(± 12.3/105)) in the corpus than \"typical\" words (average frequency = 8.9/105(± 103.3/105)).",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Cortar palavras abaixo de um limiar de frequência esconde ~10% de todas as palavras do corpus, mas ~25% das ocorrências de palavras-locais — o corte acerta desproporcionalmente as locais.",
+      "citacao": "hides roughly 10% of the words in the corpus, but close to 25% of the location word occurrences",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A avaliação usa um corpus separado de 500 alertas posteriores ao treino (201.643 palavras), com 5.030 palavras-locais pelo gazetteer HealthMap e 7.385 pelo geo-parser comercial MetaCarta.",
+      "citacao": "The evaluation corpus contains 500 disease outbreak alerts subsequent to the ones used for training, in respect of the temporal nature of the HealthMap surveillance process. This represents 201,643 words to tag among which 5,030 are words that are considered locations by the HealthMap gazetteer approach",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Esconder palavras aumenta o recall o suficiente para o F1 combinado superar o obtido quando todo o vocabulário de treino está visível, mesmo com a queda de precisão.",
+      "citacao": "While there is a decrease in precision, when the number of \"hidden\" words increases, the recall increases enough that their combination in the F1 score is higher than when the whole training vocabulary is used.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Aumentar as palavras fora do dicionário melhora a capacidade de identificar locais que o modelo nunca viu, capacidade que é nula quando todo o vocabulário de treino está disponível.",
+      "citacao": "the increase in out-of-dictionary examples greatly improves the ability of the system to correctly identify locations that are out of the algorithm's dictionary",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem que não têm como medir de verdade o desempenho, por falta de anotação humana, e recorrem a avaliações aproximadas: \"The same lack of labeled data that we were faced with for training the geo-parser applies to the question of how we can test the performance of a trained model.\" (p. 5). No fim da Discussion também reconhecem que o trabalho não resolve tudo: \"there is still a portion of those geographic references that remains a challenge to retrieve\" (p. 7).",
+  "evidence": "Duas avaliações, ambas aproximadas (sem gold standard humano). (1) Recuperação das próprias tags do gazetteer HealthMap (Fig. 5): o F1 geral cai à medida que λ cresce, mas o F1 entre as palavras com índice escondido sobe. (2) Comparação com o geo-parser comercial MetaCarta GeoTagger [21], tratado como 'verdade'. A Tabela 1 dá o F1 ótimo contra as labels do MetaCarta: baseline do gazetteer HealthMap = F1 0.56 (P 0.81 / R 0.42); NN combinado treinado em T0 = 0.61, T1 = 0.63, T2 = 0.64 (±0.01). Ou seja, ganho de ~+0.05 a +0.08 de F1 sobre o baseline rule-based, com recall subindo de 0.42 para 0.68 e precisão caindo de 0.81 para 0.61. Não há comparação com nenhum método estatístico/embedding moderno nem com outro baseline além do gazetteer e do parser comercial.",
+  "needs": "Requer: (a) um gazetteer do domínio para gerar a supervisão (o HealthMap usa ~4.000 frases, ~500 negativas); (b) um POS tagger — usam o SENNA (Collobert & Weston), com 96,85% de acurácia reportada no Penn Treebank; (c) uma rede neural siamesa treinada do zero (não usa embedding pré-treinado); (d) um corpus de alertas em inglês (T0=1.000, T1=2.500, T2=5.000 alertas; ~355.000 palavras). Não exige dado rotulado por humano. GPU não é mencionada.",
+  "cost_here": "Custo de treino/hardware: não reportado pelo artigo (nenhum tempo de treino ou máquina). Para o nosso caso, a técnica em si é barata — features esparsas + MLP pequena, sem GPU e sem modelo pré-treinado, e o torch já está instalado; plausível em CPU em minutos. O custo real é o insumo, não o compute: precisaríamos montar um gazetteer das 28 localidades (BR + UFs) mais frases negativas, e rodar um POS tagger em PT-BR sobre os 4.369 artigos. O SENNA é C de 2007 e não tem PT-BR, então teríamos de trocar por um tagger de português. Tamanho de modelo, memória e tempo: não reportados.",
+  "transferable": "O que transfere: (1) a tarefa é exatamente a nossa — geo-parsing de notícia de surto para vigilância — e o texto é notícia, não tweet; (2) a ideia de esconder palavras raras por frequência para forçar o aprendizado de contexto é um truque de representação barato e pouco dependente de língua, aplicável às nossas features de texto; (3) features de baixo nível (POS + capitalização) são baratas e portáveis. O que NÃO transfere bem: (a) língua — o artigo é 100% inglês, nós somos PT-BR, e a capitalização de nomes de lugar funciona diferente em português; (b) o POS tagger (SENNA) não tem PT-BR; (c) o ganho medido é modesto (F1 0.56→0.64) e é sobre um baseline rule-based, não sobre embeddings; (d) corpus de 2009, 1-5 mil alertas em inglês, menor e mais antigo que os nossos 4.369 artigos. A distância de domínio é pequena (mesma tarefa de vigilância), mas a distância de língua é grande.",
+  "red_flags": [
+    "Sem gold standard humano: as duas avaliações usam proxies — re-tagging com o próprio gazetteer HealthMap (potencialmente circular) e o geo-parser comercial MetaCarta como 'verdade'.",
+    "Baseline é rule-based (gazetteer HealthMap) e um parser comercial proprietário não reproduzível; não há comparação com método estatístico moderno.",
+    "Benchmark só em inglês.",
+    "Ganho modesto e parcialmente dentro do ruído: F1 0.56 → 0.61/0.63/0.64, com variância ±0.006 a ±0.01 em 5 repetições.",
+    "Resultado reportado como F1 'ótimo' com λ escolhido por condição (tuning no validation), o que favorece o método.",
+    "MetaCarta e HealthMap concordam em apenas 38,7% das tags — as 'labels verdadeiras' são contestadas.",
+    "Corpus pequeno e antigo (2009); o ganho satura ao dobrar o treino (T1→T2)."
+  ]
+}

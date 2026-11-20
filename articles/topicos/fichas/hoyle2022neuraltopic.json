@@ -1,0 +1,49 @@
+{
+ "key": "hoyle2022neuraltopic",
+ "grupo": "representacao",
+ "pdf": "articles/topicos/17_hoyle_2022_neural_topic_models_broken.pdf",
+ "author": "Hoyle et al.",
+ "year": 2022,
+ "read": "Li o corpo principal (pp.1-10 do PDF, paginas impressas 5321-5330) a partir da extracao pdftotext: capa/abstract e §1 Introducao (p.1); §2 'What makes a topic model good' com §2.1 analise de conteudo tradicional, §2.2 uso de modelos de topicos e a revisao de 50 artigos que citam Blei et al. (p.2-3); §2.3 criterios e §2.4 operacionalizacao, incluindo §2.4.1 Estabilidade (Eq.1, RBO, emparelhamento bipartido) e §2.4.2 Confiabilidade entre codificadores (ARI/NMI/Purity) (p.4-5); §3 Experimentos, §3.1 Datasets e §3.2 Modelos e os 16 contextos (p.6); §4 Resultados com a Tabela 2 (estabilidade) e a Tabela 3 (alinhamento) (p.7); §5 leitura de perto e §6 Ensembling com a Figura 1 (p.7-8); §7 Conclusoes e a secao Limitations (p.9-10). Consultei tambem o Apendice A.6 'Compute infrastructure' (p.16) para o custo de GPU/CPU. Cada trecho citado foi confirmado por busca literal no texto extraido das 24 paginas.",
+ "technique": "Nao propoe um encoder novo: e um estudo de AVALIACAO de modelos de topicos. Compara um modelo classico (LDA estimado por Gibbs sampling, implementado no MALLET) com quatro modelos neurais representativos (SCHOLAR, SCHOLAR+KD, D-VAE/Dirichlet-VAE e CTM/Contextualized Topic Model) em dois datasets em ingles (Wiki, 14.000 artigos; Bills, 32.000 resumos de projetos de lei dos EUA), em 16 contextos (vocabulario de 5k ou 15k termos x K de 25/50/100/200 topicos) e 10 rodadas por contexto com hiperparametros sorteados. Propoe medir o que importa para analise de conteudo - ESTABILIDADE (os topicos se repetem entre rodadas?) e ALINHAMENTO (os topicos batem com categorias humanas?) - e um metodo simples de ENSEMBLE que agrega as rodadas por clustering.",
+ "representation": "Texto vira numero via modelo de topicos: cada documento e uma mistura theta sobre K topicos e cada topico e uma distribuicao beta sobre o vocabulario (LDA). Modelos neurais trocam essa parametrizacao por VAEs (D-VAE, SCHOLAR) e/ou por embeddings de documentos de um modelo de linguagem pre-treinado (CTM). O foco do artigo e a GEOMETRIA e a ESTABILIDADE dessas distribuicoes quando se reamostram hiperparametros. Estabilidade = distancia total entre topicos (total topic distance): para cada par de rodadas, casa-se os K topicos por emparelhamento bipartido que minimiza a soma das distancias (via algoritmo Jonker-Volgenant), onde a distancia entre dois topicos e a Rank-Biased Overlap (RBO), medida top-weighted entre rankings de palavras. Alinhamento = compara a categorizacao induzida pelo modelo (topico mais provavel de cada documento) com rotulos humanos via ARI, NMI e Purity.",
+ "afirmacoes": [
+  {
+   "afirmacao": "No geral, os modelos neurais de topicos saem pior que o metodo classico tanto em estabilidade quanto em alinhamento com categorias humanas.",
+   "citacao": "We find that neural topic models fare worse in both respects compared to an established classical method.",
+   "pagina": 1
+  },
+  {
+   "afirmacao": "Nas distribuicoes topico-palavra (B), nenhum dos modelos neurais chega perto da estabilidade consistente do MALLET; a diferenca e grande.",
+   "citacao": "Most striking are the topic-word distributions B: none of the neural models even approach its consistent level of stability.",
+   "pagina": 7
+  },
+  {
+   "afirmacao": "Na vasta maioria dos contextos, as categorias descobertas pelo metodo classico sao confiaveis quando medidas por alinhamento com categorias humanas de ground-truth.",
+   "citacao": "across the vast majority of contexts, its discovered categories are reliable as measured via alignment with ground-truth human categories.",
+   "pagina": 9
+  },
+  {
+   "afirmacao": "O ensemble proposto supera a rodada mediana em 97% dos contextos e e sempre melhor que a pior rodada do conjunto.",
+   "citacao": "the ensemble improves on the median member in 97% of all the contexts, and it is always better than the worst member",
+   "pagina": 9
+  },
+  {
+   "afirmacao": "Em uma meta-analise de 35 artigos que propuseram modelos neurais de topicos entre 2019 e 2022, nenhum comparou os modelos por estabilidade.",
+   "citacao": "neural topic models over the past three years (2019-2022), we find that none of them compared the models on stability.",
+   "pagina": 5
+  }
+ ],
+ "ressalva_do_autor": "Os autores admitem que so usaram datasets em ingles e que a generalizacao entre linguas nao foi testada: \"While theoretically we see no reason why our results and findings should not generalize beyond the English language, empirical generalizability across languages remains to be determined.\" (p.10). Declaram tambem que o metodo de alinhamento depende de rotulos humanos de ground-truth, o que limita sua aplicabilidade, e que as categorias da Wikipedia nao foram produzidas por um processo tradicional de analise de conteudo; e que a revisao de usos nao foi uma revisao sistematica formal.",
+ "evidence": "Comparacao cabeca-a-cabeca com baseline explicito. O MALLET (LDA/Gibbs) e significativamente mais estavel que os quatro modelos neurais na vasta maioria dos 16 contextos, 'often by a large margin' (Tabela 2; p.ex. estabilidade de B no Wiki em k=25: MALLET 0.22 vs SCHOLAR 0.49, SCHOLAR+KD 0.47, D-VAE 0.46, CTM 0.42), e da o melhor alinhamento com rotulos humanos na maioria dos contextos (Tabela 3). O ensemble supera a rodada mediana em 97% dos 400 contextos avaliados e e sempre melhor que a pior rodada (p.9). Nao ha um unico delta tipo 'F1 sobre X': a evidencia e tabular (ARI/NMI/Purity e distancias totais), com testes t de duas caudas (p<0.05).",
+ "needs": "Exige dois corpora em ingles com rotulos hierarquicos de ground-truth (Wiki 14.000, Bills 32.000); vocabulario fixado em 5k ou 15k termos; 10 rodadas por contexto x 16 contextos x 5 modelos. Os quatro modelos neurais precisam de GPU: o Apendice A.6 (p.16) diz que rodaram em GPUs NVIDIA T4 (g4dn.xlarge, 16 GiB, 4 vCPUs), enquanto o MALLET rodou 'on CPU only' (m5d.2xlarge). Os modelos neurais dependem de VAEs e, no caso do SCHOLAR+KD e do CTM, de modelos de linguagem pre-treinados (BERT). O alinhamento exige rotulos humanos de ground-truth. Tempo de parede nao reportado.",
+ "cost_here": "Alto para o braco neural: os modelos neurais foram treinados em GPU (NVIDIA T4) e alguns usam LM pre-treinado, o que colide com nosso setup CPU-only e com o teto de 'minutos, nao horas' no transform. O MALLET (LDA/Gibbs) e barato em CPU e foi justamente o vencedor do artigo, entao a parte classica e viavel; a parte neural nao. Custo de tempo/tokens nao reportado no artigo. Reproduzir a comparacao completa (5 modelos x 16 contextos x 10 rodadas) em CPU e proibitivo; o que transfere barato sao as duas metricas e o ensemble sobre os bracos que ja temos (03/DMR/tomotopy).",
+ "transferable": "Transfere: (a) o desenho de avaliacao - medir ESTABILIDADE entre rodadas e ALINHAMENTO contra categorias humanas em vez de confiar so em coerencia automatica/NPMI; (b) a metrica de estabilidade via RBO + emparelhamento bipartido, aplicavel ao nosso braco 03 (DMR/tomotopy); (c) o metodo de ensemble por clustering das rodadas; (d) o achado de que o classico LDA/Gibbs (que ja temos via tomotopy) e um baseline duro de bater, o que reforca cautela antes de trocar o braco classico por neural. NAO transfere direto: dominio e lingua (ingles, Wikipedia e projetos de lei dos EUA, nao noticia PT-BR sobre dengue); o alinhamento exige rotulos humanos de ground-truth que nosso corpus de 4.369 noticias nao tem; os modelos neurais avaliados precisam de GPU. A distancia de dominio e grande, e o proprio artigo restringe a generalidade empirica ao ingles.",
+ "red_flags": [
+  "So datasets em ingles (Wiki, Bills dos EUA) - o proprio artigo admite que a generalizacao empirica entre linguas 'remains to be determined'.",
+  "O alinhamento depende de rotulos humanos de ground-truth, e os autores notam que as categorias da Wikipedia nao vieram de um processo tradicional de analise de conteudo - o 'ground truth' pode ser mais fraco do que parece.",
+  "A avaliacao neural cobre um conjunto especifico de 4 modelos e uma implementacao; nao e evidencia sobre 'modelos neurais' em geral.",
+  "Nenhum custo de tempo/compute em parede e reportado, apesar de os neurais terem rodado em GPU - impossivel estimar o preco de reproducao.",
+  "O resultado do ensemble e resumido em uma metrica principal (purity) na Figura 1, com os resultados completos empurrados para o apendice."
+ ]
+}

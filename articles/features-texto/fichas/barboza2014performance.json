@@ -1,0 +1,50 @@
+{
+  "key": "barboza2014performance",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/13_barboza_2014_performance_internet_biosurveillance.pdf",
+  "author": "Barboza et al.",
+  "year": 2014,
+  "read": "Li as 9 páginas do PDF (PLoS ONE 9(3):e90536, março de 2014): capa/autoria, Abstract, Introduction, Methods, Results e Discussion. Consultei as sete tabelas — Tabela 1 (sistemas incluídos), Tabela 2 (definição dos indicadores), Tabela 3 (eventos do BHI por doença/região), Tabela 4 (distribuição de fonte, idioma, região, doença e tipo de caso), Tabela 5 (taxas e rate ratios bivariáveis), Tabela 6 (fatores associados, bivariável) e Tabela 7 (modelo multivariável) — e a seção final de limitações na Discussion (p. 8-9).",
+  "technique": "Não propõe técnica nova de NLP nem de representação de texto: é um estudo de APLICAÇÃO/avaliação. Compara seis sistemas operacionais de biosurveillance na internet (Argus, BioCaster, GPHIN, HealthMap, MedISys e ProMED-mail) que varrem texto não estruturado da web (notícias, fontes oficiais) e emitem 'sinais' (relatos brutos de doença). Três são moderados por humanos e três majoritariamente automatizados. O método é epidemiológico: monta um gold-standard com 86 eventos infecciosos verificados do boletim semanal internacional do InVS (BHI, 2010), busca retrospectivamente sinais desses eventos em cada sistema por consultas de palavras-chave, e usa regressão de Poisson modificada para calcular taxas de detecção/sensibilidade (C-DR, I-DR, C-Se, I-Se) e rate ratios, medindo o efeito de moderação, idioma, região, tipo de doença e tipo de caso.",
+  "representation": "Não se aplica / não descrito. O artigo não descreve como o texto vira número — não há encoder, pooling, normalização, dimensionalidade nem geometria de espaço vetorial. Cada sistema é tratado como caixa-preta que emite sinais, e a unidade de análise é o par (evento, sistema), não um vetor. Não há nada de representação vetorial a transferir; o que se transfere é o desenho de avaliação e os achados sobre fonte/idioma/moderação.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O estudo montou um gold-standard de 86 eventos infecciosos verificados (boletim BHI do InVS, 2010) e recuperou 472 sinais brutos relativos a eles nos seis sistemas de biosurveillance.",
+      "citacao": "A total of 472 raw signals relating to events included in the gold-standard data set were retrieved from the six biosurveillance systems.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A detecção precoce foi quase universal: 84 dos 86 eventos (98%) foram detectados por algum sistema antes da publicação no boletim oficial.",
+      "citacao": "When early detection was considered, 84 (98%) events were detected before their publication in the BHI",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A sensibilidade intrínseca (detecção independente de outros sistemas, antes do gold-standard) variou de 43% a 71% entre os seis sistemas.",
+      "citacao": "I-Se ranged from 43% to 71%",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Após ajuste multivariável para sistema, moderação, idiomas, regiões e tipos de doença, os sistemas com moderação humana tiveram sensibilidade intrínseca 53% maior que os automatizados.",
+      "citacao": "moderated systems were found to have a 53% higher I-Se",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Os sistemas automatizados se alimentavam fortemente uns dos outros: 39% dos sinais detectados cedo vinham de outro sistema, contra 1% nos moderados.",
+      "citacao": "For automated systems, 39% of early detected signals were collected from another system versus 1% for moderated systems",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram limitações na Discussion (p. 8). Sobre o tamanho da amostra: 'The number of events included in the gold-standard was too limited to allow stratified analysis and may have undermined potential associations.' Sobre o próprio gold-standard: 'Unfortunately, in the absence of a recognised international gold-standard, the sensitivity of the chosen gold-standard could not be assessed.' E sobre o viés retrospectivo: 'In a previous study, authors found that prospective detection rates were 17% lower than the retrospective sensitivity rate' — embora defendam que esse viés afeta todos os sistemas igualmente e não altera as conclusões gerais.",
+  "evidence": "A evidência é comparativa e interna ao estudo, contra o gold-standard de 86 eventos do BHI 2010, não contra um baseline de NLP. Taxas: C-DR (detecção bruta) de 83% a 95% (p=0.20, sem diferença significativa entre sistemas); C-Se (detecção antes do BHI) de 71% a 85% (p=0.13, sem diferença); I-Se (detecção independente e precoce) de 43% a 71% (p=0.001, com diferença). No modelo multivariável, o achado central é moderação humana com I-Se 53% maior (RR 1.53; IC95% 1.34–1.75; p<0.001). Também: C-Se de informação oficial publicada cedo foi 27% menor que a de fontes de mídia (p=0.001); 43% dos sinais detectados por sistemas automatizados já teriam sido vistos em outro sistema. Não há comparação com um classificador/extrator moderno nem com mean-pooling ou embeddings — o único 'baseline' é a comparação entre os seis sistemas e entre moderados e automatizados.",
+  "needs": "Exige acesso operacional aos seis sistemas (vários proprietários/fechados: Argus e GPHIN não são públicos; MedISys é do JRC), um gold-standard curado de eventos verificados (tempo de epidemiologistas, no caso dois epidemiologistas do InVS fazendo buscas por palavras-chave) e software estatístico (Stata 12.1) para as regressões de Poisson. Não exige modelo de linguagem, não exige GPU. Idiomas: os sistemas cobrem de 7 a 60 idiomas; o estudo reporta 97% dos sinais em sete idiomas. Custo computacional: não reportado.",
+  "cost_here": "Não é uma técnica que se rode sobre o nosso corpus. Os sistemas avaliados são caixas-pretas operacionais e majoritariamente fechados — não há código, modelo nem pipeline para executar em CPU sobre 4.369 notícias em PT-BR. O que o estudo 'custa' é acesso institucional às plataformas e o trabalho de montar um gold-standard verificado; nenhum desses custos é reportado em termos de compute. Para o nosso caso, o custo de adotar a ABORDAGEM (comparar sistemas contra um gold-standard) recai na curadoria de eventos verificados, não em dependência nova. Custo de dependência nova: não se aplica (nada a instalar).",
+  "transferable": "Transfere o desenho de avaliação e os achados qualitativos, não a técnica: (1) nenhum sistema isolado detecta tudo, e combinar/paralelizar fontes aumenta a cobertura — relevante se compararmos braços; (2) moderação humana eleva a sensibilidade intrínseca; (3) fontes de mídia foram mais úteis para detecção precoce que fontes oficiais (C-Se 27% menor para oficial precoce), o que conversa diretamente com usar notícia (Agência Brasil) como fonte de sinal. NÃO transfere: os sistemas, o gold-standard francês (BHI/InVS) e qualquer coisa de representação vetorial (não há). Distância de domínio é GRANDE em dois eixos: (a) o objeto é sistema-de-biosurveillance vs. o nosso é representação/embeddings de texto; (b) idioma — português representa só 5% dos sinais (22 de 472), sem resultado por idioma (poucos eventos para estratificar), então nada garante que os padrões valham para PT-BR. Nada aqui é um método que se plugue no nosso transform.",
+  "red_flags": [
+    "Gold-standard pequeno (86 eventos, 22 doenças) impede análise estratificada — os próprios autores admitem que associações podem ter sido mascaradas.",
+    "Gold-standard de um único país e ano (BHI/InVS, 2010), enviesado para o interesse francês: 64% dos eventos eram vetoriais/arbovírus, e a seleção prioriza áreas próximas a territórios franceses.",
+    "Busca retrospectiva por palavras-chave pode inflar as taxas — os próprios autores citam estudo anterior com detecção prospectiva 17% menor que a retrospectiva.",
+    "Sistemas são caixas-pretas proprietárias: sem código, sem dados, sem reprodutibilidade; os resultados não podem ser reconferidos por terceiros.",
+    "Nenhum baseline moderno de NLP; a comparação é só entre os seis sistemas e moderado vs. automatizado, num único ano.",
+    "Mede desempenho de detecção de eventos, não qualidade de representação de texto — não há número de embedding, encoder ou pooling a aproveitar."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "key": "krasnov2019numbertopics",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/11_krasnov_2019_number_topics_optimization_clustering.pdf",
+  "author": "Krasnov & Sen",
+  "year": 2019,
+  "read": "Li o PDF inteiro (11 paginas). Capa/abstract (p.1), Introducao (p.1-3), Research Methodology (p.3-6), Experiment (p.6-9), Conclusions (p.8-9) e Referencias (p.9-11). Consultei a descricao textual das Figuras 1-6 e do Algorithm 1 (p.7) — as figuras sao imagens e nao foram inspecionadas visualmente. Extrai o texto com pdftotext -layout e confirmei cada citacao por busca literal (normalizando espacos em branco) no arquivo extraido.",
+  "technique": "Modelagem de topicos com regularizacao aditiva (ARTM, via a biblioteca BigARTM) para separar topicos principais de topicos auxiliares/de ruido. Cada topico e convertido num vetor denso pela media dos vetores de palavra (GloVe; FastText e Word2Vec sao citados como alternativas) das palavras do nucleo do topico. Sobre esses vetores os autores definem uma metrica nova de validacao de cluster, o Cosine Davies Bouldin Index (cDBI) — variacao do indice Davies-Bouldin que troca a distancia euclidiana por similaridade de cosseno. O numero otimo de topicos e o k que maximiza o cDBI.",
+  "representation": "O texto nao passa por encoder neural: vira probabilidades num modelo ARTM (p(t|w), p(w|t)). A representacao densa aparece depois, somando/normalizando os vetores GloVe das palavras de cada topico, de modo que o topico vira um ponto num espaco vetorial de alta dimensao. A decisao de representacao que o artigo defende e a geometria: usar similaridade de cosseno, e nao distancia euclidiana, porque em vetores de alta dimensao o cosseno separaria melhor. O cosseno entra tanto no calculo do centro do topico quanto na razao que forma o cDBI.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O experimento rodou sobre 1.695 artigos cientificos em ingles distribuidos em 10 areas de pesquisa.",
+      "citacao": "In total, 1695 articles in English were selected in 10 areas of research according to the rubrics.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "As metricas internas do modelo de topicos (pureza, contraste, tamanho do nucleo, coerencia) variam de forma monotonica com o numero de topicos e por isso nao localizam um otimo.",
+      "citacao": "the nature of the dependencies is monotonous and does not allow determination of the optimal number of topics.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Os indices de validacao de cluster Calinski-Harabaz e coeficiente de silhueta tambem falham em determinar o numero otimo de topicos.",
+      "citacao": "According to Figure 5, the Calinski-Harabaz index and silhouette coefficient metrics do not make it possible to determine the optimal number of topics.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A metrica nova proposta pelos autores (cDBI) apresenta um maximo nitido quando o numero de topicos e igual a 16.",
+      "citacao": "In Figure 6 the maximum is clearly expressed when the number of topics is equal to 16.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O resultado final apontou 16 topicos como otimo (desvio padrao 2), obtido com muitos re-treinos para eliminar o efeito da ordem dos documentos.",
+      "citacao": "As a result, the experiment showed that the maximum value of the cDBI metric for test corpus is achieved with the average number of topics equal to 16 with standard deviation 2.",
+      "pagina": 9
+    }
+  ],
+  "ressalva_do_autor": "Os autores delimitam o escopo ao dizer que o metodo foi confirmado apenas sob tres condicoes: 'It should be said that the proposed method was experimentally confirmed under the following conditions: A small collection of documents; English language documents (monolingual text corpus); Thematic uniformity.' (p.8). Ou seja: corpus pequeno, monolingue ingles e tematicamente homogeneo.",
+  "evidence": "Nao ha ground-truth externo de k: o 'otimo' e definido pela propria metrica proposta. A evidencia e a forma das curvas ao longo de k. Contra as metricas internas do modelo (coerencia, contraste, pureza, tamanho do nucleo) os autores mostram comportamento monotonico — pureza/contraste decrescem, coerencia cresce — e as curvas de pureza e coerencia se cruzam em 12 topicos, sem extremo confiavel. Contra os indices de validacao de cluster (Calinski-Harabaz e silhueta) mostram decaimento monotonico, ou seja, tambem nao acham otimo. O cDBI, ao contrario, apresenta um maximo nitido em 16 topicos (sd 2), obtido com muitas re-treinos para eliminar o efeito da ordem dos documentos. Nao ha F1, acuracia, tarefa downstream nem teste estatistico de 16 contra alternativas.",
+  "needs": "Precisa de um modelo de topicos com regularizacao aditiva (BigARTM/ARTM) — NAO esta nos extras instalados (temos tomotopy, que e DMR, nao ARTM) — e de vetores de palavra densos (GloVe) para a lingua do corpus; para PT-BR isso exigiria baixar/treinar vetores proprios, ja que o artigo usa GloVe ingles. Corpus de teste dos autores: 1.695 documentos em ingles (pequeno, homogeneo, uma area). O procedimento exige re-treinar o modelo de topicos muitas vezes por candidato a k (a medicao das metricas internas usou 1000 ordens aleatorias; o cDBI usou 'a large number of model training'). Nenhum uso de GPU e reportado; BigARTM roda em CPU. Tempo de execucao, memoria e custo de treino: nao reportado.",
+  "cost_here": "Custo alto por dependencia nova e por idioma. O cDBI em si e barato (cosseno entre vetores de topicos), mas o metodo depende de BigARTM (ARTM), que nao esta fixado no pyproject — hoje temos tomotopy. Alem disso precisariamos de vetores GloVe/FastText em PT-BR, que o artigo nao fornece. O passo caro e re-treinar o modelo de topicos repetidas vezes para cada k candidato sobre 4.369 artigos PT-BR; os autores nao reportam tempo, entao o custo real de CPU e nao reportado. Nao da para afirmar que e barato.",
+  "transferable": "Transfere: a ideia de escolher o numero de topicos por uma metrica sobre a geometria dos embeddings (cDBI), e o achado negativo de que metricas internas (coerencia/pureza) e indices CH/silhueta nao apontam o otimo — isso vale para a nossa familia de topicos, que ja tem o braco 03 (DMR/tomotopy). Nao transfere: o dominio. O corpus deles e ingles, cientifico, homogeneo e pequeno (1.695 docs com estrutura de template e um topico principal por documento); o nosso e noticia PT-BR heterogenea, 4.369 artigos, 965 semanas, 28 locations, texto curto e multitematico — a premissa de colecao homogenea nao se sustenta. A geometria do cosseno deve transferir, mas o valor de 16 topicos e especifico do corpus deles. Tambem nao transfere o ARTM/BigARTM, que nao e o nosso stack (tomotopy/DMR).",
+  "red_flags": [
+    "Raciocinio circular: o 'numero otimo' e definido pela propria metrica nova (cDBI), sem ground-truth externo nem tarefa downstream que confirme que 16 e melhor.",
+    "Corpus unico e de um so dominio (petroleo/gas, ingles, 1.695 docs); nenhuma replicacao em segundo corpus ou outra lingua.",
+    "Avaliacao so pela forma da curva: nao ha F1, acuracia, ganho sobre baseline rotulado nem teste estatistico entre k=16 e alternativas.",
+    "cDBI demonstrado apenas com GloVe; FastText e Word2Vec sao citados como opcao, mas nao avaliados — medicao presa a uma unica representacao.",
+    "Hiperparametros de regularizacao (mu) vem de estudo anterior dos autores [45], nao re-derivados aqui, o que torna o setup dependente de trabalho externo.",
+    "O otimo achado (16) difere das 10 areas tematicas com que o corpus foi montado, e o artigo nao explica a discrepancia."
+  ]
+}

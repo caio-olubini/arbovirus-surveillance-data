@@ -1,0 +1,51 @@
+{
+  "key": "roberts2019stmr",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/44_roberts_2019_stm_r_package_structural.pdf",
+  "author": "Roberts et al.",
+  "year": 2019,
+  "read": "Li o PDF inteiro por extração de texto (pdftotext, página a página, ordem de leitura). Cobri: capa, metadados e abstract (p.1); Seção 2 com o modelo generativo e as Equações 1-4 (pp.2-3); Seção 3 inteira (ingest, prepare, estimate, evaluate, understand, visualize), incluindo seleção de modelo com coerência semântica e exclusividade/FREX (pp.3-23); Seção 4 (inicialização, critérios de convergência, ngroups, SAGE, pp.23-26); Seção 5 (priors alternativos, pp.27-28); Seção 6 (benchmark vs CTM, Tabela 1 e desenho da implementação, pp.28-31); Conclusão (p.31); e o Apêndice A com as ferramentas de avaliação e a ressalva sobre imprecisão da estimação (pp.38-39). Não reli as referências bibliográficas (pp.32-37) em detalhe.",
+  "technique": "Não propõe embedding nem encoder: é o modelo de tópicos estrutural (STM), da família LDA, e o pacote R homônimo. Modelo generativo de contagens de palavras em que cada documento é uma mistura de K tópicos (proporções theta que somam 1) e cada tópico é uma mistura sobre o vocabulário (distribuição beta). A inovação é permitir metadados por documento como covariáveis em duas vias: (a) prevalência tópica — quanto do documento é de cada tópico, via regressão logístico-normal sobre X_d; (b) conteúdo tópico — quais palavras definem o tópico, variando por grupo de uma covariável categórica. Estimação por inferência variacional parcialmente colapsada com aproximação de Laplace, em C++/Armadillo via RcppArmadillo.",
+  "representation": "O texto vira número em duas etapas: (1) o corpus é reduzido a uma matriz esparsa de contagens documento x vocabulário (saco de palavras, após stemming e remoção de stopwords); (2) o modelo estima, por documento, um vetor theta de K proporções sobre tópicos e, por tópico, uma distribuição beta sobre as V palavras. Não há encoder neural, pooling nem embedding denso — é contagem de palavras mais mistura latente. A 'representação' de um documento é o vetor theta de K proporções; os metadados entram como covariáveis que deslocam theta (prevalência) ou beta (conteúdo). A dimensão da representação é o número de tópicos K, escolhido pelo usuário.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A inovação central do STM é permitir que metadados por documento entrem no modelo de tópicos como covariáveis, e não apenas como filtro ou rótulo externo.",
+      "citacao": "The key innovation of the STM is that it incorporates metadata into the topic modeling framework.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "No benchmark com 5.000 documentos, o STM é ordens de magnitude mais rápido que o CTM: 0,7 min no total (1,9 s/iteração) contra 96,7 min (170,7 s/iteração), com held-out log-likelihood igual ou melhor (-6,900 vs -6,935) e em menos iterações (21 vs 34).",
+      "citacao": "In fact, comparing comparable convergence thresholds the stm is able to run completely to convergence before the CTM has made a single pass through the data.",
+      "pagina": 30
+    },
+    {
+      "afirmacao": "A inicialização espectral é determinística (mesmo resultado independente do seed) e é a recomendada pelos autores, por produzir os melhores resultados de forma consistente frente à inicialização via LDA ou aleatória.",
+      "citacao": "In practice, we generally recommend using the spectral initialization as we have found it to produce the best results consistently",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Os autores propõem medir qualidade de tópico combinando coerência semântica e exclusividade (FREX), em vez de só coerência — porque coerência alta é fácil de obter com poucos tópicos dominados por palavras muito comuns.",
+      "citacao": "We thus propose to measure topic quality through a combination of semantic coherence and exclusivity of words to topics.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "O texto entra no modelo como saco de palavras: cada documento é uma mistura sobre K tópicos e cada tópico é uma mistura sobre as palavras do vocabulário — não há encoder nem embedding denso.",
+      "citacao": "a topic is defined as a mixture over words where each word has a probability of belonging to a topic.",
+      "pagina": 2
+    }
+  ],
+  "ressalva_do_autor": "O artigo declara, na abertura do Apêndice A, que 'estimation in topic model space requires both an a priori number of topics input by the user, and furthermore an optimization in a space with multiple solutions' (p.38) — ou seja, a estimação é imprecisa por construção, o número de tópicos K é escolha do usuário e há múltiplas soluções. Também admite que a seleção automática de K via Lee & Mimno (2014) 'has no particular statistical guarantees' (p.12), e que a inicialização determinística pode não dar exatamente o mesmo resultado entre máquinas por diferenças de precisão numérica (nota 9, p.10).",
+  "evidence": "Tabela 1 (p.29), em 5.000 documentos (poliblog5k): STM total 0,7 min e 1,9 s/iteração em 21 iterações, contra CTM 96,7 min e 170,7 s/iteração em 34 iterações; held-out log-likelihood -6,900 (STM) vs -6,935 (CTM). O único baseline é o CTM do pacote topicmodels (mesmo modelo generativo, aproximação variacional distinta) — não há comparação com LDA, DMR, BTM/ETM ou qualquer embedding. A avaliação é intrínseca (log-likelihood held-out via make.heldout/eval.heldout, mais coerência semântica e exclusividade/FREX), não uma tarefa downstream. Os próprios autores dizem que os objetivos não são diretamente comparáveis e usam held-out como proxy.",
+  "needs": "Pacote R `stm` (CRAN, v1.3.4) mais Rcpp/RcppArmadillo e glmnet; roda em CPU, sem GPU e sem modelo pré-treinado. Não exige dados rotulados (não supervisionado). Exige o número de tópicos K escolhido a priori e uma matriz de metadados alinhada ao vocabulário; uma covariável de conteúdo tem de ser categórica (não contínua). Língua: o exemplo é inglês, mas o pré-processamento (textProcessor) usa o pacote tm e suporta vários idiomas. Hardware dos benchmarks: não reportado. Corpus do exemplo: 5.000 posts de blog político dos EUA.",
+  "cost_here": "Não reportado (o artigo não informa o hardware dos benchmarks, então os tempos de 0,7 min vs 96,7 min não são reproduzíveis como custo). O método é CPU-only e o corpus do benchmark (~5 mil documentos) é do mesmo porte do nosso (~4,4 mil artigos), então o custo de computação tende a ser modesto — mas o custo real aqui é de ecossistema: o `stm` é R + Rcpp, e nosso pipeline é Python. Adotá-lo implicaria uma dependência R nova e uma ponte R/Python, não um extra Python em pyproject.toml.",
+  "transferable": "A parte conceitual transfere muito bem: STM é exatamente 'modelo tópico + regressão de metadados', e temos metadados naturais (28 localidades e 965 semanas) que cabem como covariáveis de prevalência e de conteúdo — é o mesmo espaço de desenho do nosso braço 03 (DMR/tomotopy), e é onde o artigo é mais útil. O que não transfere: (1) é R, não Python, e o ganho alegado é de velocidade da implementação R, não de qualidade semântica; (2) o exemplo é blog político em inglês, não notícia em PT-BR, mas a distância de domínio é pequena porque o método é agnóstico ao domínio (saco de palavras); (3) não há nada sobre previsão de casos nem sobre português. Importante: STM é família LDA, não embedding — não compete com os braços 02 (embeddings), compete com o 03 (DMR).",
+  "red_flags": [
+    "Baseline único: compara só com o CTM (topicmodels); nenhum LDA, DMR, BTM/ETM ou embedding entra na comparação.",
+    "Avaliação só intrínseca (held-out log-likelihood, coerência/exclusividade), sem nenhuma tarefa downstream ou desfecho do domínio.",
+    "Um único corpus de avaliação: blogs políticos dos EUA, 5.000 documentos, em inglês — nenhum teste em notícia nem em português.",
+    "Hardware dos benchmarks não reportado — os tempos (0,7 min vs 96,7 min) não são reproduzíveis como custo.",
+    "O ganho alegado é de velocidade da implementação R, não de qualidade de tópicos; pode não transferir para uma reimplementação em Python.",
+    "É um paper-vignette de software: o objetivo é demonstrar o pacote, não estabelecer superioridade empírica num domínio.",
+    "A escolha de K = 20 no benchmark é declaradamente arbitrária ('We arbitrarily decided to evaluate performance using K = 20 topics')."
+  ]
+}

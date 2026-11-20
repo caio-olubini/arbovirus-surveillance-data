@@ -1,0 +1,50 @@
+{
+  "key": "hecking2018topicmodelling",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/27_hecking_2018_topic_modelling_empirical_text.pdf",
+  "author": "Hecking & Leydesdorff",
+  "year": 2018,
+  "read": "Li o artigo inteiro, páginas 1 a 17 do PDF. Capa/título/abstract e palavras-chave (p. 1); Introdução (pp. 2-4), incluindo a resposta literal dos autores do REF sobre por que não se reproduz o modelo original; Métodos (pp. 4-6); Data (p. 6, com a matriz palavra/documento e os parâmetros de LDA); Resultados — 3.1 Descriptives com Tabela 1 (PCA) e Tabela 2 (LDA) (pp. 6-9), 3.2 Stability of topics com a Equação 1 (topSim) e as Figuras 2 e 3 (pp. 10-12), 3.3 Interpretablity and Semantic Coherence com a Equação 2 e a Figura 4 (pp. 12-13); Discussão e Conclusões (pp. 13-14); seção explícita 'Limitations of the study' (pp. 14-15); Referências (pp. 15-17). Não li apenas o abstract: a comparação numérica LDA vs PCA, a medida de estabilidade topSim, a coerência interna e a ressalva declarada estão todas no corpo.",
+  "technique": "Compara dois modos de agrupar texto em tópicos a partir da MESMA matriz palavra/documento: (a) LDA (Latent Dirichlet Allocation), modelo probabilístico generativo em que cada documento é uma distribuição de probabilidade sobre tópicos e cada tópico uma distribuição sobre palavras, ajustado por Gibbs sampling; e (b) PCA (análise de componentes principais com rotação Varimax), isto é, análise fatorial clássica sobre contagens de palavras (bag of words), feita no SPSS v. 22. Ambos produzem, para cada palavra, um peso de pertencimento a um tópico (LDA) ou uma carga fatorial (PCA), e para cada documento um vetor de pertencimento/escores. Há ainda um mapa semântico: matriz de co-ocorrência normalizada por cosseno, comunidades por algoritmo de Louvain (Pajek) e visualização em VOSviewer. NÃO é um artigo sobre embeddings neurais — é um teste de confiabilidade, validade e reprodutibilidade de topic models probabilísticos contra uma decomposição por álgebra matricial.",
+  "representation": "O texto vira número em duas etapas. Primeiro, pré-processamento: minúsculas, stemming (Porter, 1980), remoção de stop-words e de pontuação, produzindo uma matriz palavra/documento de contagem com 890 palavras como colunas e 6.638 documentos como linhas. Segundo, a partir dessa matriz esparsa: (a) no LDA, infere-se uma probabilidade de participação de cada palavra e de cada documento em cada tópico — o 'número' é uma distribuição de probabilidade; (b) no PCA, extraem-se cargas fatoriais das palavras e escores fatoriais dos documentos — o 'número' é uma carga linear. Diferença estrutural destacada pelos autores: no PCA as palavras são particionadas (cada palavra cai num cluster), enquanto no LDA uma palavra pode pertencer a vários tópicos simultaneamente. O que o artigo mede sobre essa representação não é qualidade semântica absoluta, e sim ESTABILIDADE: quanto o conjunto de tópicos muda quando se remove uma fração pequena dos documentos.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Na estabilidade sob reamostragem, o PCA é mais robusto que o LDA: a maior distorção causada por amostragem no PCA ainda é menor que a menor distorção no LDA.",
+      "citacao": "the largest distortion by sampling in the case of PCA is smaller than the smallest distortion in the case of LDA",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "Em coerência semântica interna dos tópicos, os modelos baseados em LDA superam os modelos baseados em PCA.",
+      "citacao": "The coherence is higher in the case of LDA-based topic models when compared with PCA-based models.",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "Com a semente do Gibbs sampling fixada, a estrutura de tópicos se reproduz de execução para execução, embora as listas de top-10 palavras exibidas como indicativas possam variar.",
+      "citacao": "We found that the topic structure is reliably reproduced from run to run, although the lists of top-10 words made visible as indicative may vary.",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "O LDA é muito sensível a poucas remoções: retirar apenas 50 documentos já pode gerar tópicos bem diferentes do modelo original, enquanto o PCA se mantém mais estável nessa primeira intervenção.",
+      "citacao": "In the case of LDA, removing only 50 documents can lead to topics very different from the original model, whereas the PCA-based model is more robust and less sensitive for this first intervention.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "O experimento roda sobre uma matriz palavra/documento de 890 palavras (colunas) por 6.638 documentos (linhas).",
+      "citacao": "Our basic word/document matrix (Salton & McGill, 1983) thus contains 890 words as column variables attributed to 6,638 documents as rows.",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram, na seção 'Limitations of the study': «In terms of interpretability and semantic coherence only internal validation methods could be used due to a lack of ground-truth topics.» (p. 15). Imediatamente em seguida admitem que «more extensive experiments with different corpora in more areas of application are required» (p. 15) para se chegar a conclusões gerais. Ou seja: sem verdade-externa, a avaliação é apenas intrínseca, e o resultado se apoia num único corpus (REF 2014).",
+  "evidence": "O artigo compara LDA contra PCA sobre a MESMA matriz palavra/documento, com três medições: (1) estabilidade sob reamostragem — sorteiam 1.000 documentos (C_rem) e geram 20 corpora reduzidos removendo 50, 100, ..., 1000 documentos, medindo o topSim (Equação 1), sobreposição das top-S palavras de cada tópico do modelo testado com o melhor tópico correspondente no modelo de referência (adaptação própria da medida de pureza); (2) decaimento do topSim conforme o número de tópicos cresce (Figura 3); (3) coerência semântica interna (Equação 2, medida de Mimno et al. 2011 / Stevens et al. 2012). Baselines/contrastes: o PCA (análise fatorial da mesma matriz) e, como referência, o modelo original de Grant et al. (2015). Resultados: o PCA é mais estável (maior distorção do PCA < menor distorção do LDA); o LDA tem maior coerência interna, mas a coerência cai à medida que o número de tópicos aumenta, enquanto no PCA o número de tópicos não afeta a coerência; com 8 tópicos a classificação entre rodadas é 'significativamente a mesma' (Cramèr's V da ordem de 0,7, p < .001). Em descritivos, o scree-plot é muito plano — 361 autovalores > 1,0 — e 8 fatores explicam apenas 3,05% da variância. Não há validação externa com verdade-externa.",
+  "needs": "Implementação de LDA por Gibbs sampling (o artigo cita MALLET) e de PCA (feito no SPSS v. 22). Corpus de 6.638 documentos e vocabulário reduzido a 890 palavras. Parâmetros de LDA reportados: 40 burn-in, 1500 iterações, alpha = 50 / #textos, thinning = 50, com a semente aleatória fixada. Não exige GPU nem dados rotulados (não supervisionado). Exige tokenização e stemming — usam o stemmer de Porter, que é para inglês. Nenhum tempo de execução é reportado.",
+  "cost_here": "O artigo NÃO reporta tempo nem custo computacional — é 'não reportado'. Qualitativamente o método é CPU-friendly: LDA por Gibbs sampling sobre 890 palavras x 6.638 documentos é MENOR que os nossos 4.369 artigos x 965 semanas, e o extra 'topics' (tomotopy) já instalado cobre LDA/DMR. Não há GPU envolvida. O que pesa no nosso custo não é um modelo grande, e sim o DESENHO do experimento: treinar 20+ corpora reduzidos em vários números de tópicos (mais o PCA de referência) multiplica o número de ajustes; e o vocabulário/stemming é inglês (Porter), então reimplementar sobre PT-BR exigiria um stemmer/analisador em português. Nenhum número de tempo é dado no artigo.",
+  "transferable": "Transfere: o achado central é sobre o ALGORITMO, não sobre o domínio — que o LDA é instável sob pequenas mudanças no corpus (remover 50 de 6.638 documentos já muda os tópicos) é um alerta metodológico direto para o nosso braço 03 (DMR/tomotopy), sobretudo porque nossos 4.369 artigos são uma amostra (recorte por query dengue), não o universo. Transfere também a distinção entre corpora 'fechados' (onde o LDA serve) e 'abertos' (onde só se obtém amostras e o LDA é problemático). NÃO transfere: o domínio (descrições de impacto de pesquisa no Reino Unido, prosa acadêmica longa em inglês) e o idioma (stemmer de Porter em inglês) — nossos textos são notícia PT-BR, mais curta. A distância de domínio é grande; o que sobrevive é a técnica de estabilidade (topSim, remoção incremental), não o corpus nem a conclusão substantiva sobre tópicos de 'impacto'. A comparação LDA vs PCA também não mapeia direto: nosso braço de tópicos usa DMR (dinâmico), não LDA simples, e o 'baseline' PCA não tem equivalente no nosso desenho.",
+  "red_flags": [
+    "Sem validação externa: os autores admitem que só usaram critérios internos por falta de ground-truth, então a 'coerência' é uma métrica intrínseca única.",
+    "Baseline idiossincrático: PCA (análise fatorial de bag-of-words) é um contraponto incomum para topic modelling; não há comparação com NMF, com outra implementação de LDA ou com topic models neurais.",
+    "topSim, a medida central de estabilidade, é uma adaptação própria e explicitamente NÃO simétrica (topSim(mtest, mref) != topSim(mref, mtest)) — a leitura da 'distorção' depende dessa escolha.",
+    "Resultado de um único corpus (REF 2014) e de uma única configuração/implementação de LDA; os próprios autores pedem 'more extensive experiments with different corpora'.",
+    "Idioma e pré-processamento só em inglês (stemmer de Porter), o que limita a transferência para PT-BR.",
+    "Nenhum custo/tempo de execução reportado, o que dificulta julgar a viabilidade prática."
+  ]
+}

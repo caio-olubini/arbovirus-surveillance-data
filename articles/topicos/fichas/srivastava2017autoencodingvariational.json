@@ -1,0 +1,50 @@
+{
+  "key": "srivastava2017autoencodingvariational",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/42_srivastava_2017_autoencoding_variational_inference_topic.pdf",
+  "author": "Srivastava & Sutton",
+  "year": 2017,
+  "read": "Li o artigo inteiro em pypdf (12 páginas, ICLR 2017). Em detalhe: Abstract e Introdução (p.1-2), Background com LDA, mean-field e AEVB (p.2-4), Seção 3 (AVITM: colapso dos z's, aproximação de Laplace do prior Dirichlet, objetivo variacional, component collapsing) (p.4-6), Seção 4 (ProdLDA como produto de especialistas) (p.6), Seção 5 (trabalhos relacionados / NVDM) (p.6-7), Seção 6 com as Tabelas 1 a 7 (coerência NPMI, perplexidade, avaliação da rede de inferência, ablação de prior/otimização, tópicos exemplares e o caso de colapso) (p.7-10), e a Seção 7 (Discussão e trabalhos futuros) (p.9-10). Não reli as Referências (p.10-12).",
+  "technique": "AVITM é um método de inferência para o LDA baseado em autoencoding variational Bayes (AEVB). Em vez de otimizar parâmetros variacionais por documento (mean-field tradicional, que o artigo chama DMFVI), treina uma rede neural de inferência (feedforward) que mapeia o documento direto para os parâmetros (média e covariância diagonal) de uma posterior variacional sobre as proporções de tópico theta. Como o prior Dirichlet do LDA não tem reparametrização fácil, ele é aproximado por uma logística-normal (aproximação de Laplace, na base softmax), o que permite o truque de reparametrização e o treino por SGD. Os z (tarefas por palavra) são somados/colapsados. O artigo também propõe o ProdLDA, que troca a mistura de multinômios do LDA por um produto de especialistas (a mistura das palavras passa a ser feita no espaço de parâmetros naturais, com beta não normalizado).",
+  "representation": "Texto vira número em duas etapas. (1) Cada documento é um bag-of-words com vocabulário fixo (2.000 termos no 20 Newsgroups, 10.000 no RCV1). (2) A rede de inferência transforma esse vetor em um par de vetores de tamanho K (número de tópicos) — média mu e diagonal da covariância — de uma distribuição logística-normal; amostrando theta = softmax(mu + Sigma^{1/2} * eps) obtém-se o vetor de proporções de tópico do documento. Ou seja, a representação final de um documento é um vetor K-dimensional esparso de pesos sobre tópicos, e a matriz beta (V x K) dá a distribuição de palavras de cada tópico. A geometria relevante é a base softmax: o prior Dirichlet é aproximado por uma normal multivariada de covariância diagonal nessa base.",
+  "afirmacoes": [
+    {
+      "afirmacao": "AVITM treina o LDA muito mais rápido que a inferência variacional mean-field padrão: 46 segundos contra 18 minutos no 20 Newsgroups, e menos de 1,5 hora no corpus de ~1 milhão de documentos do RCV1, onde a DMFVI do scikit-learn não retornou resultado nem em 24 horas.",
+      "citacao": "However, AVITM is significantly faster to train than DMFVI. It takes 46 seconds on 20 Newsgroup compared to 18 minutes for DMFVI.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O ProdLDA (produto de especialistas no lugar da mistura de multinômios) produz tópicos de coerência melhor que o LDA padrão, inclusive o LDA treinado por amostragem de Gibbs colapsada.",
+      "citacao": "Comparing the new topic models than LDA, it is clear that ProdLDA finds significantly better topics than LDA, even when trained by collapsed Gibbs sampling.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A rede de inferência dispensa otimização variacional nos dados de teste: as proporções de tópico de documentos novos saem de um único forward pass, com a perplexidade praticamente inalterada.",
+      "citacao": "Rather, the inference network can be used to obtain topic proportions for new documents for new data points without running any optimization.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Component collapsing é um modo de falha concreto do AEVB em LDA: quando ocorre, os k tópicos inferidos saem idênticos (Tabela 7).",
+      "citacao": "The result is that the k inferred topics are identical as shown in table 7.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "A coerência alta só é obtida combinando learning rate/momento altos com batch normalization; nenhum dos truques isolado basta e, sem eles, o modelo colapsa (coerência 0,24 com ambos, contra 0,016 com LR baixo e 0,08 com prior gaussiano, Tabela 5).",
+      "citacao": "We find that the high topic coherence that we achieve in this work is only possible if we use both tricks together.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que o método é difícil de treinar e limitam seu escopo a modelos estáticos, sem correlação entre tópicos. Palavras deles: \"Although this combination may seem simple in principle, in practice this method is difficult to train because of the Dirichlet prior and because of the component collapsing problem.\" (p.9) e \"Future work could include extending our inference methods to handle dynamic and correlated topic models.\" (p.10).",
+  "evidence": "Compara contra três baselines: DMFVI (implementação scikit-learn), amostragem de Gibbs colapsada (mallet) e NVDM (Miao et al., 2016), medindo coerência de tópico por NPMI e perplexidade. Em 20 Newsgroups (k=50), coerência média: ProdLDA 0,24 vs LDA Gibbs 0,17 vs LDA DMFVI 0,11 vs NVDM 0,08 (Tabela 1); com k=200: ProdLDA 0,19 vs Gibbs 0,14 vs DMFVI 0,06 vs NVDM 0,06. Em RCV1 (k=50): ProdLDA 0,14 vs Gibbs 0,04 vs NVDM 0,07 (Tabela 2; DMFVI não convergiu em 24 h). Perplexidade no 20 Newsgroups fica comparável (ProdLDA 1172, LDA-DMFVI 1046, Gibbs 728; Tabela 3). Ablação (Tabela 5, k=50): coerência 0,24 com Dirichlet+LR alto vs 0,016 com LR baixo vs 0,08 com prior gaussiano. Velocidade: 46 s (AVITM) vs 18 min (DMFVI) no 20 Newsgroups; no RCV1, ~1,5 h vs falha da DMFVI após 24 h. Também mostram que a perplexidade de teste não muda ao trocar a otimização variacional pela rede (1172 vs 1162 em k=50; Tabela 4).",
+  "needs": "Requer uma rede de inferência feedforward própria — o código dos autores (2017) é em Theano e está no GitHub deles; não é um pacote pronto. Entrada é bag-of-words com vocabulário fixo (2.000 termos no 20 Newsgroups, 10.000 no RCV1) e pré-processamento em inglês (remoção de stopwords). Não usa dados rotulados (não supervisionado). No experimento relatado o treino usa GPU (1 milhão de documentos em menos de 80 minutos numa única GPU) e exige ajuste cuidadoso de hiperparâmetros (β1 e η escolhidos por otimização bayesiana, com batch normalization).",
+  "cost_here": "Alto. AVITM/ProdLDA não existe em nenhum extra instalado (não está no tomotopy) — exigiria reimplementação do zero, e o código de 2017 é Theano, defasado. O artigo reporta tempos só em GPU; custo em CPU é não reportado. Não precisa baixar modelo pré-treinado (treina do zero), evitando os ~800 MB de transformers, mas o treino em CPU com momentum alto + batch norm não tem número medido no artigo. Nosso corpus é pequeno (4.369 documentos, 965 semanas, 28 locations), o que sugere treino barato, mas isso não é estimativa que o artigo forneça — para CPU, o custo é não reportado.",
+  "transferable": "Transfere a arquitetura de encoder (rede de inferência que mapeia documento -> proporções de tópico) e, principalmente, a propriedade central para um painel: uma vez treinada, atribuir tópico a documentos/semanas novas é um único forward pass, sem otimização por documento — útil para o painel 965 semanas x 28 locations. Transfere também o alerta de component collapsing e a receita de treino (LR alto + batch norm). NÃO transfere direto: todos os experimentos são em inglês (20 Newsgroups e RCV1, ambos notícia/inglês), sem nenhum resultado em português; a distância de domínio é grande (notícia PT-BR, vocabulário de arbovirose, documentos curtos/médios). O ganho medido é em coerência NPMI (métrica intrínseca), não em tarefa preditiva de vigilância — não há evidência de que melhore previsão de casos. E o benefício de velocidade em inferência de teste importa mais para volumes grandes de documentos novos do que para nosso corpus pequeno.",
+  "red_flags": [
+    "Avaliação apenas intrínseca (coerência NPMI e perplexidade); nenhuma tarefa downstream/extrínseca é medida.",
+    "Todos os datasets são em inglês (20 Newsgroups, RCV1 Volume 2); nenhum resultado fora do inglês, o que é exatamente a distância para o nosso caso PT-BR.",
+    "A melhora do ProdLDA sobre o LDA é parcialmente qualitativa ('appear visually more coherent'); o número principal vem de NPMI, que é proxy automático do julgamento humano.",
+    "O ganho depende de tuning fino de hiperparâmetros (β1 e η por otimização bayesiana) e de batch normalization; sem isso há component collapsing — resultado frágil a configuração.",
+    "A comparação de velocidade pode ser injusta: AVITM em GPU contra uma DMFVI (scikit-learn) que 'falhou em retornar resultados' pode refletir a implementação, não só o método.",
+    "Resultado citado em nota de rodapé (que 'whitening the topic matrix' melhora a coerência) é manuscrito em preparação, não publicado nem revisado."
+  ]
+}

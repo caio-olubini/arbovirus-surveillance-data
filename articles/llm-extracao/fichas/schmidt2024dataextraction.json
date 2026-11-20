@@ -1,0 +1,51 @@
+{
+  "key": "schmidt2024dataextraction",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/06_schmidt_2024_llm_data_extraction_systematic_reviews.pdf",
+  "author": "Schmidt et al.",
+  "year": 2024,
+  "read": "Li o corpo completo do artigo em PDF (32 páginas), páginas 1 a 13: capa/cabeçalho (autoria e ano), abstract (p.1), Introdução (p.1-2), Métodos e questões de pesquisa (p.2), Dados dos dois estudos — comparativo e PICO/EBM-NLP (p.2-3), Desenvolvimento de prompts (p.3-4), Submissão ao GPT-4 com parâmetros e modelo (p.4-5), Avaliação da acurácia (p.5-6), Resultados com a Tabela 2 e as descrições das Figuras 1-4 (p.7-10), Análise de estabilidade das respostas (p.9), Discussão, força e limitações (p.10-12) e Conclusões (p.12). Não li os apêndices A-H (prompts completos, tabelas de acurácia por item, escores BLEU/ROUGE) — o texto os referencia, mas não os reproduz no corpo.",
+  "technique": "Uso zero-shot de um LLM (GPT-4, modelo '2023-07-01-preview' via Azure OpenAI API, acessado em 13-15 de dezembro de 2023) para extrair itens de dados de resumos (abstracts) de estudos, dentro do contexto de automação de revisões sistemáticas. Não há treino nem ajuste de modelo: escreve-se um prompt de sistema ('você extrai dados do texto abaixo para um objeto JSON...') e envia-se o abstract; o modelo devolve um JSON com campos como study design, subjects, N of subjects, comparisons, outcomes. Parâmetros fixados para reprodutibilidade: temperature=0, frequency_penalty=0, presence_penalty=0, top_p=0.95. Dois estudos: (a) comparativo, 3 domínios (clínica humana, ciências sociais humanas, animal), 2 estudos por domínio para desenvolvimento de prompt e 10 por domínio para teste; (b) PICO, prever População/Intervenção/Controle/Desfecho em 100 resumos do dataset EBM-NLP. A avaliação é humana, item a item, classificando cada resposta como complete/partial/incorrect.",
+  "representation": "O artigo NÃO usa embeddings: não há encoder, pooling, normalização nem geometria vetorial. O texto entra como string no prompt e sai como string/JSON gerado pelo modelo generativo; a 'representação' é a própria saída textual estruturada em JSON, sem espaço vetorial intermediário. A avaliação também não é vetorial: dois revisores humanos (estudo comparativo) ou um autor (estudo PICO) leem a resposta e atribuem categoria manual. BLEU e ROUGE foram calculados para o estudo PICO, mas os autores relatam que 'their results were not meaningful' — ou seja, nem a métrica de sobreposição de n-gramas se mostrou útil aqui.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A acurácia global de extração ficou em torno de 80%, com variação por domínio: 82% em clínica humana, 80% em animal e 72% em ciências sociais humanas.",
+      "citacao": "Overall, results indicated an accuracy of around 80%, with some variability between domains (82% for human clinical, 80% for animal, and 72% for studies of human social sciences).",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "No estudo comparativo, das 260 informações extraídas de 30 estudos, 78% (n=194) foram totalmente corretas, 13% (n=32) parcialmente corretas e 10% (n=24) incorretas.",
+      "citacao": "Overall, 260 pieces of information were extracted from the 30 studies in the test set. 78% (n=194) were adjudged to be completely correct; 13% (n=32) partially correct; and 10% (n=24) incorrect.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A extração é instável mesmo com temperature=0: campos booleanos e numéricos foram totalmente estáveis entre execuções, mas respostas de texto (string) foram idênticas em apenas 69% das vezes, com diferenças pequenas em 23% e diferenças substantivas em 7% dos casos.",
+      "citacao": "We found that responses for “Boolean” and “Number” questions were entirely stable. However, for “String” questions, answers were identical only 69% of the time, with small differences 23% of the time and substantive differences 7% of the time.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Nenhuma área e nenhum estudo atingiu 100% de acurácia; o item mais forte foi o país (90%, mapeado ao código ISO Alpha-3), enquanto o desenho de estudo foi o mais difícil (47% de respostas completas na Tabela 2).",
+      "citacao": "In no areas, and in no studies, did the automated data extraction reach 100%. However, the highest accuracy was for the extraction of country, and this was correctly extracted and mapped against the ISO Alpha-3 code 90% of the time.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "No estudo PICO, a extração de participantes e de intervenção/controle teve mais de 80% de respostas 'complete', mas desfechos (outcomes) foram mais difíceis de extrair de forma completa e correta.",
+      "citacao": "with over 80% rated as ‘Complete’. As also found above (see Figure 2), outcomes were more challenging to extract completely and accurately.",
+      "pagina": 10
+    }
+  ],
+  "ressalva_do_autor": "Os próprios autores declaram, na seção de limitações, que o padrão-ouro não foi extraído de forma independente e dupla e que os avaliadores não foram alinhados nos critérios: 'Most notably, we did not attempt to create our ‘gold standard’ data through doing independent double data extraction, and nor did we ensure that the pairs were applying the assessment criteria in the same way; this may have introduced potential bias.' Declaram também que aplicaram o modelo apenas a abstracts e não a relatórios completos: 'We also applied the model to abstracts only, rather than full reports, which may limit its generalisability to real-world data extraction scenarios.' E admitem possível contaminação por treino: 'it is quite possible that the LLM itself was trained on at least parts of the evaluated data'.",
+  "evidence": "A evidência é descritiva e baseada em avaliação humana, sem baseline de machine learning clássico. O estudo comparativo mede acurácia item a item sobre 30 estudos (260 itens): 78% completas, 13% parciais, 10% incorretas, com Tabela 2 variando de 47% (desenho de estudo) a 100% (estudo em animais). O estudo PICO replica o achado em 100 abstracts do EBM-NLP com ~80% de acurácia. Os autores comparam esse número com (a) a expectativa de que ferramentas de automação de revisão sistemática atinjam 98-99% de acurácia e (b) escores F1 de 76-78% relatados na literatura para EBM-NLP, ressalvando que a diferença de método de avaliação limita a comparabilidade. Não há comparação contra embedding/classificador supervisionado; os escores automáticos BLEU/ROUGE 'were not meaningful' frente à avaliação humana.",
+  "needs": "Exige acesso à API paga e proprietária da OpenAI/Azure (GPT-4, modelo '2023-07-01-preview') — não há modelo local nem inferência em CPU descrita. Exige textos em inglês (abstracts biomédicos, de ciências sociais e de estudos animais). Exige um padrão-ouro feito por humanos (dois revisores para os 30 estudos; um autor para os 100 do PICO) e rótulos humanos do dataset EBM-NLP para o estudo PICO. Tamanho de dados: 36 estudos processados manualmente (2 de treino + 10 de teste por domínio) e 100 títulos+abstracts. Sem GPU é irrelevante, pois o modelo roda na nuvem. Nenhum número de tokens, latência ou custo monetário é reportado.",
+  "cost_here": "Rodar sobre nossos 4.369 artigos em PT-BR exigiria chamadas a um LLM proprietário (API paga) — não roda nos extras já instalados (embeddings/tomotopy são irrelevantes para esta técnica) e não há caminho de CPU local descrito. Isso adiciona dependência nova (cliente de API + credenciais + custo por token), e o artigo NÃO reporta custo nem latência por requisição ('não reportado'), então não dá para estimar o custo por artigo a partir dele. O gargalo dominante não é computacional e sim humano: os autores só conseguiram avaliar manualmente 30 estudos + 100 abstracts em três dias de hackathon; na nossa escala, avaliação manual de saída por item é inviável, e o artigo não oferece alternativa automática confiável (BLEU/ROUGE não funcionaram).",
+  "transferable": "Transfere o achado metodológico de que campos booleanos/numéricos são mais estáveis e mais fáceis de extrair que campos de texto aberto (string), e o alerta de que a resposta varia entre execuções idênticas mesmo com temperature=0 — relevante para qualquer extração nossa baseada em LLM. Transfere também a recomendação de tratar o LLM como segundo revisor / destacador de trecho, não como automação plena, e a exigência de separação estrita treino/teste na construção de prompts. NÃO transfere a técnica em si: o artigo não usa embeddings, encoder nem pooling, então não há nada sobre geometria do espaço que valha para o nosso braço 02. A distância de domínio é grande: são abstracts biomédicos/de ciências sociais EM INGLÊS e itens típicos de revisão sistemática (desenho de estudo, PICO), enquanto nosso corpus é notícia em PT-BR e os itens de interesse são entidades de vigilância (sorotipo, contagem de casos, local). O resultado de 72% em ciências sociais já sinaliza que performance cai quando o texto é menos padronizado — e notícia é menos padronizada que abstract.",
+  "red_flags": [
+    "Amostra minúscula: 30 estudos (10 por domínio) no comparativo e 100 abstracts no PICO; diferenças de poucos pontos percentuais entre domínios cabem dentro do ruído.",
+    "Padrão-ouro construído por um único extrator por estudo e sem dupla extração independente (os autores admitem), o que contamina a própria medida de acurácia.",
+    "Avaliação puramente descritiva e manual, sem métrica automática validada; os próprios autores descartam BLEU/ROUGE por não serem 'meaningful'.",
+    "Um único modelo (GPT-4 '2023-07-01-preview'), em uma janela específica de 3 dias; nada indica que o resultado se mantém em outros LLMs ou versões.",
+    "Possível contaminação por treino: os abstracts avaliados podem ter estado nos dados de treino do GPT-4 (admitido pelos autores).",
+    "Sem números de custo, tokens ou latência, apesar de depender de API paga — impossível estimar viabilidade econômica.",
+    "Escopo de hackathon de 3 dias; os autores classificam o trabalho como estudo de viabilidade 'rápido', não como avaliação definitiva."
+  ]
+}

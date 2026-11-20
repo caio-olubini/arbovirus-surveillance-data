@@ -1,0 +1,51 @@
+{
+  "key": "peinelt2020tberttopic",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/06_peinelt_2020_tbert_topic_models_bert.pdf",
+  "author": "Peinelt et al.",
+  "year": 2020,
+  "read": "Li as 9 páginas do PDF (7047-7055). Página 1: capa, abstract e introdução (contribuições do tBERT). Página 2: datasets (MSRP, SemEval, Quora) com Tabela 1 e arquitetura tBERT (Figura 1, equações 1-3). Página 3: escolha do modelo de tópicos, hyper-parâmetros, Tabela 2 (dev set) e baselines. Página 4: seção Results, Tabela 3 (test set com números de todos os sistemas) e Tabela 4 (anotação manual de 500 exemplos). Página 5: experimento de finetuning estendido (Figura 2, Tabela 5) e conclusão. Páginas 6-7: referências. Página 8: apêndices A-D (exemplos de datasets, tópicos LDA/GSDMM, hyper-parâmetros). Página 9: apêndices E-G, com Tabela 14 (hyper-parâmetros do BERT) e Tabela 15 (tempos de treino em GPU). Procurei explicitamente por seção de limitações: não há.",
+  "technique": "tBERT é uma arquitetura que soma um modelo de tópicos clássico (LDA ou GSDMM, não neural) ao BERT pré-treinado. O BERT codifica o par de frases e devolve o vetor [CLS] de 768 dimensões; em paralelo, o modelo de tópicos infere uma distribuição de tópicos para cada frase (por palavra, depois tirada a média, ou por documento). Os dois vetores são concatenados e passam por uma camada oculta e um softmax para a classificação. A tarefa avaliada é detecção de similaridade semântica entre pares de frases curtas (paráfrase e relevância em perguntas-respostas), tratada como classificação binária. A hipótese é que os tópicos deem ao BERT um sinal extra sobre vocabulário específico do domínio que o pré-treinamento não viu.",
+  "representation": "Cada frase vira um vetor de duas partes. A parte contextual é C = BERT(S1, S2) ∈ R^d, o vetor [CLS] de 768 dimensões (BERT_base). A parte de tópicos é um vetor fixo de tamanho t (número de tópicos): W1/W2 são as médias das distribuições de tópicos das palavras de cada frase; D1/D2 são as distribuições de tópicos do documento inteiro. A representação final é a concatenação F = [C; W1; W2] ∈ R^{d+2t} (ou [C; D1; D2]), seguida de camada oculta + softmax. Ou seja, o texto vira número como a concatenação do embedding contextual do BERT com um vetor de tópicos LDA/GSDMM.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A representação final de cada frase é o vetor [CLS] do BERT concatenado com um vetor de tópicos (palavra ou documento), e é essa concatenação — não o modelo de tópicos sozinho — que alimenta o classificador.",
+      "citacao": "We combine the sentence pair vector with the sentence-level topic representations similar to Ostendorff et al. (2019)",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Adicionar tópicos LDA ao BERT melhora o F1 de forma consistente em todos os datasets avaliados, sobre o BERT sem tópicos.",
+      "citacao": "Adding LDA topics to BERT consistently improves F1 performance across all datasets.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O ganho do tBERT sobre o BERT se concentra em exemplos com vocabulário específico do domínio — não é uniforme.",
+      "citacao": "tBERT generally performed better than BERT on examples with domain-specific cases.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Treinar o BERT por mais épocas não alcança o tBERT, o que sustenta que o ganho vem dos tópicos e não de mais finetuning.",
+      "citacao": "We conclude that longer finetuning does not considerably boost BERT’s performance.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O modelo de tópicos é a parte barata do método: os autores o usam como atalho rápido para escolher hyper-parâmetros, medindo cerca de 12 segundos por experimento em CPU.",
+      "citacao": "We use the simple topic baseline (section 4) as a fast proxy (on average 12 seconds per experiment on CPU)",
+      "pagina": 3
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção de limitações. O único reconhecimento de fraqueza pelos autores está no fim da conclusão, em forma de trabalho futuro: o desenho atual apenas concatena a informação de tópicos, sem induzi-la diretamente, com risco de corromper a informação pré-treinada do BERT — \"Future work may focus on how to directly induce topic information into BERT without corrupting pretrained information and whether combining topics with other pretrained contextual models can lead to similar gains.\"",
+  "evidence": "Comparação no test set (Tabela 3) contra BERT puro (mesma arquitetura, sem tópicos), Siamese BiLSTM, Siamese BiLSTM+ELMo, baselines de tópicos (LDA/GSDMM com divergência Jensen-Shannon) e sistemas anteriores. tBERT com LDA: MSRP .884 vs BERT .876; Quora .905 vs .902; SemEval A .768 vs .704; B .524 vs .473; C .273 vs .268. Na métrica 'non-obvious F1' os ganhos são maiores: MSRP .866 vs .827, SemEval A .708 vs .656, SemEval B .258 vs .243, SemEval C .100 vs .085. O baseline de tópicos isolado (JSD) é fraco (SemEval C .096 vs BERT .268), indicando que o ganho vem da combinação, não do modelo de tópicos sozinho. Análise qualitativa de 500 exemplos anotados à mão (Tabela 4) atribui os ganhos a casos com vocabulário específico do domínio. O tBERT com LDA também supera o Siamese BiLSTM+ELMo (MSRP .884 vs .765; SemEval A .768 vs .661).",
+  "needs": "BERT_base pré-treinado (768 dimensões) + um modelo de tópicos LDA ou GSDMM por dataset. Dados de treino rotulados: pares de frases com rótulo binário de paráfrase/relevância — MSRP (5K pares), Quora (404K), SemEval A (26K), B (4K), C (47K). Treino do tBERT feito em GPU (NVIDIA Tesla K80), 3 épocas com early stopping; tempos por dataset na Tabela 15: MSRP 13 min, SemEval A 211 min, SemEval B 24 min, SemEval C 348 min, Quora 885 min. Número de tópicos 70-90, alpha 1 ou 10. Não reporta requisito de memória nem tempo de finetuning em CPU.",
+  "cost_here": "A parte de tópicos é barata: o artigo mede ~12 segundos por experimento em CPU, e nós já temos tomotopy instalado (braço 03). O caro é o BERT: o artigo só reporta finetuning em GPU (Tesla K80), 13-885 minutos por dataset em 3 épocas; custo em CPU não reportado. No nosso caso (4.369 documentos PT-BR, CPU only, sem GPU) seria preciso trocar o BERT_base inglês por um modelo PT-BR (ex. BERTimbau, +800 MB de torch/transformers já instalados) e finetunar — mas não temos pares de frases rotulados, então o pipeline supervisionado do tBERT não roda como está. Não reportado o custo de rodar esse finetuning em CPU.",
+  "transferable": "Transfere a ideia central e barata: concatenar um vetor de tópicos (LDA/GSDMM) ao embedding contextual do encoder, em vez de usar só o embedding — e isso é justamente o que um braço nosso poderia testar em cima do que já existe. Transfere também o achado de que tópicos por palavra superam tópicos por documento e que LDA é mais estável que GSDMM (este caiu em SemEval C), e a motivação de que o ganho se concentra em vocabulário específico do domínio — plausível no nosso caso (termos de dengue, sorotipo, vigilância em notícias PT-BR). NÃO transfere: os resultados são de similaridade entre pares de frases curtas em inglês (Q&A), não de notícia longa em PT-BR nem de modelagem temporal; o método exige finetuning supervisionado com pares rotulados, que nós não temos; a dimensão do ganho em MSRP (.884 vs .876) e Quora (.905 vs .902) é pequena e pode não replicar. A distância de domínio é grande — outro idioma, outro gênero textual (frase curta de fórum vs notícia), outra tarefa.",
+  "red_flags": [
+    "Avaliação só em inglês (Quora, MSRP, SemEval); nenhum dataset em outra língua.",
+    "Ganho sobre BERT em Quora (.905 vs .902) e MSRP (.884 vs .876) é pequeno e sem teste de significância — pode estar dentro do ruído.",
+    "O achado central (ganho em casos domain-specific) vem de anotação manual de 100 exemplos por dataset (500 no total), sem teste estatístico.",
+    "Usa um único encoder (BERT_base); não testa outros modelos contextuais nem outras línguas.",
+    "Exige finetuning supervisionado por dataset com pares de frases rotulados — não é aplicável sem rótulos.",
+    "Datasets pequenos (MSRP 5K, SemEval B 4K) tornam os números sensíveis à seed; os autores reportam média de apenas 2 seeds no dev.",
+    "O ganho depende da escolha do modelo de tópicos: GSDMM chegou a cair em SemEval C."
+  ]
+}

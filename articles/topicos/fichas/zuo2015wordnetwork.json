@@ -1,0 +1,51 @@
+{
+  "key": "zuo2015wordnetwork",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/30_zuo_2015_word_network_topic_model.pdf",
+  "author": "Zuo et al.",
+  "year": 2015,
+  "read": "Li o artigo inteiro (páginas 1-19 do PDF): capa com título, autores e abstract (p.1); introdução (pp.2-3); trabalhos relacionados (pp.3-4); o modelo WNTM — rede de co-ocorrência de palavras, pseudo-documentos, processo generativo e inferência de tópicos por documento (pp.4-7); análise de complexidade de tempo e espaço (p.7); algoritmo de re-ponderação da rede (p.8); seção de experimentos (pp.9-17) com Tabela 1 (coerência de tópicos em micro-blogs do Weibo), Tabela 2 (coerência na Wikipedia), Fig. 2 e Fig. 3 (similaridade de palavras), Tabela 3 e Fig. 4 (classificação de notícias), Fig. 5 (matriz de confusão), Fig. 6 (classificação sob desbalanceamento) e o experimento do evento MH370; conclusão e agradecimentos (p.17); referências (pp.17-19). Observação sobre a identificação: o PDF é o preprint arXiv:1412.5404v1, com carimbo '17 Dec 2014' na capa e os campos 'Received/Accepted' em branco; o ano de publicação do periódico não está impresso no documento.",
+  "technique": "WNTM (Word Network Topic Model): uma variante de LDA que aprende tópicos a partir de uma rede de co-ocorrência de palavras, e não a partir dos documentos. Constrói uma rede em que os nós são palavras e o peso de cada aresta é o número de vezes que duas palavras aparecem juntas numa janela deslizante de tamanho 10. Em seguida trata cada palavra como um 'pseudo-documento' cujo conteúdo é a lista das suas palavras vizinhas, e roda o Gibbs sampling padrão do LDA sobre esse conjunto de pseudo-documentos. O resultado é uma distribuição de tópicos por PALAVRA (θ_w), não por documento. Os tópicos são os grupos latentes de palavras da rede. Para obter os tópicos de um documento, combina as distribuições das palavras ponderadas pela frequência da palavra no documento.",
+  "representation": "Texto → número: a representação é uma distribuição de tópicos, ou seja, um vetor no simplex de K tópicos. Cada palavra vira um vetor θ_w = [θ_w,1, ..., θ_w,K], a probabilidade de pertencer a cada grupo latente, aprendida a partir da sua lista de vizinhos na rede de co-ocorrência. Cada documento vira P(z|d) = Σ_w P(z|w)·P(w|d), também um vetor de proporções de tópicos. A similaridade entre duas palavras é medida por divergência Jensen-Shannon ou por cosseno entre esses vetores de tópicos. Não há encoder neural nem embeddings pré-treinados: a 'geometria' é o espaço de contagem de co-ocorrência e a dimensionalidade é o número de tópicos K (usado K=100).",
+  "afirmacoes": [
+    {
+      "afirmacao": "No corpus de micro-blogs do Weibo (189.223 documentos, 20.942 palavras distintas, média de 17,2 tokens por documento), a coerência média de tópicos do WNTM supera a de LDA e BTM em todos os tamanhos de top-words testados (T=20: -1056,6 do WNTM contra -1235,9 do BTM e -1484,6 do LDA), com ganho estatisticamente significativo (p < 0,001 por teste t).",
+      "citacao": "We find that the average topic coherence of WNTM is obviously higher than other two models, which indicates that WNTM outperforms LDA and BTM in learning high quality topics from short texts.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Em textos normais (dataset Wikipedia com 71.986 documentos e 423,5 tokens em média), o WNTM não supera o LDA de forma estatisticamente significativa na coerência de tópicos — o ganho do método é específico de texto curto.",
+      "citacao": "According to the results of t-test, two models gain no statistically significant improvement than each other.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Na classificação de notícias sob desbalanceamento crescente, a precisão média do WNTM cai muito menos que a do LDA: com 60 e 40 documentos da classe rara 'Car', a precisão do LDA cai para 86% e 72%, enquanto a do WNTM se mantém em 90% e 85%.",
+      "citacao": "when the number of “Car” documents equals to 60 and 40, the average precision of LDA has decreased to 86% and 72% while WNTM’s average precision is 90% and 85%.",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "Na detecção de tópico emergente (evento MH370, com 10.000 micro-blogs do Weibo e injeção de dm mensagens relacionadas), o WNTM identifica o tópico a partir de dm ≥ 30, enquanto o LDA só o faz a partir de dm ≥ 50.",
+      "citacao": "From the results we find that WNTM can always identify a topic with word “MH370” contained by its top 20 word-list when dm ≥ 30. However, LDA achieves the same result only as dm ≥ 50.",
+      "pagina": 17
+    },
+    {
+      "afirmacao": "Em custo computacional, a rede de co-ocorrência crua torna o WNTM O(c²) vezes mais caro que o LDA, mas a re-ponderação das arestas reduz o custo para O(c) vezes o do LDA, um aumento apenas linear.",
+      "citacao": "the time and space cost of re-weighted WNTM is O(c) times the complexity of LDA, which is just a linear scale-up.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Não há seção de limitações explícita; os autores encerram a conclusão admitindo direções abertas: 'However, promising new research directions still exist for further study. For example, we would like to investigate the influence imposed on topic results as different means of establishing word co-occurrence networks are taken.' Além disso, registram que em textos normais a coerência do WNTM fica 'slightly lower than that of LDA when T = 20' e que a complexidade de tempo se torna 'unacceptable' para textos normais.",
+  "evidence": "Compara contra dois baselines: LDA (implementação JGibbLDA) e o biterm topic model (BTM). Mede: (1) coerência de tópicos (U-Mass) em micro-blogs do Weibo — WNTM melhor, p < 0,001 (Tabela 1); (2) similaridade de palavras por correlação ranqueada com divergência Jensen-Shannon e cosseno — WNTM melhor no Weibo (Fig. 2) e na Wikipedia (Fig. 3); (3) classificação de documentos com LIBLINEAR e validação cruzada 10-fold em títulos e conteúdo de notícias — WNTM melhor que LDA (Fig. 4); (4) classificação sob desbalanceamento — precisão 90%/85% do WNTM contra 86%/72% do LDA (Fig. 6); (5) detecção do evento MH370. Não é avaliação só intrínseca: combina a coerência intrínseca com tarefas extrínsecas.",
+  "needs": "Modelo sem rede neural e sem embeddings pré-treinados: apenas contagem de co-ocorrência mais Gibbs sampling (2000 iterações) sobre a estrutura do LDA. Não exige GPU — o artigo roda num Windows Server com Intel Xeon 2,40GHz e 12GB e num cluster Linux de 13 nós. Não exige dados rotulados para o modelo de tópicos (não supervisionado); apenas a avaliação de classificação usa rótulos. Testado em chinês (Weibo, notícias) e inglês (Wikipedia). Implementações usadas: JGibbLDA, PLDA e BTM em Java; o código do WNTM é disponibilizado numa URL dos autores. Não existe em tomotopy.",
+  "cost_here": "O artigo não reporta tempo de parede (wall-clock) — só a complexidade assintótica. O WNTM cru custa O(c²) vezes o LDA e, após re-ponderação, O(c) vezes; com a janela c=10, isso é cerca de 100x (cru) e 10x (re-ponderado) o custo de um LDA por iteração. Sobre o nosso corpus (4.369 artigos, 965 semanas, CPU) isso é uma constante multiplicativa sobre um LDA pequeno, mas não há medição no artigo para um corpus desse tamanho — é 'não reportado'. A implementação teria de ser código próprio (não há WNTM no tomotopy), o que adiciona custo de manutenção.",
+  "transferable": "Transfere: o alvo do WNTM é exatamente o nosso regime — texto curto e tópicos desbalanceados (dengue é sazonal e concentrada; algumas UFs dominam). É agnóstico de língua e domínio (testado em chinês e inglês) e não exige GPU nem embeddings pré-treinados, o que casa com a restrição de CPU-only. Não transfere, ou transfere com desconto: o grosso dos ganhos é medido em micro-blogs chineses de ~17 tokens, enquanto nossos textos são notícias PT-BR bem mais longas, e o próprio artigo mostra que em textos normais o WNTM empata com o LDA. A distância de domínio (Weibo/chinês → notícia/PT-BR) e de comprimento é grande, então o ganho provavelmente encolhe. Além disso, o WNTM não está no tomotopy.",
+  "red_flags": [
+    "Ganho principal medido em micro-blogs chineses do Weibo (140 caracteres) — língua e domínio distantes do nosso caso (notícia em PT-BR).",
+    "Em textos normais (Wikipedia) o WNTM não supera o LDA de forma estatisticamente significativa; o ganho parece específico de texto curto.",
+    "Classificação sob desbalanceamento avaliada com um único classificador (LIBLINEAR).",
+    "Coerência de tópicos é métrica intrínseca; o vínculo com tarefas a jusante é assumido, não medido diretamente.",
+    "Nenhum tempo de execução real reportado — só a complexidade assintótica, que não permite estimar custo no nosso corpus.",
+    "Experimento de tópico emergente é um único evento (MH370), em 10.000 micro-blogs, sem repetição em outros eventos.",
+    "É um preprint do arXiv (1412.5404v1, dez/2014); o ano de publicação do periódico não consta no PDF."
+  ]
+}

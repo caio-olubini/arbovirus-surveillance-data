@@ -1,0 +1,50 @@
+{
+  "key": "chiu2024predictingicu",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/03_chiu_2024_predicting_icu_readmission_electronic.pdf",
+  "author": "Chiu et al.",
+  "year": 2024,
+  "read": "Li a íntegra das 23 páginas via pdftotext -layout, com atenção a: 1 Introdução (p.1-2); 2.3 BERTopic e 2.4 LSTM (método, p.6-8); 2.6 Avaliação (p.9); 3.1 Predição de readmissão, Tabela 2 (AUROC, p.11) e Tabela 3 (precisão/recall/F1/acurácia, p.12); 3.2 Análise de texto com Tabela 4 (10 tópicos e keywords, p.13); 3.3 Importância de features (p.14); 4.1 Discussão (p.15-16); 4.2 Limitations (p.17); 5 Conclusions (p.18). Verifiquei cada citação contra o texto extraído do próprio PDF.",
+  "technique": "Pipeline supervisionado híbrido. As notas de alta (discharge summaries, texto livre) do MIMIC-III passam pelo BERTopic — embedding BERT (média dos estados ocultos dos tokens) → redução de dimensionalidade UMAP → clustering HDBSCAN → keywords por c-TF-IDF — gerando 10 'tópicos' (ex.: cirurgia cardíaca, abuso de substâncias/infecção, doença renal, diabetes). Cada paciente vira um vetor de tópicos, concatenado com 22 preditores estruturados (sinais vitais das 24h antes da alta, demografia, seguro, destino de alta) e alimentado a uma LSTM para prever readmissão em 30 dias. Compara com 6 modelos clássicos (SVC, RF, Gradient Boosting, XGBoost, LightGBM, CatBoost), com e sem os dados do BERTopic. O que ele mediu no domínio: AUROC e acurácia de prever readmissão de UTI.",
+  "representation": "O texto NÃO entra como embedding cru no classificador: é convertido em um VETOR DE TÓPICOS. Primeiro o BERT transforma a nota em um vetor (média dos hidden states dos tokens = mean-pooling). Depois o BERTopic agrupa as notas por similaridade (UMAP + HDBSCAN) e cada nota vira um pertencimento a 10 clusters-tópicos, que é somado às variáveis numéricas. Ou seja, a representação que chega ao modelo é uma distribuição sobre tópicos discretos, não a geometria do espaço de embeddings — o artigo não estuda encoder, pooling nem dimensionalidade.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O modelo híbrido BERTopic-LSTM atingiu AUROC 0.7994, que os autores apresentam como superior aos resultados de estudos anteriores de readmissão de UTI.",
+      "citacao": "Our BERTopic-LSTM model achieved an AUROC score of 0.7994 within the LSTM networks, which is notably superior to the results reported in previous studies.",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "Entre os sete classificadores testados, o BERTopic-LSTM teve a maior acurácia (0.9316), seguido de Random Forest (0.9290), CatBoost (0.8961) e XGBoost (0.8868).",
+      "citacao": "The BERTopic-LSTM model achieved the highest accuracy performance (0.9316), followed by Random Forest (0.9290), CatBoost (0.8961), and XGBoost (0.8868).",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "Modelos de readmissão anteriores (inclusive deep learning) ficavam na faixa de AUC 0.60-0.70, referência que o artigo usa para situar o quão modesto era o estado da arte.",
+      "citacao": "existing machine learning-based models have reported consistent but mediocre performance, with AUC scores ranging from 0.60–0.70.",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "O estudo usou 36.232 internações do MIMIC-III, com 3.836 pacientes readmitidos em 30 dias (taxa de 10,59%).",
+      "citacao": "Our analysis encompassed a total of 36,232 admissions, with 3836 ICU patients readmitted within this 30-day window, resulting in a readmission rate of 10.59%.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Os autores atribuem o ganho à integração de texto com dados quantitativos, não a uma técnica de NLP isolada.",
+      "citacao": "This indicates that combining natural language processing methods with quantitative data allows for more accurate prediction of discharge readmission rates.",
+      "pagina": 16
+    }
+  ],
+  "ressalva_do_autor": "Na seção 4.2 (Limitations) os autores declaram: \"Our study is based on patient data from the single-institution MIMIC-III\" (dados de uma única instituição, de grande porte urbano, possivelmente não aplicáveis a hospitais menores); \"Another significant limitation is the absence of proper external validation, which affects the overall credibility and generalizability of our predictive model\"; e \"the challenge of imbalanced datasets poses significant limitations\" (readmissão é classe minoritária, 10,59%). Também citam que erros de digitação nas notas médicas prejudicam a interpretação e que só usaram dados das 24h antes da alta.",
+  "evidence": "Evidência central: um ablation interno — o mesmo LSTM passa de AUROC 0.7532 (sem BERTopic) para 0.7994 (com BERTopic), ganho de ~0,046, e a acurácia do BERTopic-LSTM (0.9316) é a maior da Tabela 3. Compara contra 6 modelos clássicos com e sem BERTopic (Tabela 2: XGBoost 0.6921→0.7265; LightGBM 0.7205→0.7463; RF 0.6614→0.6807) e contra um classificador aleatório (AUROC 0.5). Contra a literatura, cita baselines de AUC 0.60-0.70 (Deng: RNN/GRU/LSTM 0.625/0.631/0.635; Xue 0.66; Alvaro 0.64; Wang & Cui 0.70; Huang & Altosaar 0.694). Não há baseline neural de embeddings no mesmo split (ex.: mean-pooling de BERT puro ou BERTopic com outro encoder); a comparação com a literatura é entre datasets e tarefas diferentes, não controlada.",
+  "needs": "Precisa de: MIMIC-III (acesso credenciado via PhysioNet, NÃO é dado público), notas de alta em inglês clínico, rótulo supervisionado de readmissão em 30 dias, BERTopic (depende de BERT/sentence-transformers, UMAP e HDBSCAN), LSTM (deep learning) e SMOTE para o desbalanceamento; usa também Eli5 para importância de variáveis. Modelo BERT específico: não reportado. Tamanho e tempo de treino: não reportado. GPU: o artigo não informa.",
+  "cost_here": "Custo sobre o nosso corpus: não reportado pelo artigo, e o gargalo não é só compute. BERTopic não está nos nossos extras (temos embeddings/torch+transformers e topics/tomotopy); adicioná-lo traz UMAP+HDBSCAN e um sentence-transformer (de centenas de MB a ~1 GB de modelo). Em CPU, sobre 4.369 documentos, é factível em minutos — mas o modelo padrão do BERTopic é treinado em inglês e o nosso texto é notícia PT-BR, então o custo real é de domínio e idioma, não de FLOPs. Sem número de tempo/memória no artigo: 'não reportado'.",
+  "transferable": "Transfere: (a) o desenho do ablation 'com vs. sem features de tópico' na MESMA base, que é o tipo de controle que a nossa comparação de braços precisa; (b) a ideia de usar tópicos como features adicionais a variáveis numéricas/temporais; (c) o alerta de que acurácia engana sob desbalanceamento. NÃO transfere: o domínio (nota clínica em inglês, MIMIC-III de uma única instituição) está longe de notícia PT-BR; a tarefa é classificação supervisionada com rótulo (readmissão), enquanto o nosso braço de tópicos é não supervisionado, sem rótulo; e o artigo não avalia escolha de encoder/pooling/dimensionalidade, então não informa o braço 02 (embeddings). Distância de domínio: grande.",
+  "red_flags": [
+    "Validação externa ausente e dados de uma única instituição (MIMIC-III) — os próprios autores admitem; ganho não replicado em outro hospital.",
+    "Ganho sobre o próprio baseline sem BERTopic é modesto (~0,046 de AUROC, 0.7532→0.7994), e a 'superioridade' contra a literatura compara datasets, splits e tarefas diferentes — baseline não controlado.",
+    "Acurácia alta (0.93) é medida após SMOTE com fator de 800% (prevalência 10,59% → 48,65%); acurácia sob rebalanceamento sintético infla o número e não é comparável a cenários reais.",
+    "Uma única configuração de BERTopic (10 tópicos), sem sensibilidade ao encoder, ao pooling ou ao número de tópicos; correção medida em um só pipeline.",
+    "Modelo BERT/sentence-transformer usado como embedding não é reportado; avaliação só em inglês.",
+    "O efeito de adicionar BERTopic é inconsistente entre classificadores (ex.: F1 do Random Forest quase não muda; recall do XGBoost fica ~0,50), sugerindo que parte do ganho é artefato de balanceamento/ruído."
+  ]
+}

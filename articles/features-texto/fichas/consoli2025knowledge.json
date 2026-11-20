@@ -1,0 +1,51 @@
+{
+  "key": "consoli2025knowledge",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/19_consoli_2025_knowledge_graph_who_don.pdf",
+  "author": "Consoli et al.",
+  "year": 2025,
+  "read": "Li o corpo inteiro do PDF (16 páginas de conteúdo, num arquivo de 19 páginas): Background & Summary (p. 1-2), Related Work (p. 3-4), Methods com as subseções 'LLMs for Epidemic IE' (p. 4-6), 'eKG FAIR Publishing' (p. 7-9) e 'eKG Services & Interfaces' (p. 9-10), Data Records com a Table 1 e a Fig. 5 (p. 10-13), Technical Validation com as Tables 2-5 e a Fig. 6 (p. 14-16), Usage Notes e Code availability (p. 16). Não reli as referências (p. 17-19). Conferi os números nas tabelas 2-5 e no texto das seções de validação.",
+  "technique": "Não é um artigo de representação de texto. É um artigo de aplicação: um pipeline que extrai campos epidemiológicos (nome da doença, país, data, total de casos e mortes) de relatos em prosa do 'WHO Disease Outbreak News' (DONs) usando um ensemble de três LLMs open-source — Mistral-7B-OpenOrca, Zephyr-7B-Beta e Meta-Llama-3-70B-Instruct — com votação por maioria para resolver discordâncias. Cada LLM recebe um prompt fixo que pede a saída em JSON; o ensemble escolhe a resposta de maior concordância. O resultado vira um grafo de conhecimento RDF/OWL chamado eKG, publicado seguindo princípios FAIR/Linked Open Data. O que ele mediu no domínio: precisão, recall e F1 por campo extraído, comparando o ensemble com cada LLM isolado e com modelos GPT comerciais, sobre um subconjunto anotado de um banco de eventos (IDB).",
+  "representation": "O texto NÃO vira vetor como método principal: vira campos estruturados por geração de texto do LLM (prompt -> JSON). Embeddings aparecem apenas como ferramenta de apoio, num ponto específico: para agrupar nomes de doenças e de países que são sinônimos antes da votação por maioria, os autores usam Sentence Transformers (SBERT) com o modelo all-mpnet-base-v2 (para países) e BioBERT (para doenças), comparando embeddings de sentença por similaridade de cosseno e tratando dois termos com similaridade acima de um limiar como o mesmo conceito. Ou seja: a geometria do espaço de embeddings é usada aqui só para decidir quando 'Dengue' e 'Breakbone fever' são a mesma entidade, não para representar as notícias.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O dataset final, após limpeza, tem 2.556 eventos extraídos, cobrindo 144 patógenos/doenças e 207 países distintos.",
+      "citacao": "After removing 353 entries with missing country and disease, the dataset consists of 2556 entries, listing 144 unique pathogens/diseases and 207 unique countries",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "O grafo de conhecimento eKG tem cerca de 46 mil triplas distintas, representando por volta de 2.900 eventos de surto únicos, gerados a partir de 3.600 axiomas generalizados, em fevereiro de 2025.",
+      "citacao": "graph of epidemiological information, comprising roughly of 46K distinct, non-reified",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "O ensemble dos três LLMs open-source foi a estratégia mais eficaz, obtendo o maior F1 nas quatro tarefas de extração e superando cada modelo individual, inclusive os GPT comerciais.",
+      "citacao": "The Ensemble approach, which combines the strengths of Mistral-7B-OpenOrca, Meta-Llama-3-70B-Instruct, and Zephyr-7B-Beta, emerges as the most effective strategy",
+      "pagina": 15
+    },
+    {
+      "afirmacao": "Para decidir se dois nomes representam o mesmo conceito, os autores fixaram experimentalmente um limiar de similaridade semântica de 0,8 (numa escala de 0 a 1), acima do qual os termos foram considerados iguais.",
+      "citacao": "We set an experimental threshold of 0.8 for the semantic similarity",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A avaliação quantitativa dos LLMs foi feita sobre um subconjunto de referência de apenas 171 amostras do Incident Database (IDB), usado como padrão-ouro.",
+      "citacao": "of 171 samples for which we were able to reconstruct the source url and locate the main text of the report, was considered",
+      "pagina": 14
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que não foi possível avaliar a extração do número de mortes, porque esse campo não estava anotado no IDB usado como padrão-ouro: \"It was not possible to evaluate the task of extracting the number of deaths as this information was not annotated in the IDB\" (p. 14), acrescentando que a performance nessa tarefa provavelmente é comparável à de casos, mas alertando que a variação de termos para mortes (fatalities, casualties, deceased, passed away) pode afetar a comparabilidade. Também observam que o próprio DONs não é um registro exaustivo de surtos e que os critérios de publicação da OMS \"are not entirely clear\" (p. 4).",
+  "evidence": "A evidência principal é a comparação do ensemble contra os LLMs individuais (open-source e GPT) sobre as 171 amostras do IDB, em quatro tarefas, reportada nas Tables 2-5. O ensemble teve o maior F1 em todas: nome da doença F1=0.851 (contra 0.840 do melhor modelo isolado, GPT-4-32k; 0.817 do Mistral e 0.834 do Llama-3-70B), país F1=0.962, data F1=0.869 e número de casos F1=0.658 (a tarefa mais fraca; o ensemble lidera em precisão, 0.788, mas o recall é só 0.591). Há também uma validação externa qualitativa na Fig. 6: a regressão entre os casos anuais reconstruídos e os casos confirmados pela OMS para MERS-CoV na Arábia Saudita é significativa (IC95% do coeficiente [0.10, 0.62], p<0.01), e sobe ao excluir 2013 (IC95% [0.30, 0.69], p<0.001). O ganho do ensemble sobre o melhor modelo único é de cerca de 1 ponto de F1 em nome de doença — pequeno.",
+  "needs": "Exige três LLMs (dois de 7B e um de 70B parâmetros: Mistral-7B-OpenOrca, Zephyr-7B-Beta, Meta-Llama-3-70B-Instruct), prompts fixos em inglês, o corpus textual do DONs (relatos em inglês) e um pequeno conjunto anotado por especialistas (171 amostras) para validar. A infraestrutura usada foi a JRC Big Data Analytics Platform e a plataforma GPT@JRC; o Meta-Llama-3-70B é citado como tendo inferência lenta pelo tamanho. Para o componente de apoio, exige os modelos SBERT all-mpnet-base-v2 e BioBERT. Custo de execução (tempo/dinheiro) não reportado. Língua: avaliação inteiramente em inglês.",
+  "cost_here": "Alto. O método central precisa inferência de um LLM de 70B parâmetros mais dois de 7B sobre todo o corpus; isso não roda em CPU em minutos — a própria máquina dos autores foi uma plataforma de big data. Os nossos extras são torch+transformers em CPU e tomotopy, e o custo de nova dependência é alto (fixado em pyproject.toml, transform precisa rodar em CPU em minutos). Apenas o sub-componente de embeddings (all-mpnet-base-v2, ~420 MB) é CPU-viável, mas ele só serve para agrupar nomes sinônimos, não para extrair os campos. Custo real do artigo: não reportado.",
+  "transferable": "Transfere o enquadramento do problema, não a técnica medida. A tarefa (de prosa de notícia -> doença, país, data, casos) é exatamente o que queremos para dengue na Agência Brasil, e o padrão 'ensemble + votação por maioria' é um desenho reutilizável. Mas a distância de domínio é grande em três eixos: (1) língua — toda a avaliação é em inglês, sobre relatos da OMS e um IDB em inglês; o F1 medido não transfere para notícia em PT-BR; (2) gênero do texto — DONs são relatos oficiais curados e padronizados pela OMS, enquanto notícia de agência é mais ruidosa e variada; (3) granularidade — o artigo extrai campos por evento de surto, não uma série temporal por UF como a nossa. O ponto que mais conversa com o nosso braço 02 (embeddings) é o uso de SBERT + limiar de cosseno para unir sinônimos de nomes de doença/país; essa ideia transfere, mas o limiar 0.8 foi ajustado em nomes de doenças/países em inglês, não em texto de notícia em PT-BR. A ideia de agrupar sinônimos por similaridade é, no fundo, um caso de uso de representação que já cobrimos no braço 02.",
+  "red_flags": [
+    "Padrão-ouro de avaliação com apenas 171 amostras — pequeno para separar modelos cujas diferenças de F1 são de ~1 ponto.",
+    "Avaliação só em inglês (DONs e IDB), sem nenhum teste em outra língua — o resultado não sustenta transferência para PT-BR.",
+    "Ganho do ensemble sobre o melhor modelo único é pequeno e possivelmente dentro do ruído (nome de doença: 0.851 vs 0.840 do GPT-4-32k, ~1 ponto de F1).",
+    "A tarefa de extração de mortes nunca foi avaliada quantitativamente (campo ausente no IDB).",
+    "A tarefa de número de casos tem recall baixo (0.591) mesmo no ensemble, apesar de liderar em precisão.",
+    "Sem comparação de custo/tempo de execução: o 70B é citado como de inferência lenta, mas nenhum número de latência ou custo é reportado.",
+    "Método central (três LLMs, incluindo 70B) não é reproduzível na nossa máquina CPU-only, então os resultados medidos não são verificáveis no nosso ambiente."
+  ]
+}

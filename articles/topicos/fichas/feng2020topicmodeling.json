@@ -1,0 +1,51 @@
+{
+  "key": "feng2020topicmodeling",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/48_feng_2020_topic_modeling_short_texts.pdf",
+  "author": "Yi et al.",
+  "year": 2020,
+  "read": "Li as 14 paginas do PDF (secoes I a V + referencias). Em detalhe: abstract e introducao (p.1-3); related work sobre topic modeling para texto curto e via embeddings (p.3-5); o modelo proposto TRNMF (p.5-8) - NMF base, matriz de pseudo-documentos, matriz semantica de word embeddings, matriz de clustering de documentos, funcao objetivo unificada e regras de atualizacao multiplicativa; analise de complexidade (p.8); experimentos (p.8-13) - datasets, baselines (BTM, WNTM, LF-DMM, GPU-DMM, PTM), configuracao, metricas (NPMI/coerencia, classificacao, legibilidade) e resultados; conclusao (p.12-13). Ressalva de leitura: as Tabelas 1-5 e as Figuras 4-8 estao em imagem e o texto extraido do PDF NAO contem as celulas numericas - so a prosa que as descreve. Nao consegui ler os valores exatos de acuracia/F1/coerencia das tabelas; so as afirmacoes qualitativas do corpo.",
+  "technique": "TRNMF e um modelo de topicos para textos curtos baseado em fatoracao nao-negativa de matrizes (NMF) regularizada. O texto vira numero em quatro frentes: (1) cada documento vira um vetor bag-of-words na matriz termo-documento X, ponderado pelo esquema TF-IWF proposto pelos autores; (2) embeddings de palavras pre-treinados (GloVe) viram uma matriz de similaridade semantica palavra-palavra S, via similaridade de cosseno; (3) vetores de paragrafo (Doc2Vec) dao a similaridade documento-documento, usada para agregar os top-3 textos mais similares num pseudo-documento (matriz Xo, mais densa); (4) um algoritmo de clustering de texto curto (GSDMM) gera uma matriz documento-documento G de rotulos de cluster. A NMF fatora X ~= U*V^T em topico-palavra (U) e topico-documento (V), com regularizadores que forcam U a concordar com S e V a concordar com G; resolve-se por atualizacoes multiplicativas.",
+  "representation": "Como o texto vira numero: representacao bag-of-words ponderada por TF-IWF para os documentos, embeddings densos pre-treinados (GloVe) para a semantica das palavras, e vetores de documento (Doc2Vec, 100 dimensoes) para a similaridade entre textos. A saida final por documento e uma distribuicao de K topicos (a coluna de V). Os embeddings de palavra entram como restricao geometrica - palavras proximas no espaco vetorial sao ligadas mesmo sem coocorrencia no corpus. Dimensoes: 300 (GloVe Google News), 200 (tweets), 100 (vetores de documento).",
+  "afirmacoes": [
+    {
+      "afirmacao": "No corpus de exemplo, a matriz termo-documento e quase toda zero - so 0,04% das entradas tem valor -, e e essa esparsidade que motiva o modelo.",
+      "citacao": "given a collection of 10,000 short texts in our case, only 0.04% entries of Xr have values",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Agregar os 3 textos mais similares num pseudo-documento sobe a densidade da matriz de ~0,04% para ~0,5% de entradas nao-zero.",
+      "citacao": "choosing top-N size to 3, the non-zero entries of Xo is about 0.5%",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O modelo usa GloVe para trazer palavras globalmente relacionadas do corpus inteiro e aliviar a esparsidade, mesmo quando elas nao coocorrem no conjunto de textos curtos.",
+      "citacao": "TRNMF exploits GloVe model to get the global semantically relevant words for target words under the entire corpus",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Na tarefa de classificacao de texto, o TRNMF supera todos os baselines em todos os tres datasets.",
+      "citacao": "our proposed method consistently outperform all other baseline methods on all data sets",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Na medida de coerencia de topicos, o TRNMF supera os demais metodos em todos os datasets.",
+      "citacao": "From these results, we can observe that (1) TRNMF outperforms other methods on all datasets and WNTM outperforms",
+      "pagina": 10
+    }
+  ],
+  "ressalva_do_autor": "Nao ha secao de limitacoes. A restricao que os proprios autores declaram e de cobertura de embeddings: 'A hard constraint is that all words in the short text corpus should have corresponding word embeddings.' e, como consequencia, 'we remove all the words without the related word embeddings.' Ou seja, o metodo exige que todo o vocabulario tenha embedding pre-treinado; palavras sem embedding sao descartadas.",
+  "evidence": "Compara contra 5 baselines (BTM, WNTM, LF-DMM, GPU-DMM, PTM) em 3 datasets (TMNews ~32.600 descricoes de noticias em ingles; Snippet; Twitter 5.513 tweets). Metricas: coerencia de topicos via NPMI/CV (implementacao Palmetto), classificacao com Naive Bayes e validacao cruzada de 5 folds (Precision/Recall/F1/Accuracy) e legibilidade dos topicos. Resultado: diz superar todos os baselines em todos os datasets em classificacao e em coerencia. Porem os autores NAO reportam as margens numericas no texto - as Tabelas 2-5 e as Figuras 5-8 estao em imagem e os valores exatos nao sao citados na prosa, so afirmacoes qualitativas ('consistently outperform', 'significant').",
+  "needs": "Exige embeddings de palavras pre-treinados cobrindo todo o vocabulario (GloVe 300d do Google News para noticias/snippets, 200d do Twitter), vetores de documento Doc2Vec e a implementacao do GSDMM (codigo publico citado). Nao usa GPU; complexidade T x O(MNK). O texto menciona treinar skip-gram em 100 bilhoes de palavras em 'menos de um dia num computador modesto'. Dados rotulados so sao necessarios para a avaliacao de classificacao, nao para treinar o modelo. Lingua: ingles. Corpus pequenos (32.600 noticias, 5.513 tweets).",
+  "cost_here": "Nao reportado (o artigo nao da tempo de execucao nem publica o codigo do TRNMF - so cita codigo de terceiros: GSDMM, word2vec, Doc2Vec/gensim, Palmetto). Rodar sobre os nossos 4.369 artigos seria barato em CPU (NMF e T x O(MNK) e o corpus e pequeno), mas nao existe implementacao pronta do TRNMF: exigiria reimplementar as atualizacoes multiplicativas + TF-IWF + Doc2Vec + GSDMM. Pior: os embeddings usados sao em ingles (Google News); para PT-BR precisariamos de embeddings em portugues - dependencia nova, nao instalada. E o TRNMF nao esta no tomotopy (o extra instalado), entao nao sai 'de graca'.",
+  "transferable": "Transfere a ideia central: usar embeddings de palavra pre-treinados como regularizador de um modelo de topicos para atacar esparsidade, e agregar documentos similares em pseudo-documentos. NAO transfere diretamente: (1) o dominio e texto MUITO curto (descricoes de noticia, tweets, snippets), enquanto os nossos artigos da Agencia Brasil sao noticias completas - a premissa de esparsidade (0,04% de entradas nao-zero) provavelmente nao vale na mesma intensidade; (2) os embeddings sao em ingles (Google News/Twitter) e nao cobrem PT-BR; (3) o clustering por GSDMM nao existe no tomotopy; (4) a distancia de dominio e de lingua e grande - bom resultado em tweet/descricao em ingles nao garante transferencia para noticia em portugues.",
+  "red_flags": [
+    "Avaliacao so em ingles e so em textos curtos; nada multilingue nem em noticia completa.",
+    "Os numeros exatos de ganho nao aparecem no texto (tabelas e figuras em imagem); 'consistently outperform' e 'significant' sem margem nem teste estatistico.",
+    "So uma fonte de embeddings por dataset; sem ablacao entre modelos de embedding.",
+    "Hiperparametros (alpha, beta, gamma, lambda) e o N=3 do pseudo-documento escolhidos por validacao cruzada/experimentos no MESMO conjunto de 3 datasets usados para avaliar.",
+    "Avaliacao em boa parte intrinseca (coerencia NPMI) + uma unica tarefa externa (classificacao com Naive Bayes).",
+    "Embeddings GloVe treinados no Google News podem ter sobreposicao com o dataset TMNews (tambem noticias) - risco de vazamento de dominio.",
+    "Correcao medida com um unico pipeline de avaliacao (Palmetto/NPMI, Naive Bayes no Weka)."
+  ]
+}

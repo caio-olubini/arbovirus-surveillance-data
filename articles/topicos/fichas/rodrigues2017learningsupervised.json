@@ -1,0 +1,52 @@
+{
+  "key": "rodrigues2017learningsupervised",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/01_rodrigues_2017_learning_supervised_topic_models.pdf",
+  "author": "Rodrigues et al.",
+  "year": 2017,
+  "read": "Li o PDF inteiro (15 páginas): Read nas páginas 1-6 e pdftotext para o texto integral. Seções: 1 Introdução; 2 State of the Art (2.1 supervised topic models, 2.2 learning from multiple annotators); 3 Classification Model (3.1-3.5, incl. Algorithm 1); 4 Regression Model (4.1-4.4, incl. Algorithm 2); 5 Experiments (5.1 classificação: 5.1.1 anotadores simulados no 20-Newsgroups, 5.1.2 AMT no Reuters-21578 e LabelMe; 5.2 regressão: 5.2.1 simulados no we8there, 5.2.2 AMT no movie reviews); 6 Conclusão. Tabelas 1-4 e Figs. 1-14. As acurácias e R² dos métodos estão plotados em figuras (Fig. 4, 7, 9, 11, 13), não em tabelas de números; os únicos números explícitos no texto são estatísticas de dataset e acurácias/R² de agregação dos anotadores.",
+  "technique": "MA-sLDA (multi-annotator supervised LDA): modelo de tópicos supervisionado que aprende conjuntamente (a) os tópicos de cada documento, (b) a variável-alvo latente 'verdadeira' e (c) a confiabilidade/viés de cada anotador. Na classificação, o documento vira uma mistura de tópicos z̄^d e um softmax sobre ela prediz a classe verdadeira c^d; cada anotador r tem uma matriz de confusão π^r (p(anotador diz l | classe verdadeira c)), modelada como versão ruidosa da verdade latente. Na regressão, um modelo linear (como no sLDA) prediz o alvo contínuo x^d e cada anotador tem viés b^r e precisão p^r (variância inversa) em um ruído Gaussiano. Inferência por variational inference (mean-field) e stochastic variational inference (SVI) para escalar a datasets grandes; coeficientes η via L-BFGS (classificação) ou forma fechada (regressão).",
+  "representation": "O texto vira número como no LDA: bag-of-words -> distribuição de tópicos por documento (vetor de mistura z̄^d, dimensão K, no simplex) -> cabeça softmax (classe) ou linear (alvo contínuo). A representação do documento É a mistura de tópicos; o encoder em si é LDA, e a contribuição não é um novo encoder, e sim a supervisão conjunta com um modelo de ruído por anotador. Pré-processamento: stemming e remoção de stopwords; para as imagens do LabelMe, 'visual words' via SIFT (128-d) + k-means (k=200) formando bag-of-visual-words.",
+  "afirmacoes": [
+    {
+      "afirmacao": "No experimento de classificação com anotadores simulados (20-Newsgroups), o modelo proposto (MA-sLDAc) supera todos os baselines, sendo a versão estocástica (svi) a de melhor desempenho.",
+      "citacao": "the proposed model outperforms all the baselines, being the svi version the one that performs best.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Nos dados reais de Amazon Mechanical Turk (Reuters-21578 e LabelMe), o MA-sLDAc supera todos os baselines, com a versão batch ligeiramente melhor, especialmente no Reuters.",
+      "citacao": "Analyzing the results for the Reuters-21578 and LabelMe data, we can observe that MA-sLDAc outperforms all the baselines, with slightly better accuracies for the batch version, especially in the Reuters data.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "No experimento de regressão com reviews de filmes (AMT), o modelo proposto (MA-sLDAr) supera todos os outros baselines.",
+      "citacao": "These results show that the proposed model outperforms all the other baselines.",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "No Reuters-21578 anotado por AMT, a acurácia média dos workers foi de 56.8%, e a votação majoritária sobre as respostas chega a 71.0% de acurácia — a heterogeneidade/ruído dos anotadores que o modelo busca corrigir.",
+      "citacao": "The collected answers yield an average worker accuracy of 56.8%. Applying majority voting to these answers reveals a ground truth accuracy of 71.0%.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "O modelo estima corretamente os vieses/precisões dos anotadores, o que justifica incluir um parâmetro de viés por anotador — algo ausente em trabalhos anteriores.",
+      "citacao": "and that those biases are being correctly estimated, thus justifying the inclusion of a bias parameter in the proposed model",
+      "pagina": 13
+    }
+  ],
+  "ressalva_do_autor": "in the third image the model is not able to recover the correct true class, which can be explained by it not having enough evidence about the annotators and their reliabilities and biases",
+  "evidence": "Compara contra baselines explícitos: LDA + LogReg (maioria), LDA + Raykar, LDA + Rodrigues, Blei 2003 (LDA + SVM, maioria), sLDA (maioria) na classificação; e, no LabelMe, Bosch 2006 (pLSA/LDA + kNN, maioria). Na regressão: LDA + LinReg (média) e sLDA (média). Datasets: 20-Newsgroups (anotadores simulados, 4 classes, 11536/3846), Reuters-21578 (AMT, 8 classes, 1800 docs rotulados, ~3 respostas/doc, acurácia média dos workers 56.8%, maioria 71.0%), LabelMe (AMT, 8 classes de imagem, 1000 imagens, 2.547 workers/imagem, acurácia média 69.2%, maioria 76.9%), we8there (simulados, R² média 0.798) e movie reviews (AMT, 1500 reviews, 4.96 respostas/review, R² da média 0.830). Métricas: acurácia de teste (classificação) e R² de teste (regressão), média de 30 (ou 5) execuções com desvio-padrão. O artigo afirma 'supera todos os baselines' em todos os 5 datasets, mas os valores numéricos dos ganhos estão apenas nas figuras (Fig. 4, 7, 9, 11, 13); o texto não dá o tamanho do ganho em pontos. Além disso, reporta que as matrizes de confusão estimadas (Fig. 10) e os vieses/precisões estimados (Fig. 14) se aproximam dos verdadeiros, como validação qualitativa do mecanismo.",
+  "needs": "Exige, por documento, RÓTULOS DE MÚLTIPLOS ANOTADORES COM IDENTIDADE POR ANOTADOR (o modelo aprende π^r / b^r / p^r por anotador) além do alvo (classe ou valor contínuo). Família LDA: vocabulário, stemming, stopwords. Inglês nos datasets. Inferência variacional + SVI (CPU é suficiente; GPU não é mencionada em lugar algum). Implementação não vem empacotada — o código é citado como disponível em http://www.fprodrigues.com/software/ e material suplementar em fprodrigues.com/maslda-supp-mat.pdf. Tempo de execução / custo computacional: não reportado.",
+  "cost_here": "O que encarece não é o compute, é o dado: nosso corpus (4.369 artigos Agência Brasil, PT-BR) NÃO tem múltiplos anotadores nem IDs de anotador — os rótulos são uma série agregada de casos suspeitos. O mecanismo central do artigo (corrigir viés de anotador) simplesmente não tem sobre o que atuar. Só a ideia de 'topic model supervisionado' (sLDA) aproveitaria algo, e para isso já temos tomotopy/DMR no braço 03. Rodar o modelo em CPU seria factível (é família LDA, sem GPU), mas exigiria reimplementar o MA-sLDA (sem pacote pronto) e não há tempo de execução reportado no artigo para dimensionar. Nova dependência: nenhuma pronta; reimplementação = custo alto.",
+  "transferable": "Transfere: a ideia geral de representação por mistura de tópicos supervisionada pela variável-alvo (documento -> z̄^d -> cabeça preditiva), que conversa com o nosso braço 03 (DMR/tomotopy) e com o desenho de juntar representação e predição. NÃO transfere: todo o aparato de crowdsourcing/múltiplos anotadores (matrizes de confusão por anotador, viés/precisão por worker), porque não temos rótulos por anotador. Distância de domínio é grande: os corpora são pequenos (milhares de docs), em inglês, com alvos discretos (classes) ou ratings de review; o nosso é notícia PT-BR, corpus maior, e o alvo é contagem epidemiológica semanal por local. O encoder é bag-of-words LDA (sem embeddings contextuais), o que é bem mais fraco que o que já usamos no braço 02.",
+  "red_flags": [
+    "Ganhos reportados só em figuras ('supera todos os baselines') sem efeito numérico no texto — impossível verificar a magnitude do ganho a partir da ficha.",
+    "Anotadores do 20-Newsgroups são simulados (respostas amostradas de matrizes de confusão predefinidas), não humanos reais.",
+    "Resultados são médias de 30 (ou 5) execuções com desvio-padrão plotado; sem os números, não dá para saber se o ganho excede o ruído.",
+    "Encoder é LDA bag-of-words com stemming/stopwords — não usa embeddings contextuais; pode não transferir para PT-BR nem para texto curto.",
+    "Exige múltiplos anotadores por documento com ID — requisito de dado que nosso corpus não atende; a contribuição central fica inaplicável.",
+    "Nenhum número de custo/tempo de execução reportado; a alegação de 'escala para datasets grandes' via SVI é sustentada só por curva de log-likelihood (Fig. 5).",
+    "Comparação concentrada em uma única família de modelo (LDA supervisionado); sem ablação quantitativa do parâmetro de viés (a justificativa é qualitativa, Fig. 14).",
+    "O próprio artigo admite falha quando há pouca evidência sobre os anotadores e levanta 'questões' sobre o número mínimo de rótulos por anotador, sem resolvê-las."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "key": "chanlekha2010spatial",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/31_chanlekha_2010_spatial_temporal_granularity_reports.pdf",
+  "author": "Chanlekha et al.",
+  "year": 2010,
+  "read": "Li o PDF inteiro (15 paginas) por extracao de texto com layout (pdftotext -layout): capa e Abstract (p.1); Background com Figure 1 e a definicao de alta/baixa granularidade (p.1-3); Methods: Task definition, Definition of events, Basic zone classes (Information, Hypothetical, Reporting, Normal) e o attribute schema com TYPE (p.3-5); Temporal issue com os seis atributos temporais e normalizacao ISO 8601 (p.5-6); Spatial issue e o atributo LOCATION (p.6); Zone generation e Scheme evaluation com Data collection e Agreement measurement, incluindo a formula de Cohen (p.6-8); Results and Discussion com a Table 1 (estatisticas do corpus), Table 2 (proporcoes por classe), Table 3 (matrizes de confusao), Table 4 (acordos temporais) e Tables 5-6 (acordos espaciais exatos e aproximados) e a analise qualitativa dos desacordos (p.9-13); Discussion das limitacoes e Conclusions (p.13-14); References (p.14-15).",
+  "technique": "spatiotemporal zoning: um esquema de anotacao em mark-up que particiona a noticia em 'text zones', cada zona agrupando event-predicates (clausulas/predicados que descrevem um evento) ocorridos na mesma localizacao e no mesmo intervalo de tempo. Cada zona recebe um atributo TYPE com quatro valores (Event_Info, Event_Hypothetical, Event_Report, Event_Normal), seis atributos temporais (ANCHOR_VAL, VAL, STIME, ETIME, STIME_DIR, ETIME_DIR) com datas relativas convertidas para ISO 8601, e um atributo espacial LOCATION guardado como a forma superficial do nome do lugar. O artigo NAO constroi um sistema automatico: define o esquema e o avalia como estudo de confiabilidade por concordancia entre anotadores humanos (kappa de Cohen para o tipo de evento; percentual de concordancia para os atributos temporal e espacial).",
+  "representation": "O artigo NAO transforma texto em vetor/numero: nao ha encoder, embedding, pooling, normalizacao de vetor nem geometria de espaco. O texto vira uma estrutura simbolica - clausulas/predicados rotulados com atributos categoricos e datas normalizadas -, isto e, um mark-up de zonas. E uma taxonomia de anotacao avaliada por concordancia humana, nao uma tecnica de representacao numerica; por isso nao ha o que plugar nos bracos 02 (embedding) ou 03 (topicos).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O esquema foi avaliado sobre 100 noticias com quase 2000 event-predicates de surto, sorteadas do corpus gold standard do BioCaster; o corpus cobre artigos publicados de 1996 a 2007, com 44 doencas em 45 paises.",
+      "citacao": "The proposed scheme was evaluated on a corpus containing a total of 100 news reports with almost 2000 disease outbreak event-predicates, randomly selected from the BioCaster gold standard corpus",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A anotacao do tipo de evento (zone type) e confiavel: kappa de Cohen de 0.87 entre os anotadores A e B e 0.90 entre A e C.",
+      "citacao": "with K = 0.87 for annotators A and B, and K = 0.90 for annotators A and C",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "A concordancia nos atributos temporais foi a mais alta de todas (Tabela 4: 0.92 Normal / 0.97 Reporting / 0.94 geral para A e B; 0.95 / 0.89 / 0.93 para A e C), ou seja, anotar tempo foi menos confuso que anotar lugar.",
+      "citacao": "the agreement on the temporal attributes was very promising for both pairs of annotators",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "A concordancia espacial exata e o elo mais fraco de todos os atributos (Tabela 5: 0.806 para A e B, 0.749 para A e C), mas sobe para perto de 100% quando se aceita concordancia aproximada por inclusao/parcialidade (Tabela 6: 0.997 para A e B, 0.986 para A e C).",
+      "citacao": "with approximate agreement analysis, in which a partial agreement or inclusion of a location is acceptable, the percentage agreement was very high, at almost 100% for most event classes for annotators A and B",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "Quando o event-predicate e sinal obvio de surto (disseminacao da doenca, mortes de vitimas), os anotadores concordaram em usar a localidade de menor granularidade disponivel no texto, o que os autores leem como possibilidade promissora de deteccao geografica fina.",
+      "citacao": "the annotators usually had agreement in annotating such event-predicates with the lowest-granularity locations available in the news",
+      "pagina": 13
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram as limitacoes na secao Discussion (p.13), nas palavras deles: \"Currently, we do not distinguish between the source and destination locations.\" (movimento espacial de entidades como transfer/send/travel); \"we did not consider the positive or negative sentiments expressed in a sentence.\" (polaridade de evento nao tratada); e \"the location attributes are annotated with the surface form of the location names as appearing in the text.\" (sem grounding geografico/coordenadas). Declaram ainda (p.14) que o sistema automatico e apenas planejado: \"We are now developing an automatic zone annotation system capable of annotating news reports according to our proposed scheme\" - ou seja, nenhum sistema automatico foi construido nem avaliado neste artigo.",
+  "evidence": "A evidencia e concordancia entre tres anotadores humanos sobre 100 documentos do BioCaster (quase 2000 event-predicates). Tipo de evento: K=0.87 (A,B) e K=0.90 (A,C). Temporal (Tabela 4): 0.94 geral (A,B) e 0.93 (A,C). Espacial exato (Tabela 5): 0.806 (A,B) e 0.749 (A,C); espacial aproximado por inclusao (Tabela 6): 0.997 (A,B) e 0.986 (A,C). NAO ha baseline: nenhum sistema automatico nem metodo concorrente e comparado - e um estudo intrinseco de confiabilidade da anotacao, nao uma avaliacao de desempenho de deteccao.",
+  "needs": "Requer 100 noticias em ingles do BioCaster gold standard corpus ja marcadas com entidades nomeadas e limites de clausula; tres anotadores humanos treinados (um deles o primeiro autor, um com bacharelado e um linguista) anotando 50 documentos por par; diretrizes de anotacao e uma ferramenta de anotacao feita sob medida (disponivel online). Nao requer GPU nem modelo. Nao reporta tempo de anotacao, custo de compute nem tamanho de modelo.",
+  "cost_here": "nao reportado - o artigo nao mede custo computacional algum (e estudo de anotacao manual). Rodar sobre o nosso corpus (4.369 artigos PT-BR) exigiria ou anotacao humana em escala ou um sistema automatico de zoning que os autores apenas planejam desenvolver e nao entregam. Nenhum numero de CPU/tempo e reportado, entao nao ha como estimar custo de adocao aqui.",
+  "transferable": "O dominio e proximo do nosso (noticias de surto, vigilancia baseada em reportagens, codificacao geo-temporal de texto), entao a taxonomia de tipos de evento e o desenho dos atributos temporal/espacial podem informar a nossa rotulagem geo-temporal, e o achado de que eventos-sinal-de-surto recebem concordancia na localidade de menor granularidade conversa com os nossos 28 locations. O que NAO transfere: (1) nao e tecnica de representacao - nao ha vetor/embedding para plugar nos bracos 02/03; (2) e so ingles (os autores afirmam extensibilidade a outras linguas, mas nao testam) - distancia real para PT-BR; (3) o sistema automatico nunca foi construido nem avaliado, entao nao ha componente pronto para reusar; (4) o corpus e antigo (1996-2007) e pequeno, e o desenho de noticia mudou.",
+  "red_flags": [
+    "Avaliacao apenas intrinseca (concordancia entre anotadores); nenhum sistema automatico foi construido ou avaliado, logo nao ha numero de desempenho de deteccao a jusante.",
+    "Sem baseline: nenhum metodo concorrente e comparado, entao o estudo nao mede se o esquema supera qualquer alternativa.",
+    "Corpus so em ingles; a extensibilidade multilingue e afirmada, nao testada.",
+    "Corpus pequeno e antigo: 100 documentos (quase 2000 event-predicates), publicados de 1996 a 2007.",
+    "Um dos anotadores e o primeiro autor do artigo, ou seja, nao e um codificador totalmente independente.",
+    "O atributo espacial - justamente o que importa para geolocalizacao - e o elo fraco: concordancia exata de apenas 0.749-0.806."
+  ]
+}

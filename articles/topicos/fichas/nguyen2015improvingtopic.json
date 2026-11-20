@@ -1,0 +1,50 @@
+{
+  "key": "nguyen2015improvingtopic",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/43_nguyen_2015_improving_topic_models_latent.pdf",
+  "author": "Nguyen et al.",
+  "year": 2015,
+  "read": "Li o PDF inteiro (16 páginas), na ordem de leitura. Capa, abstract e Seção 1 Introdução (p.1); Seção 2 Background com LDA, DMM e modelos de features latentes (p.2-3); Seção 3 modelos propostos LF-LDA e LF-DMM, processos gerativos, inferência por Gibbs sampling e estimação MAP dos vetores de tópico (p.3-5); Seção 4 Experimentos: vetores pré-treinados Google word2vec e Stanford GloVe, datasets N20/N20short/N20small, TMN, TMNtitle e Sanders Twitter com Tabela 1 (p.5-6); Seção 4.2 coerência NPMI com Tabelas 2, 3, 4 e análise qualitativa Tabela 5 (p.7-8); Seção 4.3 clustering com Tabelas 6, 7, 8 (p.8-10); Seção 4.4 classificação com Tabelas 9, 10, 11 (p.10-11); Seção 4.5 Discussion (p.11-12); Seção 5 Conclusion and future work, onde estão as limitações declaradas (p.12); References (p.12-16).",
+  "technique": "Os autores pegam um modelo de tópicos existente — LDA (vários tópicos por documento) ou DMM (um único tópico por documento) — e substituem o componente 'tópico-para-palavra' (a distribuição multinomial de palavras dado o tópico) por uma mistura de dois componentes: (1) o multinomial original e (2) um componente de features latentes. No componente de features, cada palavra já vem como um vetor denso pré-treinado (word2vec Google News 300 dims, ou GloVe Common Crawl 300 dims) e cada tópico tem um vetor tau_t aprendido; a probabilidade de uma palavra dado o tópico é um softmax sobre o produto escalar tau_t · omega_w (equação 3). Uma variável de Bernoulli s por palavra decide, a cada token, qual dos dois componentes gera a palavra, e o peso de mistura lambda controla a preferência. A inferência é por Gibbs sampling, e os vetores de tópico tau_t são re-estimados a cada varredura por estimação MAP com regularização L2 (otimizada por L-BFGS).",
+  "representation": "O texto vira número de duas formas somadas. Primeiro, a contagem clássica de palavras por documento (bag-of-words) que alimenta o multinomial. Segundo, e é o ponto do artigo, cada palavra é mapeada para um vetor denso de 300 dimensões pré-treinado em um corpus gigante (100 bilhões de palavras do Google News, ou 42 bilhões de tokens do Common Crawl), e o tópico vira um vetor de mesmo tamanho. A 'semântica' de uma palavra para um tópico é a similaridade (produto escalar) entre o vetor do tópico e o vetor da palavra. O espaço é a geometria dos embeddings; a dimensionalidade é fixa em 300 e os vetores de palavra são congelados (não são ajustados), só o vetor do tópico é aprendido.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O artigo propõe dois modelos de tópicos (LF-LDA e LF-DMM) que estendem LDA e DMM incorporando representações vetoriais de palavras pré-treinadas em corpora muito grandes para melhorar o mapeamento palavra-tópico aprendido em um corpus menor.",
+      "citacao": "we extend two different Dirichlet multinomial topic models by incorporating latent feature vector representations of words trained on very large corpora to improve the word-topic mapping learnt on a smaller corpus",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "Na avaliação de coerência de tópicos (NPMI), o melhor resultado aparece com peso de mistura lambda igual a 1,0, ou seja, usando somente o componente de features latentes para gerar as palavras.",
+      "citacao": "We see that λ = 1.0 gives the highest NPMI score. In other words, using only the latent feature model produces the most coherent topic distributions",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "No agrupamento de documentos do conjunto N20short, com 40 tópicos, o w2v-LDA supera o LDA em 4,4% em Purity e 4,3% em NMI.",
+      "citacao": "the w2v-LDA model attains 4.4% and 4.3% over the LDA model on Purity and NMI metrics, respectively",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "No conjunto pequeno N20small, o modelo proposto obtém 6,0% de ganho em NMI quando o número de tópicos é 6.",
+      "citacao": "on the small N20small dataset where we get 6.0% improvement on NMI at T = 6",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Na classificação de documentos, o w2v-LDA obtém mais de 5% de F1 acima do LDA quando o número de tópicos é igual ao número de rótulos verdadeiros (20 no N20small e 4 no Twitter).",
+      "citacao": "our w2v-LDA obtains 5+ % higher F1 score than the LDA model",
+      "pagina": 11
+    }
+  ],
+  "ressalva_do_autor": "Although we have not evaluated our approach on very large corpora, the corpora we have evaluated on do vary in size, and we showed that the gains from our approach are greatest when the corpora are small. A drawback of our approach is that it is slow on very large corpora.",
+  "evidence": "Baseline é o mesmo modelo sem o componente de features latentes: LDA puro contra LF-LDA, e DMM puro contra LF-DMM. Métricas e números: coerência NPMI (Tabelas 2, 3, 4) com ganho absoluto de até 6,4 pontos no N20small com T=6 e 6,1 no TMNtitle com DMM em T=20; agrupamento Purity e NMI (Tabelas 6, 7, 8) com +4,4%/+4,3% sobre o LDA em 40 tópicos no N20short, +6,0% de NMI em T=6 no N20small e +3,9%/+5,3% no Twitter com T=4; classificação macro-F1 com SVM (Tabelas 9, 10, 11) com mais de 5% de F1 sobre o LDA. Significância reportada por teste t de Student com p < 0,01 (nota de rodapé 13). Os ganhos são maiores em corpora com poucos documentos ou documentos curtos; no conjunto grande N20 os ganhos encolhem e às vezes ficam ligeiramente negativos (linha 'Improve.' com -0,007 e -0,008).",
+  "needs": "Vetores de palavras pré-treinados (Google word2vec 300 dims, 3 milhões de palavras/frases, treinados em 100 bilhões de palavras do Google News; Stanford GloVe 300 dims, 2 milhões de palavras, 42 bilhões de tokens do Common Crawl). Um amostrador de Gibbs customizado para LF-LDA e LF-DMM — não é um modelo pronto de biblioteca. Otimização MAP por L-BFGS (usaram a implementação do Mallet). Todos os datasets e vetores são em inglês. Nenhuma GPU é mencionada; rodou em CPU. Custo/tempo de execução absoluto: não reportado (rodam 2000 iterações para o baseline e 500 adicionais para o modelo).",
+  "cost_here": "Alto. Os dois extras estão fixados em pyproject.toml e o transform precisa rodar em CPU em minutos. LF-LDA e LF-DMM não existem no tomotopy (que só tem LDA/CTM/DMR etc.), então o custo real é implementar o amostrador de Gibbs customizado, com a mistura Bernoulli por palavra e a estimação MAP dos vetores de tópico por L-BFGS — não é uma linha de configuração. Além disso, os vetores do artigo são em inglês; para o nosso corpus PT-BR seria preciso um conjunto de vetores em português que o artigo não usa nem avalia. Tempo absoluto de execução: não reportado. Não dá para classificar como barato.",
+  "transferable": "Transfere em princípio a ideia de injetar vetores de palavras pré-treinados dentro de um modelo de tópicos para reforçar o mapeamento palavra-tópico em corpus pequeno. Não transfere de forma direta: (1) todos os vetores e datasets são em inglês — trocar por vetores PT-BR muda o recurso externo e não foi testado aqui; (2) a distância de domínio é grande — o corpus do artigo é de textos curtos (títulos com 4,9 palavras, tweets com 5,0, TMN com 18,3), enquanto o nosso são 4.369 notícias de extensão média; e o próprio artigo mostra que os ganhos são maiores justamente em poucos documentos ou documentos curtos, e que no corpus grande N20 o baseline LDA às vezes empata ou ganha; (3) o modelo é um amostrador customizado, não um drop-in no nosso braço 03 (DMR/tomotopy).",
+  "red_flags": [
+    "Todos os datasets e todos os vetores de palavras são em inglês; os vetores são de 2013/2014 (word2vec, GloVe).",
+    "No conjunto grande (N20) os ganhos são pequenos e às vezes negativos — a linha 'Improve.' mostra -0,007 e -0,008, ou seja, o baseline LDA chega a ganhar.",
+    "Os próprios autores não sabem explicar por que funciona: admitem que a melhora pode vir do tamanho da janela de contexto dos vetores, e os experimentos preliminares para descartar isso foram inconclusivos.",
+    "O resultado depende de ajustar o peso de mistura lambda por tarefa: o melhor é lambda = 1,0 para coerência mas 0,6 para agrupamento e classificação — exige tunar um hiperparâmetro a mais.",
+    "A inferência do LF-DMM usa uma aproximação (congelar as contagens dentro do documento) justificada por ser 'razoavelmente acurada para documentos curtos' — pode não valer para documentos longos como os nossos.",
+    "Baseline é apenas LDA/DMM puro; não há comparação com outros modelos de tópicos que já usam embeddings (ETM, BERTopic, ou os modelos de features latentes citados, como Cao et al. 2015)."
+  ]
+}

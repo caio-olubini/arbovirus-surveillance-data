@@ -1,0 +1,51 @@
+{
+  "key": "wu2020shorttext",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/32_wu_2020_short_text_topic_modeling.pdf",
+  "author": "Wu et al.",
+  "year": 2020,
+  "read": "Li as 11 paginas do PDF integralmente: abstract e introducao (p.1-2); trabalhos relacionados e o modelo NQTM - encoder de texto curto, quantizacao da distribuicao de topicos e decoder de amostragem negativa (p.2-5); configuracao experimental e Tabela 2 com estatisticas dos datasets (p.6); resultados com a Tabela 3 (coerencia C_V e unicidade T_U) e analise (p.7); estudo de ablacao, analise de esparsidade (Figs. 2-3), exemplos de topicos (Tabela 4) e visualizacao t-SNE (p.8-9); conclusao (p.9); referencias (p.9-11).",
+  "technique": "NQTM (Negative sampling and Quantization Topic Model): modelo de topicos neural em arcabouco autoencoder. O texto vira bag-of-words e passa por um encoder MLP + softmax que produz uma distribuicao de topicos theta_e de K dimensoes. Em vez de alimentar theta_e direto no decoder, um passo de quantizacao mapeia theta_e para o vetor mais proximo theta_q de um espaco de embeddings discreto - as K primeiras colunas inicializadas com a matriz identidade e as demais com distribuicao uniforme - para produzir distribuicoes de topicos mais pontudas (peakier), adequadas a textos curtos. O decoder reconstroi palavras via sigma(beta*theta_q), mas troca a maximizacao de log-verossimilhanca por um decoder de amostragem negativa: remove os t topicos mais provaveis, sorteia um topico negativo z_neg e gera M palavras dele via TopK, somando uma perda que empurra as distribuicoes topico-palavra para longe umas das outras (aumenta diversidade).",
+  "representation": "O texto e representado como uma distribuicao sobre K topicos - um ponto/vetice no espaco discreto de embeddings de topicos. A geometria desse espaco e o cerne do metodo: vetores inicializados ortogonalmente (identidade) para maximizar distancias e permitir separacao, e a quantizacao forca a distribuicao latente a se concentrar em poucos topicos (peakier). E uma representacao de topicos latentes, nao um embedding denso de palavra/sentenca.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A causa-raiz da baixa qualidade dos topicos em textos curtos e a esparsidade de dados: a co-ocorrencia de palavras e extremamente limitada.",
+      "citacao": "The main underlying reason is that the co-occurrence information from short texts is extremely limited",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "Sem a nova quantizacao, o modelo nao consegue separar as representacoes latentes de topicos diferentes, o que gera topicos muito repetitivos.",
+      "citacao": "it is arduous for the model to learn to separably map the latent representations of different topics",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Com K=20, o NQTM alcanca a maior coerencia C_V e o maior escore de unicidade T_U entre os modelos nao supervisionados em todos os datasets.",
+      "citacao": "when topic number K = 20, NQTM can achieve significantly higher CV scores, and we notice that T U scores of NQTM reach the highest on all datasets",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O decoder de amostragem negativa fornece sinal de aprendizado extra que empurra as distribuicoes topico-palavra a se diferenciarem, melhorando a diversidade dos topicos.",
+      "citacao": "our negative sampling decoder provides extra learning signals to encourage topic-word distributions to differ from each other",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Sob esparsidade crescente, o T_U dos baselines cai acentuadamente enquanto o do NQTM se mantem, indicando maior robustez.",
+      "citacao": "T U scores of baselines fall sharply while NQTM still obviously keeps up",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Nao ha secao formal de limitacoes. A limitacao declarada aparece na conclusao, ao deixar a avaliacao em tarefas downstream para trabalho futuro: \"Future works could focus on employing the proposed model in more downstream tasks.\" (p.9). Os autores tambem admitem um trade-off de custo em 5.2: \"one advantage of QTM over NQTM is that QTM is faster on training since the negative sampling error is not required.\" (p.8).",
+  "evidence": "Compara com baselines tradicionais (LDA, BTM, DMM, GPUDMM, SeaNMF, descrito como estado da arte) e neurais (NVDM, GSM, ProdLDA), alem do supervisionado TMN e do VQ-VAE. Metricas: coerencia C_V (Roder et al.) e unicidade T_U (Nan et al.). Tabela 3: em K=20 o NQTM atinge a maior C_V e o maior T_U em todos os datasets - ex. TagMyNews Title C_V 0.502 e T_U 1.000 contra SeaNMF 0.397/0.935 e NVDM 0.458/0.995; StackOverflow C_V 0.416 contra SeaNMF 0.371 e NVDM 0.386. Em K=50 ainda supera todos os baselines nao supervisionados em StackOverflow e TagMyNews Title; em Snippet e Yahoo Answer, ProdLDA e BTM tem C_V maior, mas o T_U do NQTM e muito melhor. Ablacao: QTM (sem amostragem negativa) tem T_U maior que o VQ-VAE, e NQTM supera o QTM. Nao ha avaliacao em tarefa downstream nem barras de erro.",
+  "needs": "Modelo neural proprio (MLP sobre bag-of-words); NAO usa embeddings pre-treinados (ao contrario do baseline GPUDMM). Dados: 4 corpora de texto curto EM INGLES - StackOverflow (19.901 docs, comprimento medio 4,6, vocab 2.607), TagMyNews Title (31.223, 5,2, 6.391), Snippet (10.053, 10,3, 4.004), Yahoo Answer (19.027, 4,1, 3.243). Treino nao supervisionado (rotulos existem, mas so o baseline supervisionado TMN os usa). Pre-processamento com NLTK; coerencia via ferramenta Palmetto. GPU: nao reportado. Tempo de treino: nao reportado. Tamanho do modelo: nao reportado. Codigo em github.com/bobxwu/NQTM.",
+  "cost_here": "Nosso corpus e de 4.369 artigos PT-BR, 965 semanas e 28 locations. NQTM e uma MLP sobre bag-of-words com vocabulario de poucos milhares de termos - arquitetura leve - mas NAO esta nos nossos extras (temos torch/transformers via 'embeddings' e tomotopy via 'topics'); exigiria implementar o modelo (o artigo aponta repositorio proprio) ou reescreve-lo em PyTorch. O artigo NAO reporta tempo de treino nem custo computacional: 'nao reportado'. O corpus e o vocabulario do artigo sao da mesma ordem dos nossos (milhares de docs, vocab de 2-6 mil), o que sugere custo modesto, mas isso e inferencia, nao medicao do artigo.",
+  "transferable": "Transfere: a ideia de que texto curto exige distribuicoes de topicos mais concentradas e que a amostragem negativa melhora a diversidade de topicos; um modelo de topicos neural bag-of-words leve, treinavel em CPU; e o protocolo de avaliacao C_V/T_U (ja temos tomotopy para coerencia). NAO transfere direto: todos os benchmarks sao em ingles, sem nenhum resultado em portugues; nenhum dos corpora e de noticia em texto longo - TagMyNews usa apenas TITULOS de noticia (comprimento medio 5,2 palavras) - enquanto nosso corpus sao artigos completos da Agencia Brasil, provavelmente bem mais longos que os 4-10 tokens por documento vistos aqui. A premissa de 'texto curto' (media 4,6-10,3 palavras) pode nao valer para os nossos artigos, justamente o regime para o qual a tecnica foi desenhada. Nao ha modelagem de tempo nem de localizacao (nos precisamos de DMR sobre semanas/locations). Distancia de dominio: media-alta.",
+  "red_flags": [
+    "Todos os 4 benchmarks sao em ingles; nenhum resultado em portugues ou multilingue.",
+    "Avaliacao apenas intrinseca (C_V e T_U); nenhuma tarefa downstream - os autores deixam isso como trabalho futuro.",
+    "Ganho misto: em Snippet e Yahoo Answer com K=50, ProdLDA e BTM tem C_V maior que o NQTM; a conclusao depende de argumentar que o T_U e a metrica que importa.",
+    "T_U satura perto de 1,0 em varios modelos neurais (NVDM 0,982-0,988), deixando pouquissimo espaco; as diferencas no topo sao pequenas.",
+    "Sem barras de erro, variancia ou numero de execucoes; a Tabela 4 e descrita como de 'uma' execucao.",
+    "Baseline supervisionado (TMN) comparado junto com os nao supervisionados, sem ser apples-to-apples (os autores explicam que a perda de classificacao reduz a diversidade).",
+    "Requer implementacao nova (nao e dependencia instalada); o codigo do autor esta em repositorio proprio."
+  ]
+}

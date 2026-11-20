@@ -1,0 +1,51 @@
+{
+  "key": "collier2011cross",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/08_collier_2011_cross_lingual_alerting_epidemic.pdf",
+  "author": "Collier",
+  "year": 2011,
+  "read": "Li as 11 páginas do PDF. Capa/abstract (p1), Related work e início de Methods (p2), Evaluation e Data (p3), Text mining system (p4), Alerting models C2/C3/W2/F-statistic/EWMA com as equações 1-7 (p5-6), Results (p6), Tabela 1 - resultados globais (p7), Discussion e Tabela 2 - Sudeste Asiático (p7-8), estudo de caso de cólera em Angola (p8-9), Conclusions (p9), limitações/List of abbreviations/referências (p10-11). Não li só o abstract: o custo real está nas tabelas e na discussão.",
+  "technique": "Sistema de alerta precoce de surtos (a implementação BioCaster). É um pipeline de mineração de texto, não um método de representação: (1) coleta notícias de várias fontes (Google News, MeltWater, European Media Monitor, IRIN, ReliefWeb); (2) traduz automaticamente os 12 idiomas não-ingleses com o Google Tradutor; (3) filtra notícias que não são de surto com um classificador Naive Bayes; (4) extrai eventos por casamento de expressões regulares (Simple Rule Language) em 18 tipos de entidade e slots normalizados pela ontologia BioCaster; (5) transforma cada evento em contagem diária por doença-país e aplica 5 algoritmos de detecção de aberração temporal (C2, C3, W2, F-statistic, EWMA) que disparam alarme quando a contagem do dia excede a linha de base. A verdade de referência (silver standard) é o ProMED-mail.",
+  "representation": "O artigo NÃO é sobre como transformar texto em vetor. A passagem texto->número é rasa e antiga: saco-de-palavras dentro do classificador Naive Bayes (que só faz um filtro binário) e casamento de expressões regulares para preencher slots (doença, país, província). O que de fato alimenta o detector não é um embedding, e sim uma série temporal univariada de CONTAGENS diárias de eventos por doença-país. A unidade é país-dia, deliberadamente grosseira.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O filtro de notícias que não são de surto é um classificador Naive Bayes que atinge F1 0.93 antes da mineração de texto.",
+      "citacao": "Following machine translation, text classification using Naive Bayes (F1 0.93) removes non-disease outbreak news before text mining is applied.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Somar eventos em outros idiomas melhora o F1 em vários pontos na maioria dos modelos, com exceção do EWMA.",
+      "citacao": "Cross-language events generally seem to improve F1 performance by several points across most models except for EWMA.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O F-statistic tem a maior sensibilidade mas dispara muitos alarmes falsos: 16.2 alarmes por 100 dias contra a média ProMED de 7.4.",
+      "citacao": "This can be seen clearly by comparing the alarm rate per 100 days of 16.2 in column A with the ProMED average of 7.4.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Cerca de 80% das notícias cobriram apenas metade dos tópicos doença-país do ProMED, ou seja, os 20% restantes de notícias teriam que cobrir quase metade dos tópicos.",
+      "citacao": "approximately 80% of news reports covered only about half the ProMED-mail alert disease-country topics",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "A avaliação usa 16 séries de eventos com 2064 dias de vigilância e 153 eventos, isto é, 7.4% dos dias como dias de alerta.",
+      "citacao": "The 16 event streams contain 2064 surveillance days with 153 events (7.4% of alerting days)",
+      "pagina": 3
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem duas limitações. Amostra pequena: «Although the sample size is limited, the data suggests trends in model performance.» (p7). E granularidade grosseira: «A more subtle effect of the granularity restriction is that the models we presented do not allow us to follow what might be called 'late warning' signals.» (p10) — os modelos não acompanham sinais de aviso tardio e não detectam eventos abaixo do nível de país. O próprio artigo também registra que a classificação por saco-de-palavras e as expressões regulares intra-sentenciais «were still letting through a proportion of non-events» e que, numa amostra manual de 274 notícias em inglês, «approximately 30% of positively classified news articles fell just below the borderline of our case definition» (p7).",
+  "evidence": "Baseline é notícia SÓ em inglês (o inglês foi escolhido como baseline pela representatividade geográfica); o braço tratado é 'todas as línguas incluindo o inglês'. Tabela 1 (eventos globais, F1): C3 0.56 (todas as línguas) contra 0.53 (só inglês); F-statistic 0.60 contra 0.54; C2 0.49 contra 0.48; W2 0.54 contra 0.49; EWMA 0.46 contra 0.47 (único que cai). Tabela 2 (Sudeste Asiático) espelha, com EWMA caindo forte (0.50 contra 0.57). A avaliação usa sensibilidade, especificidade, PPV, NPV e F1 com uma janela de 7 dias antes do relatório ProMED. NÃO há teste de significância estatística e os intervalos de confiança de 95% nas tabelas são largos e se sobrepõem entre os braços.",
+  "needs": "Cluster de alto desempenho com 48 núcleos Xeon; ~9000 artigos por dia; acesso a mais de 80.000 fontes de notícias; tradução automática via Google online para 12 idiomas; classificador Naive Bayes; corpus de 16 séries de surtos e o ProMED-mail como verdade de referência. Não usa GPU. Os detectores de aberração foram implementados em Excel. Custo monetário: não reportado.",
+  "cost_here": "Nosso corpus (4.369 artigos PT-BR) é uma fração de um único dia do fluxo deles. As partes caras do trabalho deles não nos atingem: já estamos em PT-BR único (não precisamos traduzir 12 idiomas) e já temos 28 locations (não precisamos do geocoding por província via Google). A parte que roda sobre o nosso corpus é a detecção de aberração temporal (C2/C3/W2/EWMA) sobre contagens semanais por local — aritmética simples, cabe em numpy/Python puro, sem dependência nova e sem GPU, então barata em CPU. Não usa embeddings, portanto não toca o extra de embeddings. Custo de tradução para nós: não aplicável. Custo em dinheiro do artigo: não reportado.",
+  "transferable": "Transfere: os cinco detectores de aberração temporal aplicados a contagem de eventos por local e período, que é exatamente o formato do nosso alvo (965 semanas, 28 locations); e a lição de que cobrir mais fontes/idiomas estende a sensibilidade. NÃO transfere: a representação (saco-de-palavras + expressões regulares) está datada e não é um embedding; a dependência de tradução automática; e o silver standard ProMED, que não temos. Distância de domínio: eles são notícia multilíngue de surtos com granularidade país-dia — perto de nós em tema e em línguas, mas o ganho que eles medem vem de SOMAR idiomas, e o nosso corpus é monolíngue em PT-BR; o efeito 'cross-lingual' que sustenta o resultado principal deles não tem análogo direto no nosso desenho.",
+  "red_flags": [
+    "Amostra pequena: 16 séries de eventos, 153 eventos, janela de teste de apenas 134 dias (jan-mai 2010).",
+    "Ganhos de F1 de 2 a 5 pontos com intervalos de confiança de 95% largos e sobrepostos nas Tabelas 1 e 2 — dentro do ruído.",
+    "Nenhum teste de significância estatística reportado.",
+    "Avaliação em um único sistema (BioCaster) e uma única implementação.",
+    "Granularidade grosseira (país-dia): o próprio autor admite que o modelo não captura sinais abaixo do nível de país.",
+    "Depende de tradução automática do Google (sistema online externo) e do ProMED-mail como verdade de referência.",
+    "Classificador Naive Bayes com F1 0.93, mas ~30% dos positivos ficam logo abaixo da borda da definição de caso, indicando falsos positivos residuais."
+  ]
+}

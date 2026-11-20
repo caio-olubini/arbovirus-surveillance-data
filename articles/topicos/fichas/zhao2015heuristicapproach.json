@@ -1,0 +1,51 @@
+{
+  "key": "zhao2015heuristicapproach",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/10_zhao_2015_heuristic_approach_determine_appropriate.pdf",
+  "author": "Zhao et al.",
+  "year": 2015,
+  "read": "Li as 10 paginas do PDF. Capa/abstract (p.1), Background (p.1-2), Materials and methods com a definicao do RPC e Eq.(2) (p.2-3), Results com as Figuras 1-5 e Tabelas 1-5 (p.4-7), Discussion com a limitacao declarada e as Figuras 6a/6b (p.7-9), agradecimentos/referencias (p.9-10). Os numeros que importam (estabilidade, entropia, pureza de cluster, tempos de execucao) estao nas Tabelas 1-4 (p.4-5) e no texto dos Resultados, nao no abstract.",
+  "technique": "Metodo heuristico de selecao do numero de topicos em LDA, chamado RPC (rate of perplexity change). O fluxo: ajusta modelos LDA (implementacao do Mallet, inferencia por Gibbs sampling) por validacao cruzada m-fold para uma grade crescente de numeros de topicos; mede a perplexidade no conjunto de teste para cada numero; calcula a taxa de variacao da perplexidade entre numeros consecutivos (RPC(i) = |(P_i - P_{i-1})/(t_i - t_{i-1})|, Eq. 2); e escolhe como numero apropriado o primeiro i em que RPC(i) < RPC(i+1), ou seja, o ponto de mudanca de inclinacao da curva. Nao e um encoder nem pooling: e uma regra de selecao do hiperparametro de dimensionalidade (quantos topicos) do modelo de topicos.",
+  "representation": "O texto vira numero via LDA: cada documento passa a ser uma distribuicao de probabilidade sobre T topicos latentes, e cada topico e uma distribuicao multinomial sobre palavras (bag-of-words / contagens de termos). O RPC nao altera essa representacao; ele decide T, a dimensao do espaco latente, olhando o formato da curva de perplexidade vs numero de topicos. O texto e pre-processado (tokenizacao, remocao de stop words, stemming no corpus de abstracts).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O numero apropriado de topicos e definido como o ponto de mudanca da curva de RPC: o primeiro numero de topicos i em que a taxa de variacao da perplexidade passa a subir.",
+      "citacao": "the first i that satisfied RPC(i) <RPC(i+1) was chosen as the most appropriate number.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Aplicado a tres datasets de tipos distintos, o metodo escolheu 20, 50 e 40 topicos respectivamente para sequencias de Salmonella, efeitos colaterais de drogas (SIDER2) e abstracts do TCBB.",
+      "citacao": "the best number of topics were 20, 50, and 40 for the Salmonella sequence dataset, SIDER2 dataset, and the TCBB dataset, respectively.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O RPC e mais estavel que a minimizacao de perplexidade: repetido 50 vezes com sementes aleatorias ele escolheu 20 topicos em 80% dos casos, com entropia media 1.0 contra 1.853 do metodo de perplexidade.",
+      "citacao": "the mean model entropy for the RPC-based method was 1.0, much lower than the 1.853 for perplexity-based models",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O numero de topicos escolhido pelo RPC coincide com o melhor desempenho de agrupamento contra rotulos-verdade: com 20 ou 30 topicos o k-means classificou corretamente todas as 119 cepas de Salmonella.",
+      "citacao": "LDA models with 20 or 30 topics gave the best clustering accuracy with all 119 strains correctly identified",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O metodo padrao baseado em perplexidade e instavel: tres execucoes sobre o mesmo dataset, com sementes diferentes, deram minimos de perplexidade em 30, 60 e 90 topicos.",
+      "citacao": "very different minimum perplexity values of 30, 60 and 90",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem, na conclusao do abstract, que a base teorica do metodo ainda nao esta estabelecida e que a generalizabilidade nao foi provada: \"We understand that additional investigation is needed to substantiate the method's theoretical basis, and to establish its generalizability in terms of dataset characteristics.\" Na Discussao eles reforcam que apenas conjecturam a justificativa teorica (\"We conjecture a theoretical justification for use of RPC-based method on the principle of change-point\").",
+  "evidence": "Baseline: o metodo baseado em perplexidade (escolher o numero de topicos que minimiza a perplexidade em conjunto de teste), que e o procedimento iterativo usual. Evidencia de estabilidade: em 50 sementes aleatorias no dataset de Salmonella, o RPC escolheu 20 topicos em 80% dos modelos (entropia media 1.0), enquanto o metodo de perplexidade variou de 20 a 90 topicos (entropia 1.853). Evidencia de eficiencia: pureza/misclassificacao dos clusters contra rotulos-verdade — sorotipos reais das 119 cepas (0 erros com 20 ou 30 topicos no k-means k=10; 0 erros no hierarquico com 20/30, 15 erros com 40+) e codigos ATC das 996 drogas do SIDER2 (205 drogas mal classificadas com 50 topicos, o menor valor; pureza k=30 de 0.60 em 50 topicos). Para o TCBB, sem rotulos-verdade, a avaliacao e apenas qualitativa por nuvens de palavras (subjetiva).",
+  "needs": "Exige uma implementacao de LDA (o artigo usa Mallet com Gibbs sampling), validacao cruzada m-fold (leave-one-out de 119 folds para Salmonella, 5-fold para SIDER2 e TCBB) e, para o teste de estabilidade, 50 repeticoes com sementes diferentes. Nao exige GPU nem dado rotulado para rodar o metodo (os rotulos entram so na avaliacao a posteriori). Nao ha dependencia de lingua — foi testado em sequencias genomicas, matriz droga-efeito binaria e abstracts em ingles. Corpora pequenos: 119 documentos / 99.960 ocorrencias / 2.379 SNPs; 996 documentos / 117.329 ocorrencias / 4.500 termos; 885 abstracts / 84.646 ocorrencias / 5.004 termos.",
+  "cost_here": "Tempos de execucao reportados por modelo LDA (Tabelas 1-4, p.4-5): de ~33.914 ms a ~54.608 ms, ou seja ~34-55 s por modelo, em CPU e para corpora de 119 a 996 documentos. O custo total e o produto grade-de-topicos x folds x repeticoes (a estabilidade foi medida com 50 repeticoes). Para o nosso corpus (4.369 documentos, 965 semanas) o tempo NAO e reportado — o artigo nao mede essa escala, e nossa colecao e de 4 a 37 vezes maior que as testadas. Sem GPU; poderia rodar com o tomotopy ja instalado, mas a multiplicacao de modelos e o gargalo.",
+  "transferable": "Transfere: a heuristica RPC e agnostica ao dominio — foi validada em genomas, farmacologia e abstracts em ingles — e opera apenas sobre a curva de perplexidade vs numero de topicos, entao se aplica diretamente a nossa decisao de quantos topicos usar no braco 03 (DMR/tomotopy), que e uma escolha de dimensionalidade do espaco latente. Nao transfere: a validacao de acuracia depende de rotulos-verdade conhecidos a priori (sorotipos, codigos ATC) que nao temos para noticia; o TCBB, o unico caso textual, e avaliado so qualitativamente por nuvens de palavras. A distancia de dominio e grande: o artigo usa texto em ingles e corpora pequenos (119-996 documentos), contra nossos 4.369 documentos em PT-BR, com textos de noticia mais longos e ruidosos; nada foi testado em portugues.",
+  "red_flags": [
+    "O unico caso textual (TCBB) e avaliado qualitativamente por nuvens de palavras, sem rotulos-verdade — avaliacao subjetiva.",
+    "A estabilidade de 50 repeticoes foi medida em um unico dataset (sequencias de Salmonella), nao nos tres.",
+    "O baseline e apenas o metodo de perplexidade; nao compara com criterios de selecao mais fortes (ex.: coerencia C_v) nem com outros numeros de topicos propostos por esses criterios.",
+    "A base teorica e declaradamente conjetural — o proprio artigo pede investigacao adicional para sustenta-la.",
+    "Correcao medida em um unico modelo (LDA/Mallet com Gibbs sampling); nada sobre DMR, modelos neurais ou embeddings.",
+    "A 'melhor' contagem e validada por pureza de cluster que depende de escolhas ajustadas (altura de corte 0.25 no hierarquico e 0.6 no SIDER2, e o k do k-means), o que pode inflar o resultado.",
+    "Corpora pequenos (119-996 documentos) e sem portugues; ganhos reportados em milissegundos de tempo, nao em qualidade de topico fora dos datasets de rotulo conhecido."
+  ]
+}

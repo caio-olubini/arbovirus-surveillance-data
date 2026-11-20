@@ -1,0 +1,51 @@
+{
+  "key": "yin2018dimensionality",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/08_yin_2018_dimensionality_word_embedding.pdf",
+  "author": "Yin & Shen",
+  "year": 2018,
+  "read": "Li o artigo inteiro, as 18 paginas. Capa/abstract e Introducao (pp. 1-2); Preliminares, invariancia unitaria e PIP loss (pp. 2-3); Secao 4 com o trade-off bias-variancia e os Teoremas 1-3 (pp. 4-6); Secao 5 com as descobertas de robustez e a selecao de dimensionalidade, incluindo Tabelas 1-3 e Figuras 1-4 (pp. 6-9); Conclusao (p. 9); Referencias (pp. 10-12); Apendice com provas, analise da taxa de crescimento e a Secao 7.8 de configuracao experimental (pp. 13-18). Os numeros citados vem do corpo (Tabelas 1-3, Figuras 1-3) e da Secao 7.8.",
+  "technique": "Nao e um encoder novo; e uma teoria da dimensionalidade de embeddings de palavra. Modela o embedding como fatoracao (SVD truncada) de uma matriz de sinal - PPMI/PMI para LSA e skip-gram, log-count para GloVe - escalada por D^alpha (alpha em [0,1]). Propoe a PIP loss: a norma de Frobenius da diferenca entre as matrizes de produto interno par-a-par (EE^T). Como embeddings sao invariantes a rotacao (transformacao unitaria), so os produtos internos relativos importam. Com teoria de perturbacao de matrizes, decompoe a PIP loss em vies (sinal descartado ao truncar em k) e variancia (ruido nas magnitudes e nas direcoes dos vetores singulares). Minimizar essa decomposicao escolhe a dimensionalidade otima k*, sem treinar um modelo por dimensao.",
+  "representation": "O texto vira numero em duas etapas: (1) conta co-ocorrencia e monta a matriz de sinal M (PPMI/PMI/log-count), em que cada palavra e uma linha; (2) faz a SVD truncada M = U D V^T e da a palavra i o vetor E = U(1:k) D(1:k)^alpha. A similaridade entre palavras e o produto interno dos vetores. O que importa e a geometria relativa: dois embeddings que diferem por uma rotacao sao equivalentes (invariancia unitaria), entao a comparacao justa e via PIP = EE^T, nao pela diferenca direta de coordenadas. A dimensionalidade k controla o trade-off vies-variancia.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A escolha da dimensionalidade tem um trade-off bias-variancia: k pequeno descarta sinal (alto vies) e k grande inclui ruido (alta variancia), de modo que existe um k otimo entre 0 e a dimensao d da matriz.",
+      "citacao": "when dimensionality is too small, too much signal power (specifically, the spectrum of the signal M ) is discarded, causing the first term to be too large (high bias). On the other hand, when dimensionality is too large, too much noise is included, causing the second and third terms to be too large (high variance).",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "A robustez do embedding a over-parametrizacao cresce com o expoente alpha; skip-gram e GloVe, com alpha = 0.5, sao robustos a dimensoes excessivas.",
+      "citacao": "α equals 0.5 as they are implicitly doing a symmetric factorization. Our previous discussion suggests that they are robust to over-parametrization.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Mesmo com over-parametrizacao extrema (k = 10000), skip-gram mantem 80% a 90% do desempenho otimo em analogia e relacionamento.",
+      "citacao": "Even with extreme over-parametrization (up to k = 10000), skip-gram still performs within 80% to 90%",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A dimensionalidade escolhida pela PIP loss coincide com a otima empirica: para skip-gram, k* teorico 129 versus otimos de grid search 56, 102 e 220 (um dentro de 5%, dois dentro de 10%).",
+      "citacao": "optimal dimensionalities for WordSim353, MTurk771 and Google analogy tests are 56, 102 and 220 respectively for skip-gram. They agree with the theoretical selections: one is within the 5% interval and the other two are within the 10% interval.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "O custo da selecao de dimensionalidade e baixo: uma varredura completa de k equivale a uma unica SVD da matriz de sinal estimada.",
+      "citacao": "Sweeping through all k is very efficient because one pass of full sweeping is equivalent of doing a single SVD",
+      "pagina": 18
+    }
+  ],
+  "ressalva_do_autor": "Os autores delimitam o escopo no fim da conclusao, nas palavras deles: \"We focus on embedding algorithms that can be formulated as explicit or implicit matrix factorizations including the widely-used LSA, skip-gram and GloVe\". A teoria so cobre embeddings estaticos obtidos por fatoracao de matriz; nao cobre embeddings contextuais e assume matriz de sinal simetrica com ruido iid. Admitem tambem que a validacao empirica foi grosseira, por custo: \"Had we used 1 (meaning we train every dimensionality between 1 and 400), the time spent will be doubled, which will be close to a week.\"",
+  "evidence": "Validacao cruzada entre a dimensionalidade teorica (k* que minimiza a PIP loss) e a otima empirica (grid search em testes intrinsecos) em ingles (Text8), para tres algoritmos. LSA/PPMI (Tabela 1): k* teorico 214 para alpha=0; otimos empiricos WS353=127 e MTurk771=116; os empiricos caem no intervalo sub-otimo de 5%, exceto alpha=0 (intervalo de 20%). Skip-gram (Tabela 2): k* teorico 129 (intervalo de 5% [67,218]); empiricos 56 (WS353), 102 (MTurk771) e 220 (analogia) - um dentro de 5%, dois dentro de 10%. GloVe (Tabela 3): k* teorico 719; empiricos 220/860/560 - dois dentro de 5%, um dentro de 10%. Figuras 1-3 confirmam que over-parametrizacao machuca mais alpha pequeno e que skip-gram fica em 80-90% do otimo mesmo em k=10000. O baseline e a pratica corrente: escolher k por grid search ou ad hoc. O ganho medido e que o metodo reproduz a escolha do grid search sem treinar um modelo por dimensao. Nao ha comparacao com baseline neural nem avaliacao em tarefa downstream.",
+  "needs": "Nenhum modelo pre-treinado: precisa da matriz de co-ocorrencia do corpus (PPMI/PMI/log-count) e de duas estimativas - o espectro {lambda_i} via universal singular value thresholding (USVT) e a variancia do ruido sigma via o truque 'count-twice' (dividir o corpus em duas metades). Depois e a SVD da matriz mais uma simulacao Monte-Carlo da PIP loss. Sem GPU (o artigo usa CPUs). Sem dados rotulados (avaliacao intrinseca: relacionamento e analogia de palavras). Lingua: experimentos em ingles (Text8). Tamanho do corpus nao reportado alem do Text8.",
+  "cost_here": "Nao reportado para o nosso corpus (4.369 artigos, 965 semanas, PT-BR). O artigo reporta o custo da alternativa que ele substitui: treinar skip-gram/GloVe de k=1 a 400 (passo 2, 15 epocas cada) levaria cerca de uma semana; o metodo da PIP loss evita isso porque uma varredura completa de k equivale a uma unica SVD de M-til. Nao exige GPU. O gargalo para nos seria construir e fatorar a matriz de co-ocorrencia |V| x |V| do nosso vocabulario em CPU - custo nao medido pelo artigo.",
+  "transferable": "Transfere: a ideia de que existe uma dimensionalidade otima governada pela razao sinal-ruido do espectro de co-ocorrencia, e a PIP loss como metrica invariante a rotacao para comparar embeddings e escolher k sem treinar um modelo por dimensao (uma SVD basta). Isso vale para os nossos bracos de embedding estatico/word-level e para decidir a dimensao de qualquer embedding derivado de fatoracao. Nao transfere: os experimentos sao word embeddings em ingles (nivel de palavra), nao embeddings de noticia/documento em PT-BR; a teoria cobre so algoritmos que sao fatoracao de matriz (LSA, skip-gram, GloVe) - nao cobre os embeddings contextuais tipo BERTimbau que o nosso braco 02 usa, para os quais a decomposicao vies-variancia e o expoente alpha nao se aplicam. A distancia de dominio e grande: ingles para portugues, palavra para documento de noticia, estatico para contextual. Nosso corpus e pequeno (4.369 docs), entao a matriz de co-ocorrencia seria esparsa e as estimativas de espectro e ruido, ruidosas.",
+  "red_flags": [
+    "Todos os experimentos em ingles (Text8); nenhum teste em portugues ou multilingue - a transferencia para noticia PT-BR nao e medida.",
+    "Avaliacao so intrinseca (WordSim353, MTurk771, analogia do Google); nenhuma tarefa downstream nem acuracia preditiva.",
+    "A teoria so vale para embeddings que sao fatoracao de matriz (LSA, skip-gram, GloVe); nao cobre embeddings contextuais (BERT), que e justamente o nosso braco 02.",
+    "O modelo de ruido assume entradas iid, media zero e variancia sigma^2; o ruido real de co-ocorrencia e correlacionado e de cauda pesada, o que pode invalidar as estimativas.",
+    "O baseline 'grid search' e grosseiro: passo de 2 e so ate k=400 para skip-gram/GloVe, 15 epocas por modelo; e os otimos empiricos discordam entre os testes (WS353 vs MTurk771 vs analogia).",
+    "O 'acordo' com a teoria e medido dentro de intervalos largos (o intervalo de 5% do GloVe e [290,1286]); pode ser coincidencia.",
+    "O ganho nao e reportado como melhora de desempenho sobre um baseline de qualidade - e concordancia de escolha de k, nao ganho medido."
+  ]
+}

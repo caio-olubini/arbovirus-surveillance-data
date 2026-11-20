@@ -1,0 +1,51 @@
+{
+  "key": "krawczyk2021quantifyingonline",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/37_krawczyk_2021_quantifying_online_news_media.pdf",
+  "author": "Krawczyk et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (25 páginas). Capa, abstract e nota de preprint (p.1-2); Introdução (p.2-4); Métodos 2.1-2.4 com a Tabela 1 (fontes e artigos por país, p.5-6), a Tabela 2 (palavras-chave de tópico por idioma, p.7-8) e a Tabela 3 (subtópicos com stemming, p.8-9); Resultados 3.1-3.3 (p.11-17) com a Tabela 4 (rsskew por tópico, p.13), a Tabela 5 (top palavras/bigramas, p.18-19) e as Figuras 1-3 (p.12, 15, 20); Discussão (p.20-22), incluindo os parágrafos de limitação dentro dela (p.21-22); Referências (p.22-25). Conferi os números no corpo dos Resultados e nas Tabelas, não só no abstract. ATENÇÃO ao ano: o próprio PDF é o preprint medRxiv com o cabeçalho 'this version posted December 27, 2020' em todas as páginas, e a string '2021' não aparece em nenhuma página dele; por isso year=2020, embora a chave da ficha e o nome do arquivo tragam 2021 (que refletem a versão de revista, não o documento lido).",
+  "technique": "Não é artigo sobre embeddings. A técnica é detecção de tópico por palavra-chave mais análise de sentimento por léxico. Cada artigo é reduzido a title + description (equivalentes a manchete e resumo). Se o texto contém alguma palavra-chave do tópico (covid, coronavirus, lockdown, quarantine, pandemic, ajustadas para seis idiomas), o artigo é marcado como daquele tópico, sem stemming nem lematização além de case folding; os subtópicos usam palavras com stemming (Tabela 3). O sentimento vem do Vader, analisador baseado em regras e léxico (não é modelo treinado), que devolve um compound score entre -1 e 1. Para comparar tópicos os autores criam o Relative Sentiment Skew (rsskew): a diferença entre a média de sentimento dos artigos de um tópico numa fonte e a média dos demais artigos da mesma fonte. Nada usa representação vetorial densa.",
+  "representation": "O texto vira número de duas formas, ambas rasas: (1) flag booleana de tópico por casamento de palavra-chave após case folding (sem stemming nos tópicos principais; com stemming nos subtópicos); (2) um único escalar de sentimento por artigo, o compound score do Vader no intervalo de -1 a 1, calculado sobre a concatenação de title + description. Não há embedding, pooling, normalização vetorial nem geometria de espaço: é um score de léxico, não uma representação aprendida. O único ajuste é remover as palavras 'positive' e 'negative' dos artigos sobre teste de coronavírus, para corrigir o artefato do Vader que rotula 'positive coronavirus test' como positivo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "COVID-19 dominou a cobertura de capa de 2020: os 172 veículos publicaram, em média, 25% de artigos sobre o tema, com faixa entre 20% e 30%.",
+      "citacao": "Out of the total number of articles published in each of our 172 ONSs in 2020, we detect a mean of 25% (Figure 1) as COVID-19 related.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "O corpus do estudo é de 26.077.939 artigos de capa coletados de 172 veículos de notícia em 11 países, montado a partir de snapshots do WebArchive.",
+      "citacao": "In total we collected 26,077,939 articles from front pages of 172 ONSs (Table 1) with the full list of contributing sources in Supplementary Table 1.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O sentimento da cobertura de COVID-19 é heterogêneo e não é claramente negativo: o rsskew médio é próximo de zero e bem menos extremo que o de câncer, o tema de saúde mais próximo por assunto.",
+      "citacao": "The mean Relative Sentiment Skew for COVID is -0.04 with standard deviation 0.07 (Table 4).",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "Uma minoria de subtópicos altamente negativos (medo, crise, morte) responde por 16% dos artigos de COVID-19 e, pelo volume e polarização, é o que puxa a negatividade geral de 2020.",
+      "citacao": "Altogether articles mentioning fear, crisis and death account for mean 16% of our COVID-19 articles",
+      "pagina": 17
+    },
+    {
+      "afirmacao": "Menções a morte no contexto de COVID-19 somaram 2,33% da cobertura total nas fontes de língua inglesa, elevando o total de menções a morte em 2020 (5,74%) acima do período pré-COVID de 2015-2019 (4,07%).",
+      "citacao": "In total, death mentions in the context of COVID-19 accounted for a mean of 2.33% of all coverage in 91 English-speaking ONSs.",
+      "pagina": 17
+    }
+  ],
+  "ressalva_do_autor": "Unlike more complex topic modeling methods, our approach did not capture much more subtle references to these topics, underestimating the total coverage.",
+  "evidence": "Mede no domínio, contra tópicos de referência e contra o próprio background de cada fonte, sem baseline de aprendizado de máquina. COVID = 25% da cobertura de capa (faixa 20-30%) contra 2,50% para TRUMP, 0,45% para BIDEN, 0,18% para PUTIN, 0,17% para JOHNSON e 0,09% para MERKEL (p.11). O sentimento do COVID (rsskew médio -0,04, sd 0,07) fica próximo de CLIMATE (-0,04) e muito distante de CANCER (100% das fontes negativas, rsskew -0,53) (p.14). Remover os artigos com fear/crisis/death desloca a média para o positivo de forma estatisticamente significativa em 91 de 91 fontes; remover todo o COVID heterogêneo só desloca em 40 de 91 fontes (43,95%), em 11 de 91 desloca para o negativo e em 39 de 91 não há efeito significativo (p.17). Subtópicos da Tabela 3 cobrem em média 67,14% dos artigos de COVID, com case (9,29%), lockdown (8,56%) e death (8,08%) no topo (p.16). O 'baseline' é a distribuição de sentimento dos demais artigos da mesma fonte, mais os tópicos-âncora CAT/SPORT/CLIMATE/CANCER e os políticos. Não há comparação com nenhum modelo de sentimento ou de tópico alternativo.",
+  "needs": "Não exige GPU nem dados rotulados. Exige: (a) listas de palavras-chave por tópico e por idioma (Tabela 2); (b) o léxico do Vader, que é somente inglês; (c) texto de title + description, não o corpo do artigo. Os autores estenderam a detecção por palavra-chave para inglês, alemão, francês, espanhol, italiano e russo, mas rodaram o sentimento apenas nas 91 fontes de língua inglesa (das 172). O paper não reporta custo de computação nem tempo de execução. O Vader não cobre português e não há versão PT oficial citada.",
+  "cost_here": "Compute: trivial em CPU. É casamento de string mais consulta a léxico, roda em minutos sobre 4.369 artigos; o paper não reporta número de custo. O gargalo não é CPU, é idioma: o Vader é inglês e não há equivalente PT oficial citado, então a metade de sentimento não roda direto no nosso corpus PT-BR. A metade de tópico por palavra-chave portaria bem para PT, como os autores já fizeram para espanhol, italiano e francês. O Vader é dependência leve (Python puro, sem torch), mas o ganho sobre a nossa estrutura atual não é quantificado aqui.",
+  "transferable": "Transfere: (1) medir a cobertura de um tópico como fração do total, com tópicos-âncora de referência, o que encaixa direto no nosso caso (dengue contra o resto do noticiário da Agência Brasil); (2) o Relative Sentiment Skew, que normaliza por fonte e evita comparar fontes com vieses diferentes; (3) a detecção por palavra-chave, já rodada em espanhol, italiano e francês, línguas próximas do PT; (4) o método de subtópicos com stemming para isolar os termos que de fato carregam carga negativa. NÃO transfere: o Vader, que é inglês e não cobre PT-BR. A distância de domínio no lado de aplicação é pequena (notícia mais vigilância de doença, corpus de notícia de capa), mas o paper não usa embedding nenhum, então não diz nada sobre pooling, dimensionalidade ou geometria de espaço, que é onde o nosso braço 02 está. É artigo de aplicação, não de representação.",
+  "red_flags": [
+    "Vader é somente inglês: a análise de sentimento rodou em 91 das 172 fontes; alemão, francês, italiano, espanhol e russo ficaram fora do sentimento.",
+    "Detecção de tópico é casamento de palavra-chave, sem modelo treinado; os próprios autores admitem recall baixo e subestimação da cobertura.",
+    "Um único modelo de sentimento (Vader), sem comparação com nenhum outro método de sentimento.",
+    "O experimento de deslocamento de sentimento (remover artigos e recomputar a média) é grosseiro e não controla volume nem confundidores de tópico; os próprios autores remetem o ponto a uma seção suplementar não incluída no PDF.",
+    "Corpus coletado de snapshots do WebArchive, com contaminação reconhecida por links que não eram notícia de fato.",
+    "Preprint medRxiv, não revisado por pares (a própria nota de rodapé diz que não deve ser usado para orientar prática clínica).",
+    "A comparação entre tópicos mistura temas de volume muito diferente (COVID com 589.701 artigos contra MERKEL com 2.011), o que afeta a estabilidade da média de sentimento."
+  ]
+}

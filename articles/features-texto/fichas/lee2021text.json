@@ -1,0 +1,51 @@
+{
+  "key": "lee2021text",
+  "grupo": "representacao",
+  "pdf": "articles/features-texto/22_lee_2021_text_readability_handcrafted_features.pdf",
+  "author": "Lee et al.",
+  "year": 2021,
+  "read": "Li o PDF inteiro (18 páginas). Página 1: título, os três autores (Bruce W. Lee, Yoo Sung Jang, Jason Hyung-Jong Lee; Univ. of Pennsylvania, Univ. of Wisconsin-Madison, LXPER AI), abstract e Introdução. Seções 2 (Advanced Semantics: richness/clarity/noise, eqs. 1-3, Fig. 1), 3 (Covered Features: as 255 features em 14 subgrupos), 4 (Hybrid Model: Fig. 2 da arquitetura; Tabelas 1-6 — estatísticas dos datasets, melhores modelos neurais e não-neurais, top-7 subgrupos, resultados híbridos, melhores feature sets; seções 4.2-4.7), 5 (Cross Domain Evaluation), 6 (Conclusion). Li também as Tabelas 7-24 e os apêndices A (trend das features semânticas), B (lista completa de features), D (artefatos: Gensim/spaCy/SuPar, versões dos transformers), F (hiperparâmetros), G (combinações de features), H (tempo de treino em GPU NVIDIA Tesla V100) e I (código do LingFeat). A capa NÃO traz o ano de publicação explícito; usei 2021, o ano codificado na própria chave da ficha. Extraí o texto com pdftotext e conferi cada citação com o script scripts/conferir_fichas.py (todas saíram 'exata', cobertura 1.0).",
+  "technique": "Modelo HÍBRIDO para avaliação de legibilidade (readability assessment, RA): em vez de escolher entre features linguísticas feitas à mão e transformers, combina os dois em duas etapas. Primeiro extrai 255 features linguísticas em 14 subgrupos com o toolkit próprio LingFeat (incluindo três features novas de 'semântica avançada' calculadas sobre a distribuição de tópicos de um LDA: semantic richness, clarity e noise). Depois treina um transformer (BERT, RoBERTa, BART ou XLNet) e usa as suas probabilidades de classe como 'soft labels'. Esses soft labels viram features de entrada para um modelo não-neural (SVM, Random Forest, XGBoost ou Regressão Logística), o 'preditor secundário', que aprende a corrigir a previsão do transformer usando também as features feitas à mão.",
+  "representation": "O texto vira um vetor numérico misto. (a) Um vetor de 255 features feitas à mão: contagens e razões (tokens, sílabas, entidades, POS), scores de fórmulas clássicas de legibilidade (Flesch-Kincaid, Gunning Fog, SMOG, Linsear Write), normas psicolinguísticas em inglês (idade de aquisição de Kuperman, frequência SubtlexUS) e — o diferencial — três medidas de 'semântica avançada' derivadas da distribuição de tópicos de um LDA: richness (produto ponderado das probabilidades dos tópicos), clarity (quão concentrada é a distribuição no tópico principal) e noise (a cauda da distribuição, via curtose). (b) Um vetor pequeno de soft labels: as probabilidades de classe emitidas por um transformer. Os dois vetores alimentam o modelo não-neural. Não há pooling de embeddings nem normalização vetorial: a representação densa do transformer é comprimida a um punhado de probabilidades de classe.",
+  "afirmacoes": [
+    {
+      "afirmacao": "No corpus OneStopEnglish o híbrido RoBERTa-RF-T1 atinge 99% de acurácia, um ganho de 20,3% sobre o SOTA anterior (HAN, de Martinc et al. 2021).",
+      "citacao": "Notably, we achieve the near-perfect accuracy of 99% on OneStopEnglish, a massive 20.3% increase from the previous SOTA",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "No corpus WeeBit, o híbrido BERT-GB-T1 iguala o SOTA anterior (85,7%) usando apenas 30% dos dados de treino, com 85,8% de acurácia.",
+      "citacao": "BERT-GB-T1 achieves 85.8% accuracy on WeeBit using only 750 passages, 30% of the original train data",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Os autores disponibilizam um toolkit Python aberto com 255 features linguísticas, o LingFeat, que descrevem como escasso na área de legibilidade.",
+      "citacao": "We develop a large-scale, openly available 255 features extraction Python toolkit",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O ganho do híbrido não é universal: em algumas combinações (por exemplo BART) a arquitetura híbrida não melhora o desempenho.",
+      "citacao": "meaning that hybrid architectures do not augment model performance at all conditions",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O ganho do híbrido encolhe conforme o dataset cresce: no maior corpus (WeeBit) ele traz apenas uma pequena melhora sobre o transformer sozinho.",
+      "citacao": "the hybrid architecture performance on the larger WeeBit dataset showed only a small improvement from the transformer-only result",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores declinam explicitamente a avaliação cross-domain: \"we were not at the stage to be seriously concerned about cross-domain evaluation\" e \"performing a cross-domain evaluation requires a thorough study on at least two datasets, which is potentially out of scope in this research\" (ambas na p. 9). Admitem também um limite do próprio híbrido: \"The hybrid architecture's limit is that it gets a model from “good” to “great,” not “fair” to “good.”\" (p. 8) e que \"hybrid architectures do not augment model performance at all conditions\" (p. 8).",
+  "evidence": "Os autores comparam contra vários baselines nos mesmos três corpora em inglês (WeeBit, OneStopEnglish, Cambridge). Baselines neurais: BERT, RoBERTa, BART, XLNet (Tabela 2). Baselines não-neurais treinados com as 255 features: SVM, Random Forest, XGBoost, Regressão Logística (Tabela 3). Baselines SOTA anteriores: Xia et al. (2016), Filighera et al. (2019), Martinc et al. (2021). Resultado central (Tabela 5): o híbrido bate tanto os transformers sozinhos quanto o ML tradicional sozinho. Números: RoBERTa-RF-T1 = 99% no OneStopEnglish (+20,3% sobre Martinc et al. 2021); BERT-GB-T1 = 85,8% no WeeBit usando só 30% dos dados (SOTA anterior: 85,7%); 76,3% no Cambridge (60 itens/classe). O ganho é maior onde há menos dados (Cambridge, ~10% sobre o transformer) e quase nulo no maior corpus (WeeBit). Avaliação por acurácia, F1, precisão, recall e QWK, com 5-fold estratificado. Ablação (T1 vs T2 vs T3, Tabela 24) mostra que as features de semântica avançada e de discurso acrescentam informação ortogonal.",
+  "needs": "Exige o toolkit LingFeat (Python) e recursos externos em INGLÊS: dump da Wikipedia (20210301) para treinar o LDA; spaCy v3.0.8 com o modelo en_core_web_sm para POS/entidades/dependências; um parser de constituência (CRF parser do SuPar v1.0); NLTK; normas psicolinguísticas de inglês (Kuperman Age-of-Acquisition, SubtlexUS); e as fórmulas clássicas do inglês. Exige transformers base (bert-base-uncased, roberta-base, bart-base, xlnet-base-cased) fine-tunados por 3 épocas, comprimento de entrada 512, batch 8, AdamW, lr 2e-5 (BERT) e 3e-5 (demais). Exige datasets rotulados de legibilidade em inglês: WeeBit (downsampleado a 625 itens/classe), OneStopEnglish (189) e Cambridge (60). Treino feito em GPU NVIDIA Tesla V100; tempos médios por fold (segundos) no apêndice H: WeeBit (1546, 1485, 3617, 1202) e Cambridge (215, 122, 393, 239) na ordem BERT/RoBERTa/XLNet/BART. Memória de GPU não reportada. Nada disso é em português.",
+  "cost_here": "Sobre o nosso corpus (4.369 notícias PT-BR, 965 semanas, 28 localidades) em CPU: o artigo reporta tempos de treino em GPU (Tesla V100), não em CPU, então o custo de compute é 'não reportado'. O obstáculo maior não é compute, é língua e dependência: as 255 features do LingFeat são 100% inglês-específicas (LDA treinado no dump da Wikipedia em inglês, normas SubtlexUS/Kuperman, fórmulas Flesch-Kincaid/SMOG do inglês) e não rodam em PT-BR sem reconstruir o LDA num corpus PT-BR e trocar todas as bases léxicas. A etapa de transformer (soft labels) rodaria em CPU com o torch já instalado (extras embeddings), mas o artigo não mede esse custo. Para PT-BR o trabalho é essencialmente uma nova engenharia de features, não a execução direta do artefato publicado.",
+  "transferable": "Transfere: a ideia central de REPRESENTAÇÃO — combinar uma representação densa (soft labels de um transformer) com features estruturais feitas à mão, e que esse ganho é maior justamente quando há poucos dados rotulados; é um padrão de representação, não um resultado de legibilidade. Transfere também o achado de que features de 'semântica avançada' derivadas da distribuição de tópicos de um LDA acrescentam informação ortogonal às features de superfície — o que dialoga com o nosso braço 03 (DMR/tomotopy). NÃO transfere: as 255 features concretas, que são inglês-específicas; o domínio (legibilidade educacional, não vigilância de arbovírus); a língua (inglês, não PT-BR); e a tarefa (classificar nível de leitura, não detectar sinal de dengue). A distância de domínio é grande: bom desempenho em parágrafos de leitura em inglês não implica bom desempenho em notícias de dengue em português. O que resta transferível é o desenho híbrido e a hipótese de que features estruturais compensam poucos dados.",
+  "red_flags": [
+    "Benchmark 100% em inglês (WeeBit, OneStopEnglish, Cambridge); nenhuma avaliação em outra língua.",
+    "Nenhuma avaliação cross-domain — os próprios autores declinam; os números valem só in-domain, em datasets de legibilidade.",
+    "O ganho do híbrido desaparece no maior corpus (WeeBit): a arquitetura só ajuda quando há poucos dados, então o 99% no OneStopEnglish vem de um dataset menor/médio, não de uma melhora geral.",
+    "Datasets downsampleados e balanceados artificialmente (625 itens/classe no WeeBit) e o ReadNet foi omitido da Tabela 5; os autores reconhecem que a comparação com SOTA é frágil por isso.",
+    "Ruído de rótulo por subjetividade: os autores admitem que o teto de performance pode já ter sido atingido no WeeBit por causa de 'label noise induced by subjectivity'.",
+    "Parte do ganho sobre SOTA anteriores é atribuída a hiperparâmetros (comprimento de sequência 512 vs 128 dos trabalhos anteriores), não à arquitetura híbrida em si — a comparação mistura duas mudanças.",
+    "Dependência pesada de recursos externos em inglês (dump da Wikipedia, normas psicolinguísticas) e de um parser de constituência — difícil de reproduzir fora do inglês."
+  ]
+}

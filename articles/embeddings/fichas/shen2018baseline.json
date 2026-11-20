@@ -1,0 +1,43 @@
+{
+  "key": "shen2018baseline",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/19_shen_2018_baseline_needs_more_love_pooling.pdf",
+  "author": "Shen et al.",
+  "year": 2018,
+  "read": "Li o PDF inteiro (11 páginas, 440-450). Capa/abstract e introdução (p.1-2); related work e seção 3 Models & training com as equações de pooling aver/max/concat/hier e a Tabela 1 de complexidade (p.3-4); Experimentos: document categorization com Tabela 2, Tabela 3 de interpretabilidade e Tabela 4 de parâmetros/velocidade (p.5); text sequence matching com Tabela 5, Tabela 6 de word-order embaralhado e o case study da Tabela 7 (p.6-7); short sentence processing com Tabela 8 e a discussão de subspace training/linear classifiers (p.7-8); extensão a chinês (Sogou/Pinyin) e Conclusões (p.8-9). As estatísticas dos 17 datasets e os resultados de chunking/NER ficam no Supplementary Material, apenas referenciados, não incluídos neste PDF.",
+  "technique": "SWEM (Simple Word-Embedding-based Model): representação de texto sem parâmetros composicionais aprendidos. Cada palavra vira um vetor fixo (GloVe de dimensão K=300, congelado ou ajustado); a sequência inteira vira UM único vetor via pooling elementar: SWEM-aver = média dos vetores de palavra; SWEM-max = máximo elemento a elemento ao longo da sequência (cada dimensão do embedding guarda a palavra de maior valor); SWEM-concat = concatenação de aver e max; SWEM-hier = média dentro de janelas locais de n palavras consecutivas seguida de max-pooling global (preserva n-gramas). Sobre esse vetor vai um classificador simples (MLP ou regressão linear). Não há RNN/CNN nem atenção: a única composicionalidade é a operação de pooling.",
+  "representation": "O texto vira número por agregação estatística dos vetores de palavra, não por uma função aprendida. O average pooling trata toda palavra como igualmente importante (soma dividida por L); o max pooling seleciona apenas a palavra mais saliente por dimensão, o que produz embeddings esparsos e dimensões interpretáveis como tópicos. O espaço tem a dimensão K do embedding de palavra (300 no artigo). As variantes diferem em quanto de informação de ordem/n-grama sobrevive: aver e max descartam a ordem; hier a reintroduz via janelas locais. Não há normalização nem projeção além do pooling; a geometria resultante é a do embedding de palavra original, apenas agregada.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Modelos de pooling sem parâmetros (SWEM) sobre word embeddings igualam ou superam RNN/CNN na maioria dos casos avaliados, o que motiva tratar o baseline simples como forte.",
+      "citacao": "Surprisingly, SWEMs exhibit comparable or even superior performance in the majority of cases considered.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "SWEM-concat supera CNN e LSTM no Yahoo! Answer usando só 61K parâmetros, contra 541K (CNN) e 1.8M (LSTM), e treinando em uma fração do tempo.",
+      "citacao": "SWEM-concat achieves better results on Yahoo! Answer than CNN/LSTM, with only 61K parameters",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "SWEM-max atinge 83,8% de acurácia no SNLI com apenas 120K parâmetros, competitivo com modelos de encoding de sentença state-of-the-art.",
+      "citacao": "with only 120K parameters, our SWEM-max achieves a test accuracy of 83.8%",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O max-pooling rende um modelo mais interpretável: os embeddings ficam esparsos e cada dimensão agrupa palavras de um mesmo tópico.",
+      "citacao": "the nature of max-pooling process gives rise to a more interpretable model",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O pooling hierárquico proposto (SWEM-hier) supera as outras três variantes SWEM e chega a acurácias comparáveis às de CNN/LSTM.",
+      "citacao": "SWEM-hier greatly outperforms the other three SWEM variants, and the corresponding accuracies are comparable to the results of CNN or LSTM",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Generally, SWEM is less effective at extracting representations from short sentences than from long documents.",
+  "evidence": "Comparação ponto a ponto contra baselines fortes em 17 datasets: CNN de uma camada (Kim, 2014), LSTM, CNN profunda de 29 camadas (Conneau et al., 2016), bag-of-means e fastText. Document classification (Tabela 2): SWEM-concat 73.53 no Yahoo! Ans. vs LSTM 70.84 e Large word CNN 70.94; 92.66 no AG News vs LSTM 86.06; SWEM-hier 95.81 no Yelp Full vs Deep CNN 95.72. Eficiência (Tabela 4): SWEM 61K parâmetros / 63s vs CNN 541K / 171s vs LSTM 1.8M / 598s no Yahoo! Answer. Sentence matching (Tabela 5): SWEM-max 83.8 no SNLI vs CNN 82.1 e LSTM 80.6; SWEM-concat 83.03 no Quora vs LSTM 82.58. Porém o resultado é dependente da tarefa: em sentiment analysis e frases curtas (Tabela 8) SWEM perde para CNN/LSTM (ex.: SST-2 SWEM-max 83.6 vs CNN 88.1). Extensão a chinês (Sogou/Pinyin): SWEM-hier 96.2% vs CNN 95.6% e LSTM 95.2% reportados em Zhang et al. (2015b).",
+  "needs": "Embeddings de palavra pré-treinados de dimensão fixa (o artigo usa GloVe 300d) ou embeddings aprendidos do zero; corpus rotulado por tarefa para treinar o classificador; nenhuma GPU é exigida pelos modelos (61K-120K parâmetros, sem camadas recorrentes). O artigo reporta tempo relativo de treino (63s vs 171s vs 598s no Yahoo! Answer) mas não reporta memória, hardware nem tempo absoluto por época. Língua: inglês nos 17 datasets, com uma única extensão a chinês em Pinyin. Não reportado: custo de CPU/GPU, tamanho dos embeddings em disco, número de épocas.",
+  "cost_here": "A técnica em si é barata em CPU: pooling é O(L·K) por sequência e o classificador tem dezenas de milhares de parâmetros. Sobre nosso corpus (4.369 artigos, 965 semanas, 28 locations) o custo dominante seria obter embeddings de palavra PT-BR — o extra 'embeddings' já traz torch/transformers, e o pooling não adiciona dependência nova. O artigo NÃO reporta tempo de CPU, memória ou throughput para um corpus desse tamanho; o único número é o tempo relativo de treino por dataset (63s SWEM vs 171s CNN vs 598s LSTM no Yahoo! Answer, hardware não reportado). Portanto: custo de execução 'não reportado' pelo artigo; a arquitetura sugere que roda em CPU em minutos, mas isso não é medido no paper.",
+  "transferable": "A técnica transfere: pooling (média, max, concat, hierárquico) é agnóstico de domínio e de língua, e o achado central — pooling simples basta para documentos LONGOS (centenas de palavras) enquanto word-order importa para textos curtos e sentimento — encaixa bem em notícia PT-BR, que é texto longo e cujo sinal é temático/geográfico, não de sentimento. A parte de interpretabilidade via max-pooling (dimensões = tópicos) é diretamente útil para inspecionar o que o braço de embeddings captura. NÃO transfere com confiança: toda a evidência é em inglês (notícia Yahoo/AG News, reviews Yelp, NLI SNLI) exceto uma única extensão a chinês em Pinyin, então não há validação em português nem em notícia de vigilância de doença; a distância de domínio é grande, e a distância de língua é não medida. Os resultados de texto curto (tweets, sentimento) não devem ser importados para o nosso caso.",
+  "red_flags": "Benchmark quase inteiramente em inglês (17 datasets), com uma só extensão a chinês em Pinyin — nenhuma validação em português. Parte das comparações usa números reportados em outros artigos (marcados com símbolos na Tabela 2, em vez de re-executados pelos autores). O ganho é dependente da tarefa e às vezes dentro do ruído: SWEM perde em sentimento e frases curtas (Tabela 8). Os próprios autores notam que resultados em datasets pequenos são muito sensíveis a regularização/overfitting. Avaliação só intrínseca por acurácia de tarefa, sem desfecho externo no domínio. A comparação de parâmetros/velocidade (Tabela 4) é medida em um único corpus principal (Yahoo! Answer)."
+}

@@ -1,0 +1,50 @@
+{
+  "key": "valentin2021padi",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/06_valentin_2021_padi_web_3_fine_grained_news.pdf",
+  "author": "Valentin et al.",
+  "year": 2021,
+  "read": "Li o PDF completo, as 10 páginas do leitor: capa HAL (p.1), folha de rosto One Health com abstract e Introdução (p.2), Fig. 1 e Related work (p.3), Fig. 2, seções 2.1.2-2.2 e início de Material and methods (p.4), Figs. 3-4 e seções 3.1-3.4 (p.5), Fig. 5 e seções 3.4-3.5.3 (p.6), Fig. 6 e seções 3.5.3-3.5.4 (p.7), Fig. 7, Tabelas 1 e 2, seção 4 Results e seção 5 Discussions and conclusion (p.8), referências (p.9-10). Conferi as Tabelas 1 e 2 (F-measure por classe) e os números de acurácia citados no corpo.",
+  "technique": "PADI-web 3.0 é um sistema de biosvigilância que monitora notícias online (Google News via RSS) para vigilância de doenças animais. O artigo apresenta quatro funcionalidades novas: (i) classificação fina em nível de SENTENÇA (tipo de evento: current/old/general/risk/irrelevant; tipo de informação: descriptive epidemiology, preventive and control measures etc.), (ii) extração automática de entidades nomeadas com spaCy e BioTex, (iii) indexação de keywords com o tesauro AGROVOC e (iv) notificação por e-mail. A técnica de NLP é clássica, não neural: segmentação de sentenças com spaCy, representação em saco-de-palavras e classificação por modelos clássicos (Naive Bayes, SVM, MLP, random forest).",
+  "representation": "O texto vira número por um modelo de espaço vetorial clássico — saco-de-palavras (bag-of-words) com peso TF-IDF. Não há encoder neural nem embedding: as sentenças passam por remoção de pontuação, minúsculas e tokenização, e cada sentença vira um vetor esparso de frequências ponderadas, sobre o qual rodam classificadores clássicos. É a forma mais antiga de vetorização de texto, não representação densa aprendida.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O sistema acumulou mais de 380 mil itens de notícia desde 2016, monitorando fontes online para vigilância de doenças animais.",
+      "citacao": "PADI-web has collected more than 380,000 news items since 2016.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "A avaliação do classificador em nível de sentença usou um corpus anotado de 1.244 sentenças extraídas de 87 artigos de notícia.",
+      "citacao": "We used an annotated corpus that contains 1244 sentences (from 87 news articles).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O modelo de classificação em produção atinge acurácia média de 0,94 na tarefa de relevância em nível de artigo, com random forest.",
+      "citacao": "the trained classification models integrated into PADI-web 3.0 reach a mean accuracy score of 0.94 for the article-level Relevance task using a random forest classifier",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "As tarefas em nível de sentença (tipo de evento e tipo de informação) ficam bem abaixo, com acurácia de 0,66 e 0,49.",
+      "citacao": "For the sentence-level Event type and Information type classification tasks, the accuracy is 0.66 and 0.49, respectively, with a random forest classifier in both cases.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "A representação do texto é um modelo de espaço vetorial clássico (saco-de-palavras), não embeddings neurais.",
+      "citacao": "The sentences are represented with a classical vector space model (i.e. bag-of-words).",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Os autores atribuem os maus resultados de algumas classes ao desbalanceamento do próprio corpus anotado: 'Classification scores for some classes are better (e.g., Current event, Descriptive epidemiology) than other ones (e.g., Old event, Distribution). We could explain this situation with the unbalanced datasets used.' (p.8). Não há seção formal de limitações no artigo.",
+  "evidence": "Comparação com baselines clássicos: Naive Bayes, SVM e MLP, avaliados por precisão, recall, F-measure e validação cruzada 5-fold (Tabelas 1 e 2, com resultados do MLP). Achado explícito: 'MLP and SVM achieved comparatively equal performances and outperformed the NB classifier'. F-measure médio ponderado: 0,69 (Event type) e 0,66 (Information type). Em produção: acurácia média 0,94 no nível de artigo (relevância, random forest) e 0,66/0,49 no nível de sentença. Não há comparação com métodos de embedding ou neurais.",
+  "needs": "spaCy (NER multilíngue), BioTex, tesauro AGROVOC (38.780 conceitos e 808.000 termos), API do Microsoft Azure Translator (traduz tudo para inglês), feeds RSS do Google News e um corpus anotado de 1.244 sentenças de 87 artigos com guidelines. Línguas: RSS em 16 idiomas, mas o classificador opera sobre o inglês traduzido; português não está entre os idiomas citados. Não exige GPU. Tamanho de modelo e tempo de execução: não reportados.",
+  "cost_here": "O artigo não reporta tempo de execução nem custo computacional (não reportado). A abordagem de classificação em si (TF-IDF + modelos clássicos sobre 1.244 sentenças) é CPU-only e barata em princípio, mas isso é inferência minha, não medição do artigo. O custo real sobre nosso corpus viria das dependências de domínio (spaCy, BioTex, AGROVOC), que não cobrem arbovírus nem PT-BR, e não foi medido.",
+  "transferable": "Transfere: a técnica de vetorização (saco-de-palavras + TF-IDF + classificador clássico) é independente de domínio, roda em CPU e o domínio é notícia de vigilância de doença — mesmo enquadramento do nosso braço 01 (léxico). Não transfere: o sistema é de doença ANIMAL (gripe aviária, febre aftosa) e o conhecimento de domínio está em recursos que não reusamos (AGROVOC é tesauro agrícola; o NER é treinado para doença animal). Distância de língua é grande: o pipeline traduz tudo para inglês antes de classificar e o português não aparece entre as 16 línguas de RSS — notícia PT-BR exigiria tradução, com perda não medida.",
+  "red_flags": [
+    "Acurácia em nível de sentença baixa (0,66 e 0,49) e F-measure quase nulo em classes raras (Old event 0,14).",
+    "Avaliação em um único corpus anotado, pequeno (1.244 sentenças de 87 artigos) e anotado por um único projeto.",
+    "Sem comparação com embeddings ou métodos neurais: baselines são só clássicos (NB, SVM, MLP, random forest).",
+    "Classificador treinado sobre traduções para o inglês de notícias multilíngues; a perda de tradução não é medida.",
+    "Acurácia de 0,94 em nível de artigo pode refletir tarefa binária de relevância desbalanceada.",
+    "Recursos de domínio (AGROVOC, NER de doença animal) não são reusáveis para arbovírus/PT-BR."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "key": "algaradi2025mortalityextraction",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/02_algaradi_2025_mortality_extraction_llm.pdf",
+  "author": "Al-Garadi et al.",
+  "year": 2025,
+  "read": "Li o PDF inteiro (13 páginas). Capa com autores e afiliações (p.1), abstract (p.1-2), Introdução (p.2), Methods — fontes de dados e coorte, reference standard, anotação e IAA, densidade de informação, desenvolvimento NLP (p.3-5), Results — IAA, densidade de informação (Table 1), extração com transformers (Table 2), acurácia de CoD (Table 3), precisão/recall/F1 (Table 4), análise de erros (p.5-8), documentos finais (Table 5), Discussion/Principal Findings e Limitations (p.8-9), Conclusions (p.9), Data Availability, agradecimentos e References (p.10-13). Verifiquei os números nas Tabelas 2, 3, 4 e 5.",
+  "technique": "Artigo de aplicação, não de representação. Pipeline de NLP em duas etapas para extrair informação de mortalidade de texto web em inglês (EUA). Etapa 1 — NER: fine-tuning de quatro encoders transformers pré-treinados (BERT, RoBERTa, ALBERT, BERTweet) para extrair nome do falecido, data de nascimento e data de óbito e descartar datas irrelevantes. Etapa 2 — causa de morte (CoD): em vez de transformer, few-shot learning com um LLM open-source (LLaMA, variante de 13 GB) via prompting iterativo (4 iterações; 30 exemplos anotados no prompt e 30 para avaliar). O que ele mede no domínio: acurácia/F1 por fonte (GoFundMe, obituários, sites memorial, Twitter/X).",
+  "representation": "Não propõe representação nova. O texto vira número pelo mecanismo padrão do transformer: tokens passam pelo encoder e saem como embeddings contextuais (self-attention bidirecional); uma cabeça de classificação por token marca as entidades (nome, datas). Para a CoD o LLM recebe texto bruto + prompt e devolve rótulos em linguagem natural, sem vetor explícito. Não há discussão de pooling, normalização, geometria do espaço ou dimensionalidade — a contribuição é o uso, não a forma de representar.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O RoBERTa fine-tunado foi o melhor dos quatro transformers testados, com F1 micro-médio de 0,88 (IC 95% 0,86-0,90) na extração de nome do falecido, data de óbito e data de nascimento, à frente de BERT, ALBERT e BERTweet.",
+      "citacao": "the RoBERTa model achieved the highest overall performance for extracting the targeted information, with a microaveraged F1-score of 0.88",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O few-shot com o LLaMA identifica a causa primária de morte com acurácia próxima à humana (95,9% GoFundMe, 96,5% obituários, 98% sites memorial vs 97,9%, 99% e 99,5%), mas o desempenho varia por fonte.",
+      "citacao": "our FSL-LLM approach demonstrated high accuracy across all sources (GoFundMe: 95.9%, obituaries: 96.5%, memorial websites: 98%), approximating human annotator performance (97.9%, 99%, and 99.5% respectively)",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Obituários têm densidade baixíssima de menções de causa de morte: só 6% das postagens anotadas traziam qualquer CoD.",
+      "citacao": "Obituaries had a very low density of CoD mentions, with only 6% (n=63) of 1,050 annotated posts containing any CoD",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O erro mais comum do FSL foi anotar uma CoD que não estava mencionada no post (3,5%), enquanto o anotador humano deixou de captar uma CoD mencionada em 1% dos posts.",
+      "citacao": "The most common error made by the FSL algorithm was in the annotation of a CoD that was not mentioned in the post (3.5%), whereas the human annotator missed a mentioned CoD in 1% of posts",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O Twitter/X foi excluído da análise após a anotação por ter baixa densidade de informação que permitisse ligar o post a uma pessoa específica.",
+      "citacao": "X had low information density for patient identification and was excluded from subsequent analysis",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "Na seção Limitations (p.9) os autores escrevem: \"our reliance on keyword-based searches may miss relevant posts because of variations in language, slang, or indirect references to mortality, and the exclusion of non-English posts may limit generalizability\". Também admitem \"social media data may not fully represent all population segments due to use and sharing biases\" e que \"the use of a nurse adjudicator may also introduce correlated errors with the human-based reference\", além de que \"further work is needed to improve its ability to extract multiple contributing causes from individual posts\".",
+  "evidence": "Compara quatro transformers entre si no NER: RoBERTa F1 micro 0,88 (IC 0,86-0,90) > ALBERT 0,86 > BERT 0,84 = BERTweet 0,84 (Table 2). No CoD, compara o FSL-LLM contra anotadores humanos como padrão-ouro (Table 3: 95,9/96,5/98% de acurácia na causa primária vs 97,9/99/99,5%; Table 4: F1 0,96 GoFundMe e memorial, 0,76 em obituários com precisão 0,61). Não há baseline lexical ou baseado em regras: a única referência para CoD é o humano, e os transformers são comparados apenas entre si.",
+  "needs": "Dados rotulados: 4.200 documentos anotados por 3 enfermeiras (1.050 por fonte), com IAA mínimo de Cohen κ 0,80 exigido antes da anotação completa, mais 600 exemplos para avaliar o CoD. Modelos: quatro transformers pré-treinados (BERT, RoBERTa, ALBERT, BERTweet) fine-tunados + LLM LLaMA variante de 13 GB. Língua/domínio: apenas inglês e EUA (posts não-ingleses excluídos). GPU e tempo de execução: não reportado.",
+  "cost_here": "Não reportado em tempo ou hardware — o artigo só diz que a variante de 13 GB do LLaMA 'can be run locally on a machine with sufficient computational resources', sem medir tempo nem especificar GPU. Sobre o nosso corpus (4.369 notícias PT-BR, 965 semanas, CPU only), o custo é alto: a etapa de NER fine-tunada exigiria um conjunto rotulado por especialistas que não temos (o artigo usou 4.200 documentos anotados por enfermeiras, custo de anotação não quantificado), e rodar um LLaMA de 13 GB em CPU sobre milhares de documentos não cabe no orçamento de 'minutos'. Nenhum número do artigo permite dimensionar isso.",
+  "transferable": "Transfere a arquitetura geral (encoder transformer para entidades + LLM few-shot para classificar nuance) e o alerta de que a densidade de informação varia muito por fonte — o Twitter/X foi descartado por não permitir ligar a pessoa, e obituários quase não trazem CoD. Não transfere o resto: é inglês, EUA, redes sociais/GoFundMe/obituários, tarefa de NER de pessoa (nome, nascimento, morte) e causa de morte — nada disso é o nosso caso (notícia PT-BR, sinal semanal de vigilância). A distância de domínio é grande: os modelos específicos (BERTweet para tweets em inglês, LLaMA em inglês) não servem para PT-BR sem trocar o backbone, e o achado de baixa densidade do texto curto e informal não descreve notícia. Como é artigo de aplicação, ele não informa nossas escolhas de representação (pooling/geometria).",
+  "red_flags": [
+    "Só inglês e só EUA — os próprios autores dizem que excluir posts não-ingleses limita a generalização.",
+    "Sem baseline lexical/regra para causa de morte: a única referência é o humano, e os transformers só são comparados entre si.",
+    "Causa de morte avaliada com um único LLM (LLaMA); nenhum outro LLM é testado.",
+    "Ganho entre transformers pequeno e com intervalos de confiança sobrepostos (RoBERTa 0,88 vs BERT 0,84, ALBERT 0,86, BERTweet 0,84).",
+    "Conjuntos de avaliação pequenos: 30 exemplos para o prompt e 600 para o teste de CoD.",
+    "A acurácia alta em obituários (96,5%) esconde F1 de 0,76 (precisão 0,61, recall 1,0) — o modelo super-anota causas; o próprio artigo chama de 'potential for optimization'.",
+    "Padrão-ouro de CoD é um enfermeiro adjudicador, o que os autores admitem poder introduzir erros correlacionados."
+  ]
+}

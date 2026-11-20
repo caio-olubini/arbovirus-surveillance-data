@@ -1,0 +1,51 @@
+{
+  "key": "jang2019word2vec",
+  "grupo": "aplicacao",
+  "pdf": "articles/embeddings/18_jang_2019_word2vec_cnn_news.pdf",
+  "author": "Jang et al.",
+  "year": 2019,
+  "read": "Li o artigo inteiro (20 páginas): capa e abstract (p.1); introdução (p.1-3); background de word2vec e CNN, Figuras 1-2 (p.3-4); related works (p.5-6); modelo de classificação, Tabelas 1-2 (p.6-8); Tabelas 3-5 (p.9-10); arquitetura CNN da Figura 5 e métricas (p.11); Experiments com notícias e tweets, Figuras 6-11 (p.11-14); Discussion, Tabela 6 (p.15-16); Conclusion, Future works e limitações (p.17). Não li em detalhe as 63 referências (p.18-20).",
+  "technique": "Classificador binário de documentos. Usa word2vec (CBOW ou Skip-gram) para aprender vetores de palavra no próprio corpus; cada palavra do documento é substituída por seu vetor (dimensão 1000), a sequência de vetores entra numa CNN (camada convolucional em janelas de palavras, max-pooling over time e camada totalmente conectada) que emite positivo (documento relacionado a doença) ou negativo (documento de propaganda). O experimento compara CBOW, Skip-gram e vetores inicializados aleatoriamente, variando volume de treino e número de épocas.",
+  "representation": "O texto vira número em dois estágios. Primeiro, cada palavra é mapeada para um vetor fixo aprendido por word2vec (layer size 1000, mínimo de frequência 5, 20 iterações, learning rate 0.07). Segundo, o documento é a sequência desses vetores, e a CNN convolve sobre janelas dessa sequência, faz max-pooling ao longo do tempo e uma camada densa produz o rótulo. Não há pooling nem normalização de sentença nem geometria de espaço vetorial: é vetor-de-palavra alimentando uma CNN que classifica o documento. A qualidade da representação depende de os vetores de palavra serem pré-treinados no domínio em vez de aleatórios.",
+  "afirmacoes": [
+    {
+      "afirmacao": "No corpus de notícias, a CNN com CBOW atinge 0,9341 de acurácia e 0,9351 de F1, o melhor resultado entre os três vetores testados.",
+      "citacao": "The CNN with CBOW exhibited values corresponding to 0.9341 and 0.9351",
+      "pagina": 15
+    },
+    {
+      "afirmacao": "A CNN com word2vec (CBOW e Skip-gram) supera a mesma CNN usando vetores inicializados aleatoriamente, que foi o único baseline.",
+      "citacao": "the CNN classification model with word2vec such as CBOW and Skip-gram algorithms outperformed the CNN classification model with the random vector.",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "O algoritmo de embedding escolhido depende do tipo de dado: CBOW rende mais em notícias, Skip-gram rende mais em tweets.",
+      "citacao": "The CNN with CBOW model in news articles exhibited the highest overall performance although the CNN with Skip-gram model performed better when compared to the CNN with CBOW algorithm in the tweets.",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "O volume de treino necessário para passar de 0,85 de acurácia/F1 é maior em tweets (6000) do que em notícias (3000).",
+      "citacao": "The accuracy and F1 score of the CNN with CBOW in news articles exceeded 0.85 at the training volume of 3000",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "Os dados foram coletados em 62 dias (1 de março a 1 de maio de 2018), com cerca de 2000 notícias e 4700 tweets por dia.",
+      "citacao": "We collected news articles and tweets for 62 days from March 1, 2018, to May 1, 2018.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Although we found appropriate word embedding models for news articles and tweets, our experimental results could be applied only to Word2vec’s CBOW and Skip-gram. We must compare word2vec with other word embedding techniques such as GloVe [47] and Fasttext [57].",
+  "evidence": "Baseline é a mesma arquitetura CNN com vetores aleatórios (random). Tabela 6 (p.16): News+CBOW 0,9341 acc / 0,9351 F1 contra News+Random 0,8475 / 0,8409; News+Skip-gram 0,9147 / 0,9161; Twitter+Skip-gram 0,9081 / 0,9097 contra Twitter+Random 0,8403 / 0,8360; Twitter+CBOW 0,9010 / 0,9037. Ganho de cerca de 8 a 9 pontos sobre a inicialização aleatória. As curvas de época por volume de treino (Figuras 6-13, p.12-16) mostram que o desempenho sobe com volume e épocas e estabiliza. Não há comparação com TF-IDF, com outros classificadores ou com embeddings contextuais.",
+  "needs": "Word2vec treinado no corpus do domínio (coreano): 122.258 notícias e 291.309 tweets (Tabela 2, p.8). Exige dados rotulados positivo/negativo (positivo = relacionado a doença; negativo = propaganda). Parâmetros word2vec: min freq 5, iteração 20, learning rate 0.07, layer size 1000 (Tabela 4, p.9). CNN: batch 500, 1 a 200 épocas, 100 feature maps (Tabela 5, p.10). Hardware usado (Tabela 1, p.7): Windows 10, Intel i7-8700, 32 GB RAM, GPU NVIDIA GTX 1070, CUDA 9.1, framework DeepLearning4j.",
+  "cost_here": "Não reportado para o nosso corpus nem tempo de treino. O artigo treinou em GPU (GTX 1070) e não mede custo. Nosso ambiente é CPU-only: treinar word2vec sobre 4.369 artigos é pequeno, mas o artigo depende de um conjunto rotulado positivo/negativo que não temos. Os extras instalados (embeddings = torch+transformers; topics = tomotopy) não trazem word2vec/gensim, então o vetor de palavra teria de ser treinado do zero (gensim não instalado); torch existe para a CNN. Não estime para baixo: o custo real está na anotação, não no treino.",
+  "transferable": "Transfere: (a) treinar word2vec no próprio domínio e usá-lo como entrada de classificador bate inicialização aleatória — indica que vetores de palavra aprendidos no corpus carregam sinal; (b) notícias (formato uniforme) classificam melhor que tweets, e nosso corpus é notícia (Agência Brasil), não tweet. Não transfere: idioma coreano; a tarefa é relevância binária (propaganda vs doença), não regressão de série temporal semanal; e o produto é um classificador de documento, não um embedding de documento/sentença reutilizável como feature. A distância de domínio é grande (coreano→PT-BR, classificação binária→nowcasting com 965 semanas e 28 localidades). O artigo não produz representação de documento que possamos plugar em regressão.",
+  "red_flags": [
+    "Abstract afirma que word2vec 'significantly improved' a acurácia, mas não há nenhum teste de significância estatística no texto.",
+    "Baseline único: apenas vetores aleatórios na mesma CNN; sem TF-IDF, sem outros classificadores, sem embeddings contextuais (BERT).",
+    "Um único idioma (coreano) e uma única arquitetura (CNN), sem replicação em outro modelo ou domínio.",
+    "Parte das diferenças entre CBOW e Skip-gram cai no ruído — os próprios autores dizem que diferenças significativas não foram observadas em tweets.",
+    "Dataset próprio e não público; rótulo negativo = propaganda (critério heurístico de anotação).",
+    "Custo e tempo de treino não reportados; épocas de 1 a 200 sem critério de parada definido.",
+    "Avaliação só intrínseca à tarefa deles (acurácia binária), sem validação externa ou uso downstream."
+  ]
+}

@@ -1,171 +1,224 @@
-# Ranqueamento das 23 fichas — por abordagem, não por artigo
+# Ranqueamento das abordagens — embeddings (23 fichas)
 
-Contexto de uso (é ele que define "usável"): corpus de 4.369 artigos PT-BR da
-Agência Brasil (query dengue), 965 semanas × 28 locations; **CPU only, sem GPU**;
-os extras já fixados em `pyproject.toml` são `embeddings` (torch + transformers,
-~800 MB) e `topics` (tomotopy); braços 01 (léxico), 02 (6 configurações de
-embedding) e 03 (DMR) **já construídos e medidos** (`src/pipeline/news/README.md`);
-`notes/00-protocolo-comparacao.md` fixa o chão comum e exige a ablação "sem texto"
-e o controle de texto embaralhado. **Dependência nova é caríssima** e o transform
-precisa rodar em minutos, não horas.
+Ranqueia **abordagens**, não artigos. Várias fichas descrevem a mesma abordagem e aparecem como uma
+linha só; nesse caso a evidência é a soma delas. Os dois grupos **não competem entre si** e a numeração
+reinicia em cada um:
 
-Os dois grupos **não competem entre si**. `representacao` são alternativas umas das
-outras (qual converte texto em número rende mais por unidade de esforço aqui);
-`aplicacao` responde outra pergunta (o que já foi feito em notícia como fonte de
-vigilância, e o que muda para nós). A numeração reinicia em cada grupo.
+- `representacao` (17 fichas) — como transformar texto em número. São alternativas umas das outras; a
+  pergunta é qual delas rende mais por unidade de esforço aqui.
+- `aplicacao` (6 fichas) — onde usar notícia como fonte de vigilância, no nosso domínio. Não competem
+  com as de representação; a pergunta é o que já foi feito em notícia como fonte de sinal, o que aquilo
+  mediu, e o que muda para nós.
 
-Uma correção de leitura que vale registrar: o braço 02 publica **um** vetor por
-artigo (o pooling já aplicado). Trocar o pooling de tokens (mean ↔ [CLS] ↔ max)
-**exige re-encode**; só a re-pooling *entre artigos dentro da semana* é que é
-"segundos". A correção de geometria (whitening/ABTT), essa sim, opera sobre o vetor
-já salvo e não exige re-encode.
+## Contexto que define "usável" — o custo de adoção é relativo a isto
 
----
+Corpus de 4.369 artigos PT-BR da Agência Brasil (query dengue), 965 semanas × 28 locations (BR + 27 UFs);
+**CPU only, sem GPU**; extras já fixados em `pyproject.toml` — `embeddings` (torch + transformers,
+~800 MB) e `topics` (tomotopy). Braços 01 (léxico), 02 (bracket de 6 configurações de embedding) e 03
+(DMR) **já construídos e medidos** (`src/pipeline/news/README.md`). `notes/00-protocolo-comparacao.md`
+fixa o chão comum e exige a ablação "sem texto" e o controle de texto embaralhado. **Dependência nova é
+caríssima** e o transform precisa rodar em minutos, não horas.
 
-## A. Representação (como transformar texto em número)
+Duas leituras do repo que mudam o custo de várias linhas, e que valem registrar antes das tabelas:
 
-| rank | abordagem (fichas) | merit | adoption_cost | verdict |
-|---|---|---|---|---|
-| 1 | Escolha de pooling sobre encoder congelado: mean vs [CLS] vs max vs concat vs hier/n-grama (07 Ni 2022, 19 Shen 2018, 01 Reimers 2019, 04 Cer 2018 = dup, 21 Wieting 2016) | Ni 2022: mean do encoder T5 88.96 vs primeiro token 83.38 no transfer, e STS desaba a 10.37 no primeiro token. Shen 2018: pooling sem parâmetros empata/supera CNN de 29 camadas em documento longo e tópico (Yahoo 73.53 vs 73.43) com 1/10 dos parâmetros do LSTM. Reimers 2019 (Tab. 6): sob classificação MEAN≈CLS≈MAX (80.78/79.80/79.07), mas sob regressão MAX colapsa (69.92 vs MEAN 87.44). Baseline = o mesmo encoder com outro pooling. | Re-encode: 1 passada forward por modelo capturando mean+[CLS]+max na mesma rodada (~11 min p/ BERTimbau base; ~35 min p/ e5-large). Nenhuma dependência nova (extra `embeddings` já fixado); CPU, minutos. A agregação semanal a partir daí é segundos. | tentar agora |
-| 2 | Correção de geometria pós-hoc sobre vetores congelados: whitening (10 Su 2021), remover média + top-PCs / all-but-the-top (09 Mu 2017), normalizing flow (12 Li 2020) | Su 2021: STS-B 59.04→67.51 (+8.5) sobre a MESMA representação sem correção. Mu 2017: +4% Pearson em STS, +2.5% em categorização (mas piora em MSRpar e em analogia). Li 2020: +8.16 médio sobre o BERT cru. Baseline = a própria representação sem a correção. **Aqui o bracket já mediu**: whitening move PC1-vs-casos de 0.105 para 0.113 e derruba o cosseno médio de 0.8792 para −0.0002. | Quase zero: média + SVD sobre a matriz 4369×768 já publicada em parquet; segundos em CPU, numpy puro, sem re-encode, sem dependência. Já existe 1 variante (`bertimbau-whitening`). O custo é de desenho: o fit é transdutivo (vê o futuro) e precisa de janela rolling-origin (`whitening_fit_until` já existe). | tentar agora |
-| 3 | Encoder multilíngue/destilado pré-treinado, drop-in no bracket (06 Reimers 2020 destilação, 14 Yang 2020 USE-multilíngue, 13 Pires 2019 M-BERT) | Cobrem português (Reimers 2020 tab. 9 "por" 94.8 no Tatoeba; Yang 2020 lista pt entre 16 línguas; Pires 2019 lista pt-br no UD) e a destilação maximiza **similaridade semântica**, não tradução — o inverso de LaBSE/USE. Baseline: encoders multilíngues crus (mBERT mean 54.0, XLM-R mean 42.7 em STS). | Baixo: um `model_id` novo pelo extra `embeddings`, sem treino nem GPU; +1 variante ~10 min CPU. Mas o ganho marginal é baixo — o bracket JÁ tem dois multilíngues que cobrem pt (e5-large, bge-m3). | tentar depois |
-| 4 | Vetores de palavra estáticos + SIF: média ponderada por frequência + remoção da 1ª componente (11 Arora 2017) | Baseline não supervisionado forte: +10% a +30% sobre média de GloVe em STS (por tarefa, +7% a +58%); ablação W+R = +13%; ganha de DAN/LSTM em SICK. Não é uniforme: PIORA em MSRpar (47.7→35.6) e perde em sentiment; o topo (PSL+WR) embute supervisão (PPDB). | Compute trivial (média + 1 SVD 4369×300), mas exige vocabulário de vetores de palavra **PT-BR** que não temos nem está nos extras — fastText-PT ~1.2 GB, ou treinar word2vec (gensim = dependência nova). O custo real é o artefato novo. | descartar |
-| 5 | Embedding de sentença composicional treinado do zero sobre n-gramas, sem transformer (20 Pagliardini 2018, Sent2Vec) | Média de unigramas+bigramas treinada para prever palavras: +3.8 macro-STS sobre SOTA não supervisionado; treino de 19.7B palavras em 6.5 h em CPU (30 threads). Mas perde do C-PHRASE no subtarefa STS "News" (0.62 vs 0.69) e o bigrama piora similaridade. | Sem modelo PT publicado → treinar do zero sobre 4.369 artigos. Compute provavelmente minutos (nosso corpus é ordens de magnitude menor que o menor do artigo, 0.9B palavras — NÃO reportado nesse regime), mas a implementação é C++/FastText (dependência nova) e o corpus é pequeno para treinar embeddings de qualidade. | descartar |
-| 6 | Fine-tuning siamesa/contrastivo do encoder no corpus (02 Gao 2021 SimCSE, 01 Reimers 2019 SBERT, 03 Conneau 2017 InferSent) | SimCSE não supervisionado +4.2 Spearman sobre o melhor anterior em STS (76.25); o mecanismo (dropout como augmentation) é agnóstico de língua; SBERT mostra NLI supervisionado gerando vetor transferível (74.9 vs InferSent 65.0). Mas SBERT perde para o cross-encoder BERT na tarefa supervisionada (86.10 vs 88.77) e cai ~7 pts cross-topic. | Alto e desqualificante: exige **treino** (não inferência) — SimCSE assume ~10^6 frases e grid de LR em GPU; temos ~4.3k artigos. Nenhum número de CPU. SBERT/InferSent exigem rótulos NLI em inglês (SNLI+MNLI) que não existem em PT-BR. Quebra o footing não-treinado do braço 02. | descartar |
-| 7 | Receita de treino cross-lingual: translation ranking + additive margin / destilação por pares paralelos (05 Feng 2022 LaBSE, 06 Reimers 2020) | LaBSE +18 no Tatoeba (83.7 vs 65.5) e a destilação +~40 pts em línguas de baixo recurso — mas em recuperação de **tradução**. No STS monolíngue LaBSE é PIOR que SBERT (72.8 vs 79.2); a destilação perde do LASER/LaBSE no bitext (85.7/88.6 vs 93.0/93.5). | Inviável: TPU (32–512 núcleos) + corpora paralelos da ordem de bilhões; releases só em TF Hub, fora do stack torch. Sem pares de tradução e sem GPU. O artefato é consumível, mas otimizado para a tarefa errada. | descartar |
-| 8 | Seleção teórica de dimensionalidade de embeddings de palavra por PIP loss (08 Yin 2018) | Critério principiado de k* (trade-off viés-variância) que coincide com grid search; 80–90% do ótimo se mantém mesmo super-parametrizando. Baseline = a grade empírica; auto-referente, sem tarefa extrínseca, só nível-palavra em inglês (Text8). | Compute baixo (1 SVD da co-ocorrência), mas a teoria vale só para embeddings que são fatoração de matriz (LSA/skip-gram/GloVe) — **não cobre** embeddings de transformer, que são o braço 02. Construir a matriz de co-ocorrência PT-BR é trabalho novo não reportado. | descartar |
-
-Nota de agrupamento: 09, 10 e 12 são a **mesma abordagem** (consertar a anisotropia
-de vetores prontos sem treino) e por isso são uma linha só; a evidência é a soma das
-três. A 11 (SIF) compartilha a remoção de componente mas acrescenta a ponderação por
-frequência, que é uma alavanca distinta, então fica separada. A 04 é **duplicata** da
-01 (o PDF de `04_cer_2018_universal_sentence_encoder.pdf` é o SBERT, não o USE), então
-entra como evidência de pooling, não como encoder independente.
+- O braço 02 publica **um** vetor por artigo, com o pooling de tokens **já aplicado**. Trocar o pooling
+  (mean ↔ `[CLS]` ↔ max) **exige re-encode**; só re-pooling *entre artigos dentro da semana* é "segundos".
+- A correção de **geometria** (whitening, all-but-the-top, redução de dimensão) opera sobre o vetor já
+  salvo e **não** exige re-encode.
 
 ---
 
-## B. Aplicação (onde usar notícia como fonte de vigilância, no nosso domínio)
+## A. Representação — como transformar texto em número
 
-| rank | abordagem (fichas) | merit | adoption_cost | verdict |
-|---|---|---|---|---|
-| 1 | Tendência de tópico temporal supervisionada como regressor em ARX/ElasticNet para estimar casos 1 passo à frente (22 Ghosh 2017, EpiNews-ARNet) | Único dos 23 que avalia **exatamente o nosso desenho** — local×tempo, palavras-semente, 1-step-ahead — com baselines explícitos, inclusive um que ignora a notícia (Casecount-ARMA); NRMSE menor em 8/10 pares país-doença, com dengue da Índia e da China entre os casos. Baseline: ARMA só de contagens. | Baixo compute: Gibbs + ElasticNet em CPU, sem GPU. Exige contagens de caso reais (temos SINAN) e palavras-semente (= léxico do braço 01). O modelo conjunto supervisionado-temporal **não existe pronto no tomotopy**; aproximação barata: usar as shares EW×tópico que o braço 03 **já publica** como regressores lagados num modelo linear (numpy/lstsq, sem dependência nova). Ganho nos EUA é 0.01–0.03 e não há teste de significância. | tentar agora |
-| 2 | Sinal semanal por contagem de keywords (léxico expandido por word2vec) + indicadores técnicos + classificador sobe/desce (15 Kim 2019) | Mostra o padrão braço-01 (contagem por keyword/semana) funcionando para uma doença (acurácia 0.867) e um desenho de backtest por seções de 12 semanas reaproveitável. Mas **não tem baseline algum** (nem persistência, nem classe majoritária, nem tf-idf): o 0.867 não tem contra o que ser lido. | Baixo compute: word2vec + SVM em CPU, sem GPU, sem transformer. Exige alvo semanal rotulado sobe/desce (a SINAN cobre); keywords são de influenza em inglês (retrabalho p/ dengue/pt). O word2vec aqui é só para achar keywords — não é representação. | tentar depois |
-| 3 | Prever aparição de surto por país a partir de contagens de notícia por doença (16 Kim 2021) | Moldura geral notícia↔severidade; modelos clássicos baratos em CPU (SSL 0.838 acc vs SVM 0.732). Mas só compara três modelos entre si, sem baseline externo, e o rótulo (+1 = apareceu notícia da doença) é **circular** com as features (contagens de notícia da mesma fonte). | Bloqueado por dados: exige feed Medisys (não público) com 115 doenças×237 países e contagem real por doença/país; nosso corpus é 1 doença (dengue) e sem ground truth por doença. Não reprodutível (dados "sob pedido"). | descartar |
-| 4 | Classificador binário de relevância de notícia (17 Gautam 2025: SBERT/MiniLM + LSTM/BiLSTM+atenção/Transformer) | Confirma all-MiniLM-L6-v2 como front-end barato em CPU e que atenção ajuda num classificador de texto de notícia (BiLSTM+MHA 98.25%). Mas não há benchmark nem baseline externo (os autores admitem), os rótulos vêm de regras spaCy (supervisão fraca) e o encoder nunca é comparado. | Nosso corpus já é 100% query dengue → o rótulo "surto/não surto" é **degenerado**; exigiria rótulos que não temos e deps novas (TensorFlow/Keras, spaCy). Contradição interna: tabela diz embedding_dim=128 mas MiniLM é 384. | descartar |
-| 5 | Filtro de relevância word2vec + CNN (18 Jang 2019, coreano) | word2vec supera inicialização aleatória (~+9 F1 em notícia); CBOW>Skip-gram em notícia. Baseline único e fraco (vetores aleatórios), sem TF-IDF+SVM, sem teste de significância, monolíngue coreano. | Exige pos/neg rotulados que não temos, tokenizador coreano, reimplementar CNN (deeplearning4j/GPU no artigo); arquitetura word-level não dialoga com os braços 02/03. gensim não está instalado (dependência nova). | descartar |
-| 6 | Sentimento (VADER) + LDA descritivo sobre décadas de cobertura de doença (23 Huang 2018) | Moldura de ler volume+sentimento+tópico como atenção a doença ao longo do tempo; discute o Zika no Brasil 2016 — domínio próximo. Mas é puramente descritivo: sem baseline, sem F1/acuidade; VADER não avaliado para Reuters; LDA com K=1 fixo. | VADER é inglês-only e UMLS/PheWAS inglês-only; o LDA já é coberto por tomotopy (braço 03). Para PT-BR seria preciso léxico de sentimento novo. Não reporta runtime/memória. | descartar |
+Alternativas entre si. Dois "tentar agora", dois "tentar depois", dois "descartar".
 
----
+| # | Abordagem | Fichas | Merit (o que entrega, contra que baseline) | Adoption cost (aqui) | Veredito |
+|---|---|---|---|---|---|
+| 1 | Escolha de pooling sobre encoder congelado: mean vs `[CLS]` vs max vs concat vs hierárquico/n-grama | `ni2022sentencet5`, `shen2018baseline`, `reimers2019sbert`, `cer2018use`, `wieting2015paraphrastic` | É o eixo que o braço 02 **fixa por encoder** e por isso nunca varreu. `ni2022`: a média das saídas do encoder T5 supera o primeiro token em todas as tarefas de transfer, e a média crua do T5 já bate a média crua do BERT (transfer 88,96 vs 84,94). `shen2018`: pooling **sem parâmetros** empata/supera uma CNN de 29 camadas em documento longo/tópico (Yahoo! 73,53 vs CNN 70,94 e LSTM 70,84) com 61K parâmetros (1/10 do LSTM) e 63 s de treino contra 598 s. `reimers2019` e `cer2018` usam a média como pooling padrão. Baseline = o mesmo encoder com outro pooling, e o `n_articles` (+0,297) que todo eixo denso do bracket perde. | Re-encode: 1 passada forward por modelo capturando mean + `[CLS]` + max na **mesma** rodada (~11 min para o BERTimbau base — 654,9 s medidos; ~35 min para o e5-large). Sem dependência nova (extra `embeddings` fixado); CPU. A agregação semanal a partir daí é segundos. | tentar agora |
+| 2 | Pós-processamento geométrico pós-hoc sobre vetores congelados: whitening, remover média + top-PCs / all-but-the-top, normalizing flow, e a redução/seleção de dimensão do vetor de frase | `su2021whitening`, `mu2018allbutthetop`, `li2020bertflow`, `yin2018dimensionality` (princípio) | Corrige a anisotropia documentada (cosseno médio par a par 0,8792 no nosso corpus). `li2020`: +8,16 de Spearman médio sobre o BERT cru (STS-B 47,29→70,72). `su2021`: STS-B 71,43 sobre a MESMA representação, ~1/3 das dims costuma ser ótimo, complexidade O(N) tempo / O(1) espaço. `mu2018`: +4% em STS e +2,32% em classificação (34/40 casos), quase nada em analogia. **O bracket já mediu o caso simples aqui**: o whitening move a componente principal-vs-casos de 0,105 para 0,113 e derruba o cosseno de 0,8792 para −0,0002 — mexe na geometria e quase não na correlação. Baseline = a própria representação sem a correção. | Quase zero: média + SVD sobre a matriz 4.369×768 já publicada em parquet; segundos em CPU, numpy puro, sem re-encode, sem dependência nova. Já existe a variante `bertimbau-whitening`. O custo é de **desenho**: o fit é transdutivo (vê o futuro) e precisa de janela rolling-origin (`whitening_fit_until` já existe). O flow (`li2020`) exige treinar uma rede invertível pequena, sem rótulo, em CPU — custo não reportado, a medir. | tentar agora |
+| 3 | Encoder multilíngue congelado adicional, drop-in no bracket | `feng2022labse`, `yang2020multilingualuse` | Cobrem português (LaBSE cobre 109+ idiomas; USE-multilíngue lista pt entre 16). Baseline = os multilíngues que o bracket **já tem** (e5-large, bge-m3). O sinal é ambíguo: LaBSE bate o LASER em recuperação de tradução (83,7 vs 65,5 no Tatoeba) mas é **pior** em similaridade fina (STS Pearson 72,8 vs 79,2 do SBERT) — viés de equivalência de tradução que pode atrapalhar agrupamento/clusterização. Nenhum dos dois mede PT-BR. | Baixo para o LaBSE: um `model_id` novo pelo extra `embeddings`, sem treino nem GPU; +1 variante ~10 min CPU. O checkpoint é pesado (BERT-Base 768, vocabulário de 501k tokens, ~1,5–1,8 GB). O USE-multilíngue exige **TensorFlow** — dependência NOVA e pesada, hoje ausente do stack torch. Valor marginal baixo: o bracket já mapeou que a escolha de encoder move a correlação 0,10–0,29 e nenhuma bate `n_articles`. | tentar depois |
+| 4 | Composição de word embeddings estáticos: média ponderada tipo SIF + remoção do 1º componente, pooling sem parâmetros tipo SWEM, n-gramas treinados tipo Sent2Vec, média de vetores aprendidos tipo PARAGRAM | `arora2017sif`, `pagliardini2018sent2vec`, `wieting2015paraphrastic`, `shen2018baseline` | Baseline não supervisionado forte e barato: SIF melhora 10–30% sobre a média de GloVe em STS (ablação: +5% ponderação, +10% remoção, +13% ambos) e bate DAN/LSTM em SICK; SWEM mostra que pooling sem parâmetros basta em documento longo; `wieting2015` mostra que aprender as embeddings dentro da média bate o melhor LSTM por 16,5 de Pearson em 22 datasets. Mas não é uniforme: SIF perde em sentimento (rebaixa "não"); PARAGRAM exige PPDB em inglês e tem correlação −45,1 entre fração de palavras fora do vocabulário e desempenho. Baseline = a média não ponderada. | Exige um asset que **não temos**: vetores de palavra em PT-BR (fastText-PT ~1,2 GB, ou treinar word2vec via gensim = dependência nova; Sent2Vec é C++/FastText = dependência nova). Compute trivial (média + 1 SVD 4.369×300). É um pipeline **diferente** do braço 02 (nível de palavra, sem transformer), não uma troca de configuração. SIF é transdutivo (1º componente sobre o conjunto inteiro) — conflita com o rolling origin. | tentar depois |
+| 5 | Fine-tuning do encoder: siamesa/triplet supervisionado, contrastivo, destilação multilíngue | `reimers2019sbert`, `conneau2017infersent`, `gao2021simcse`, `ni2022sentencet5`, `reimers2020multilingual` | Ganhos grandes em STS inglês: SBERT +11,7 sobre InferSent; SimCSE 76,25 não supervisionado / 81,57 supervisionado; ST5 EncDec-large 84,96. O mecanismo do SimCSE (dropout como augmentação, alignment/uniformity) é agnóstico de língua. Baseline = o encoder congelado do braço 02. | Alto e desqualificante: exige **treino**, não inferência. SimCSE assume ~10^6 frases + GPU; SBERT/InferSent exigem rótulos NLI em inglês (SNLI+MNLI) que não existem em PT-BR; o ST5 11B roda a 0,5 exemplo/s em CPU (≈2,4 h só de inferência nos 4.369). Quebra o pé não-treinado que o protocolo 00 fixa. Nenhum número de CPU reportado. | descartar |
+| 6 | Sondagem do espaço cross-lingual / estudo de probing | `pires2019mbert` | Explica por que o mBERT transfere entre línguas (subespaço comum, vizinho mais próximo) e onde falha (alvo transliterado). Não é uma técnica a adotar; nenhum resultado específico de português (PT só aparece em listas de idiomas). Baseline = EN-BERT. | n/a como método. Seria re-encodar com mBERT, que o bracket já cobre em espírito (BERTimbau). Custo de computação não reportado. | descartar |
 
-## C. Notas por abordagem
+Nota de agrupamento: `su2021`, `mu2018` e `li2020` são a **mesma abordagem** (consertar a anisotropia de
+vetores prontos sem treino) e por isso são uma linha só. `yin2018` entra como **princípio** dentro da
+linha 2 (viés-variância da dimensão), não como linha própria: a teoria dele cobre só embeddings de
+palavra por fatoração de matriz, não transformers. `arora2017sif` compartilha a remoção de componente
+mas acrescenta a ponderação por frequência, então fica na linha de composição de word embeddings.
+`shen2018` e `wieting2015` apoiam **duas** linhas (pooling e composição) porque medem decisões distintas.
 
-### Representação
+### A1 — Pooling sobre encoder congelado (rank 1)
 
-**R1 — Pooling sobre encoder congelado.** É o eixo que o bracket deliberadamente
-**não** varreu: o braço 02 fixa o pooling por encoder e só o BGE-M3 usa `[CLS]`
-(porque é a definição do modelo). A evidência das fichas é forte e no mesmo sentido
-(mean ≥ primeiro token; pooling simples empata com CNN profunda em documento longo),
-e a nuance importante vem do próprio SBERT: **sob classificação o pooling quase não
-importa, sob regressão o MAX colapsa**. Nosso uso é agregação/regressão semanal, que
-é o regime em que a escolha importa. Custa um re-encode por modelo (~11 min para o
-base), sem dependência nova.
+O bracket do braço 02 declara que o pooling **não é parâmetro livre**: cada encoder é lido do jeito que
+seus autores publicaram, e só o BGE-M3 usa `[CLS]` (porque é a definição do modelo). O resultado é que
+esse eixo ficou fixo por encoder e nunca foi varrido. A evidência das fichas é forte e convergente —
+média ≥ primeiro token (`ni2022`), pooling simples empata com rede profunda em documento longo
+(`shen2018`) — e é justamente o regime em que a escolha pesa no nosso uso (agregação/regressão semanal,
+não classificação de frase curta). Custa um re-encode por modelo (~11 min para o base), sem dependência
+nova, e a mesma passada já pode capturar mean, `[CLS]` e max de uma vez. É o teste mais barato de se
+algum eixo de **conteúdo** recupera sinal antes de gastar com qualquer encoder novo.
 
-**R2 — Correção de geometria pós-hoc.** É a abordagem mais barata possível aqui:
-opera sobre os vetores que o braço 02 já gravou, em numpy puro, sem re-encode. Já tem
-um pé no bracket (`bertimbau-whitening`) e a própria medição do repo mostra o maior
-movimento de correlação entre as variantes mean-pooled (0.105→0.113, em magnitude). O que falta
-não é testar whitening de novo, e sim varrer a **intensidade** da correção (D do ABTT,
-k do whitening) e comparar com o flow — que as fichas dão como a variante mais forte
-em STS, mas que exige uma implementação de flow (dependência nova, custo incerto).
+### A2 — Pós-processamento geométrico pós-hoc (rank 2)
 
-**R3 — Encoder multilíngue/destilado drop-in.** Baixo custo, mas baixo valor marginal:
-o bracket já tem dois multilíngues que cobrem pt. O único motivo diferencial é que
-modelos destilados otimizam *similaridade semântica* (nosso uso) e não *retrieval*
-(e5/bge) — e os próprios fichas mostram que LaBSE/USE, otimizados para tradução, são
-piores em similaridade fina. Vale depois dos eixos baratos.
+A abordagem mais barata possível aqui: opera sobre os vetores que o braço 02 já gravou, em numpy puro,
+sem re-encode. Já tem um pé no bracket (`bertimbau-whitening`) e a própria medição do repo mostra que o
+whitening mexe na geometria (cosseno 0,8792 → −0,0002) e quase não na correlação (0,105 → 0,113). O que
+falta não é testar whitening de novo, e sim varrer a **intensidade** da correção (o D do
+all-but-the-top, o k do whitening), comparar com o flow e decidir a **dimensão** final do covariate — que
+o README deixa explicitamente em aberto. O prior é negativo (a whitening já medida quase não moveu a
+correlação), então o teste é barato e conclusivo, não promissor.
 
-**R4–R8 — descartes.** SIF e Sent2Vec resolvem um slot (word vectors estáticos) que o
-transformer do braço 02 já superou, e o custo é um asset novo pesado (fastText-PT ou
-treinar do zero) contra um footing não supervisionado mais fraco. Fine-tuning quebra o
-footing não-treinado que o protocolo 00 fixa e não tem rótulos PT-BR. A receita
-cross-lingual é treino em TPU sobre bilhões de pares. O PIP loss é nível-palavra e
-fatoração de matriz — não cobre os 768/1024 dims de um transformer.
+### A3 — Encoder multilíngue drop-in (rank 3)
 
-### Aplicação
+Baixo custo, baixo valor marginal: o bracket já tem dois multilíngues que cobrem pt. O único motivo
+diferencial seria um modelo otimizado para *similaridade semântica* (nosso uso) em vez de *retrieval*
+(e5/bge) — mas as fichas mostram que LaBSE e USE-multilíngue, otimizados para tradução, são piores em
+similaridade fina. Vale depois dos eixos baratos.
 
-**A1 — Tendência tópica + ARX.** É a única ficha de aplicação que responde "a notícia
-prevê caso melhor que o passado da série?", que é a pergunta do protocolo 00, e traz
-o baseline que o protocolo exige (Casecount-ARMA, que ignora o texto). O ponto de
-adoção é honesto: o modelo conjunto supervisionado-temporal não existe pronto no
-tomotopy, mas a *ideia* — tendência tópica lagada como regressor externo — pode ser
-testada hoje com as shares EW×tópico que o braço 03 já publicou, num modelo linear
-com numpy. É "tentar agora" porque responde a uma pergunta que temos, não porque o
-artigo seja metodologicamente forte (o ganho nos EUA é ruído e não há significância).
+### A4 — Composição de word embeddings (rank 4)
 
-**A2 — Contagem semanal + classificador.** O desenho de backtest por seções é
-aproveitável e barato, mas o artigo não tem baseline: a acurácia 0.867 não é
-evidência. Fica como moldura secundária.
+Resolve um slot (word vectors estáticos) que o transformer do braço 02 já superou, e o custo é um asset
+novo pesado (fastText-PT ou treinar do zero) contra um pé mais fraco. Fica como baseline de sanidade *se*
+o asset de vetores PT-BR aparecer por outro motivo; não vale criá-lo só para isto.
 
-**A3–A6 — descartes.** A 16 tem alvo circular e um feed (Medisys) que não existe aqui;
-a 17 e a 18 resolvem um problema que não temos (relevância já é implícita na query
-dengue) e a 17 ainda se contradiz no próprio encoder; a 23 não mede nada contra nada e
-a parte reaproveitável (tópicos) já existe no braço 03.
+### A5–A6 — Descartes (rank 5 e 6)
+
+Fine-tuning quebra o pé não-treinado que o protocolo 00 fixa e não tem rótulos PT-BR; o ST5 que dá os
+melhores números tem 11B e roda a 0,5 exemplo/s em CPU. A sondagem M-BERT é estudo, não método, e o eixo
+cross-lingual não se aplica a um corpus monolíngue.
 
 ---
 
-## D. Cross-cutting (decisões de desenho, não de artigo)
+## B. Aplicação — onde usar notícia como fonte de vigilância
 
-- **representacao — toda a evidência é intrínseca e em inglês.** Só LaBSE (05), a
-  destilação (06) e o USE-multilíngue (14) chegam a pt, e **nenhuma mede PT-BR de
-  notícia**. O que transfere é o mecanismo, não o número.
-- **representacao — o eixo convergente é anisotropia/geometria** (01, 07, 09, 10, 12,
-  19, 21): mean-pooling trabalhado supera arquitetura mais caro, mas o **mean cru é
-  ruim**. É decisão de desenho do braço 02, não de um único artigo.
-- **representacao — a janela curta NÃO é o gargalo, e o repo já provou isso.** Todas
-  as fichas assumem janela curta (a 512 trunca 39% do nosso corpus; o Serafim 128,
-  94,8%), mas o braço 02 mediu que `title-only` (0% truncado) **supera** o texto
-  completo: truncar não é o que limita. A afirmação "todos assumem 512" é verdadeira
-  sobre a biblioteca; a conclusão de que isso limita é falsa sobre o repo.
-- **aplicacao — zero trabalho prévio em PT-BR/notícia brasileira.** Os idiomas são
-  inglês, coreano e chinês-traduzido. A distância idioma+país+fonte é assumida pequena
-  por simpatia temática, nunca medida.
-- **aplicacao — nenhuma isola o efeito da representação.** 15 usa word2vec só para
-  achar keywords, 16/18 não têm embedding, 17 contradiz o próprio encoder, 22 é
-  bag-of-words. Elas medem "notícia como sinal", não "representação melhor".
-- **transversal — "não reportado" é o custo da maioria dos encoders e pipelines
-  novos.** Quase nenhuma ficha traz teste de significância, variância ou número de
-  compute. Custo não reportado é incerteza, e incerteza não é barato.
-- **transversal — o baseline que o protocolo 00 exige (ablação "sem texto" / texto
-  embaralhado) aparece explícito só em 22** (Casecount-ARMA) e foi **omitido** em 15 e
-  18. É a lacuna mais recorrente, e é justamente o número que o artigo precisa
-  reportar.
-- **representacao — a ficha 04 não é o paper do USE.** O PDF em
-  `04_cer_2018_universal_sentence_encoder.pdf` é um duplicado de 01 (SBERT); o USE
-  real está ausente do checkout. A biblioteca tem evidência de pooling do SBERT, não
-  do USE.
+**Não** competem com as de representação. A pergunta é o que já foi feito em notícia como fonte de sinal,
+o que aquilo mediu, e o que muda para nós.
+
+| # | Abordagem | Fichas | Merit (o que entrega, contra que baseline) | Adoption cost (aqui) | Veredito |
+|---|---|---|---|---|---|
+| 1 | Notícia como sinal antecedente, fundida a contagens passadas | `ghosh2017temporal`, `kim2019weeklyili`, `kim2021outbreakmedia` | É o enquadramento do próprio repo (notícia → doença), com evidência em dengue. `ghosh2017` funde tendências de tópico lagadas com contagens passadas (ARX + ElasticNet) e bate o baseline que ignora a notícia (Casecount-ARMA) em **todas** as doenças avaliadas — dengue da Índia e da China entre elas (China: NRMSE 1,076 → 0,549). `kim2019`: contagem semanal por keyword acerta 0,867 em subida/queda de ILI, mas **sem baseline**. Baseline explícito: o modelo só-contagens (`ghosh2017`). | Baixo compute (Gibbs + ElasticNet em CPU; sem GPU). Já temos `news_volume` (braço 01), o léxico (palavras-semente) e o backbone de fusão do protocolo 00. O custo é de **desenho**: definir o lag notícia→caso e montar o alvo. Nos EUA o ganho do `ghosh2017` é ruído (0,445→0,430) e não há teste de significância — o mérito é o enquadramento, não o número. | tentar agora |
+| 2 | Normalização do volume de notícia por local | `kim2021outbreakmedia` | Normaliza as contagens por local para lidar com volume de publicação desigual — exatamente a limitação 2 do README (viés de menção por UF) e o descompasso espacial do protocolo 00. Baseline = modelos sem normalização. | Trivial: é uma transformação sobre `news_volume`, que já existe. Sem dependência nova, sem re-encode. O README já diz que a feature por UF deve ser lida relativa à própria história (RJ×SP invertem em ~2015). | tentar agora |
+| 3 | Modelo de tópicos temporal supervisionado por palavras-semente | `ghosh2017temporal` | Variante supervisionada do braço 03: LDA com palavras-semente como prior + tendência temporal do tópico como covariável. Dengue é uma das doenças avaliadas. Mas a qualidade dos tópicos é julgada só **visualmente** (Figs. 2–5), sem métrica de tópico. Baseline = ARMA só-contagens. | tomotopy já está instalado (é o motor do braço 03); o custo é construir as sementes por doença e o modelo supervisionado, que o braço 03 (DMR não supervisionado) não tem. Sem dependência nova. Sem tempo reportado. | tentar depois |
+| 4 | Filtro/classificador de relevância da notícia | `jang2019word2vec`, `gautam2025attention` | `jang2019`: word2vec+CNN bate inicialização aleatória em ~7–9 pts de acurácia para separar notícia relacionada de publicidade (0,9341 vs 0,8475), mas o baseline é **só o vetor aleatório**. `gautam2025`: Bi-LSTM+atenção (98,25%) bate um Transformer pequeno (92,76%) em manchete surto/não-surto, **sem baseline externo**. Baseline fraco ou ausente nos dois. | Nosso corpus já vem filtrado por uma query de dengue, o que reduz a necessidade de um filtro de relevância. Exigiria rótulos surto/não-surto que não temos; o encoder do `gautam2025` (all-MiniLM) é inglês; `jang2019` exige tokenizador coreano e reimplementar CNN. Sem número de tempo/CPU reportado. | tentar depois |
+| 5 | Sentimento (VADER) + LDA descritivo sobre décadas de cobertura | `huang2018publicopinions` | Moldura de ler volume + sentimento + tópico como atenção pública a doença ao longo do tempo; discute o Zika no Brasil em 2016 (domínio próximo). Mas é puramente descritivo: **sem métrica, sem baseline**; VADER não foi avaliado para o corpus; LDA com K=1 fixo. | VADER é léxico inglês (não cobre PT-BR); UMLS/PheWAS são inglês-only. O LDA já é coberto por tomotopy (braço 03). Para PT-BR seria preciso um léxico de sentimento novo. Runtime não reportado. | descartar |
+| 6 | Previsão de surto por matriz multi-doença × multi-local | `kim2021outbreakmedia` | Mostra que contagens de mídia por doença × país alimentam um classificador de surto (SSL 0,838 vs SVM 0,732). Mas sem baseline ingênuo, com um único ano de dados e rótulo derivado da própria contagem (circular). | Bloqueado por dados: exige o feed Medisys (não público) com 115 doenças × 237 países e ground truth por doença/país. Nosso corpus é **uma** doença (dengue) em 28 locations — a matriz não existe. Não reprodutível (dados "sob pedido"). | descartar |
+
+### B1 — Notícia fundida a contagens passadas (rank 1)
+
+É a ficha de aplicação que responde "a notícia prevê caso melhor que o passado da série?", que é a
+pergunta do protocolo 00, e traz o baseline que o protocolo exige (Casecount-ARMA, que ignora o texto).
+O ponto de adoção é honesto: o modelo conjunto supervisionado-temporal não existe pronto no tomotopy,
+mas a *ideia* — tendência tópica lagada como regressor externo — pode ser testada hoje com as shares
+EW×tópico que o braço 03 já publicou, num modelo linear com numpy. É "tentar agora" porque responde a
+uma pergunta que temos, não porque o artigo seja metodologicamente forte (o ganho nos EUA é ruído).
+
+### B2 — Normalização por local (rank 2)
+
+Pequena e barata, mas ataca uma limitação que o README declara. O RJ×SP que inverte em ~2015 é a
+evidência de que a feature por UF precisa ser lida relativa à própria história; normalizar por local é o
+passo mínimo.
+
+### B3 — Tópicos temporais supervisionados por sementes (rank 3)
+
+É a evolução natural do braço 03, mas a evidência do artigo sobre a qualidade dos tópicos é visual. Vale
+depois de o braço 03 atual ser avaliado no protocolo 00.
+
+### B4 — Filtro de relevância (rank 4)
+
+Útil só se aparecer ruído de relevância; hoje o corpus já é filtrado por query, e ambos os artigos têm
+baseline fraco e rótulo autodefinido.
+
+### B5–B6 — Descartes (rank 5 e 6)
+
+A `huang2018` não mede nada contra nada, e a parte reaproveitável (tópicos) já existe no braço 03; a
+`kim2021` exige uma matriz multi-doença × multi-país que não temos e um feed não público.
 
 ---
 
-## E. First move
+## C. Cross-cutting (decisão de desenho, não de artigo)
 
-Re-encodar o **BERTimbau UMA vez** capturando `mean`, `[CLS]` e `max` na mesma
-passada (~11 min de CPU, sem dependência nova) e comparar a correlação da componente
-semanal de cada pooling com os casos contra o +0.297 de `n_articles` — é o eixo que o
-bracket deixou fixo por encoder e o teste mais barato de se algum eixo de conteúdo
-recupera sinal antes de gastar com qualquer encoder novo.
+- **representacao — nenhuma ficha mede PT-BR, notícia, documento longo ou vigilância.** As 17 fichas de
+  representação avaliam similaridade de frases curtas em inglês (STS/SentEval/SICK). A técnica é
+  agnóstica de língua; a **evidência** não é. Nenhum número deles pode ser assumido para o nosso corpus.
+- **aplicacao — a tarefa é a nossa, a língua não.** As 6 fichas de aplicação testam notícia→doença (a
+  tarefa certa), mas em inglês, coreano ou chinês-traduzido; nenhuma em português. É a mesma lacuna que o
+  braço 01 já declara: o caso PT-BR é a contribuição, não a dívida.
+- **representacao — a unidade é diferente da nossa.** A biblioteca de representação compara **frases
+  curtas**; nosso documento é o artigo inteiro (mediana 1.390–2.452 chars, p90 5.051). Só o braço 02
+  enfrenta truncamento (39% em 512 tokens). Mas o repo já provou que truncar **não** é o gargalo:
+  `title-only` (0% truncado) supera o texto completo (0,156 vs 0,105). "Todos assumem 512 tokens" é
+  verdade sobre a biblioteca de representação; "por isso perdemos sinal" é falso sobre o repo.
+- **representacao — o ganho da literatura vem de fine-tuning com rótulos NLI em inglês** (SBERT, SimCSE,
+  Sentence-T5, PARAGRAM, InferSent, MKD). O repo fixou o pé oposto: tudo congelado e sem rótulo, como o
+  léxico do braço 01. Os números de manchete desses artigos **não estão disponíveis** sem sair do pé do
+  repo.
+- **os dois grupos otimizam coisas diferentes, e por isso seus números não são comparáveis.**
+  Representação otimiza similaridade de cosseno (métrica intrínseca de par de frases); aplicação usa
+  **contagem** de notícia e erro a jusante. Dentro da representação, é a contagem que ganha no nosso
+  corpus (`n_articles` +0,297 bate todo eixo denso do bracket) — o que a literatura de aplicação assume
+  desde o início (o sinal é o volume, não a qualidade do embedding).
+- **transversal — "não reportado" é o custo da maioria dos pipelines.** Quase nenhuma ficha traz tempo de
+  CPU, teste de significância ou variância. Custo não reportado é incerteza, e incerteza não é barato: as
+  linhas com "não reportado" ficam em "tentar depois", não em "tentar agora".
+- **aplicacao — o baseline que o protocolo 00 exige (ablação "sem texto" / texto embaralhado) aparece
+  explícito só em `ghosh2017` (Casecount-ARMA)** e foi omitido em `kim2019`, `kim2021`, `gautam2025`,
+  `jang2019` e `huang2018`. É a lacuna mais recorrente no grupo de aplicação, e é justamente o número que
+  o artigo precisa reportar.
+- **representacao — a correção de geometria é transdutiva por construção.** Whitening (`su2021`), SIF
+  (`arora2017`) e flow (`li2020`) estimam parâmetros sobre o conjunto inteiro de vetores, o que vê o
+  futuro num problema de previsão. O braço 02 já tem `whitening_fit_until` para isso; as linhas que
+  adotam essa família só entram no protocolo 00 se passarem uma origem, não o default.
+- **representacao — "encoder multilíngue cobre português" não é "foi avaliado em português".** LaBSE,
+  USE-multilíngue e mBERT listam pt, mas nenhum mede PT-BR; o único benchmark de transferência deles
+  (SentEval) é inglês e neles o multilíngue perde para o monolíngue. Cobertura de vocabulário não é
+  evidência de qualidade em português.
+- **aplicacao — a feature que entra no modelo é CONTAGEM, não o embedding.** `kim2019`, `kim2021` e
+  `ghosh2017` usam contagem de notícia (volume/tópico); o embedding, quando existe, serve para
+  selecionar palavras-chave ou como entrada de um classificador de relevância. Isso reforça o achado do
+  braço 02 (`n_articles` bate o vetor denso) e sugere que o vetor denso só se justifica se agregar além
+  do volume.
 
 ---
 
-## F. O que ficou de fora e por quê
+## D. First move
 
-- **07 (Sentence-T5)** virou evidência da linha de pooling, não linha própria: seu
-  achado central é "mean do encoder > primeiro token", a mesma decisão de R1.
-- **04 e 14 (USE)** idem: 04 é evidência de pooling (e é duplicata de 01), 14 é
-  evidência de que há modelo multilíngue drop-in — dobrados em R1 e R3.
-- **01 (SBERT)** aparece em R1 (pooling) e R6 (supervisionado), que são facets
-  distintos do mesmo artigo.
-- **13 (M-BERT)** não é método a adotar (é estudo de probing); sua contribuição útil
-  é "M-BERT cobre pt e o pooling exclui [CLS]/[SEP]", dobrada em R3.
-- **16, 17, 18, 23** descartadas por resolverem um problema que não temos (relevância
-  já implícita no corpus), por alvo circular, ou por não trazerem representação nem
-  avaliação (descritivo).
+Re-encodar o **BERTimbau UMA vez** capturando `mean`, `[CLS]` e `max` na mesma passada (~11 min de CPU,
+sem dependência nova) e comparar a correlação da componente semanal de cada pooling com os casos contra o
++0,297 de `n_articles` — é o eixo que o bracket deixou fixo por encoder, e o teste mais barato de se
+algum eixo de **conteúdo** recupera sinal antes de gastar com qualquer encoder novo.
+
+---
+
+## E. O que ficou de fora e por quê
+
+- **`ni2022sentencet5`** virou evidência da linha de pooling (A1), não linha própria: seu achado central
+  é "média do encoder > primeiro token", a mesma decisão; o resto (escala até 11B) cai no descarte de
+  fine-tuning.
+- **`cer2018use` e `yang2020multilingualuse`** idem: `cer2018` entra como evidência de pooling/média (o
+  PDF é o USE de Cer et al. 2018); `yang2020` como evidência de encoder multilíngue drop-in (A3).
+- **`reimers2019sbert`** aparece em A1 (pooling) e A5 (supervisionado): facets distintos do mesmo artigo.
+- **`yin2018dimensionality`** entra como princípio dentro de A2 (viés-variância da dimensão), não como
+  linha: a teoria cobre só embeddings de palavra por fatoração de matriz.
+- **`pires2019mbert`** é estudo de probing, não método a adotar; a contribuição útil (mBERT cobre pt)
+  está dobrada em A3.
+- **`kim2021outbreakmedia`** entra em duas linhas de aplicação (a de fusão com contagens e a de matriz
+  multi-doença) porque o artigo faz as duas coisas; a segunda é a que cai no descarte.
+- **`jang2019`, `gautam2025`, `huang2018`** caem em "tentar depois"/"descartar" por resolverem um
+  problema que não temos (relevância já implícita na query, matriz multi-doença inexistente), por alvo
+  circular, ou por não trazerem métrica nem baseline.
+
+---
+
+## F. Perguntas abertas (para o planner / protocolo 00)
+
+- Qual é o horizonte de previsão (1 semana? 4?) — o protocolo 00 ainda não fixou, e isso muda o que "prevê
+  melhor" significa para todas as linhas acima.
+- O alvo é nível ou log, BR ou UF? (pendência do protocolo 00.)
+- O forecaster consome o vetor de 768/1024 dims inteiro ou uma PCA? A dimensão do covariate ficou
+  explicitamente em aberto no README, e o whitening mostra que a resposta depende do eixo (PC1 explica
+  1,1% no variant branqueado).
+- Como os braços tratam as 8 semanas sem artigo e os 180 artigos em inglês que passam pelo gate de
+  idioma — pendência de protocolo 00 que afeta os três braços.
+- O ganho de geometria (whitening/flow) se sustenta sob rolling-origin com a origem passada, ou só existe
+  na leitura transdutiva atual?

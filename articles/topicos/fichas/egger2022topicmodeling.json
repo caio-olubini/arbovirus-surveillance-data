@@ -1,0 +1,50 @@
+{
+  "key": "egger2022topicmodeling",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/35_egger_2022_topic_modeling_comparison_lda.pdf",
+  "author": "Egger & Yu",
+  "year": 2022,
+  "read": "Li o PDF inteiro (16 páginas) via pdftotext (com e sem -layout, para restaurar a ordem das colunas): capa/abstract e introdução (pp. 1-2), revisão de literatura (pp. 2-3), Materials and Methods com a coleta/preprocessamento dos tweets e a descrição dos quatro modelos LDA, NMF, Top2Vec e BERTopic (pp. 4-5), Results com as Tabelas 1 (tópicos LDA vs NMF), 2 e 3 (BERTopic vs Top2Vec para 'flight' e 'travel bubble') e 4 (redução hierárquica do Top2Vec) (pp. 6-10), Discussion and Conclusion com a Tabela 5 de prós/contras (pp. 11-12) e a seção 'Limitations and Recommendations for Future Research' (pp. 13-14). Não há tabela de métricas quantitativas comparando os quatro modelos entre si.",
+  "technique": "Compara quatro algoritmos de topic modeling sobre tweets. LDA: modelo generativo probabilístico (bag-of-words; cada documento é mistura de tópicos e cada tópico uma distribuição sobre palavras), exige escolher K, alpha e beta por grid search. NMF: decomposição de matriz por álgebra linear sobre uma matriz termo-documento ponderada por TF-IDF (A = W x H). Top2Vec: usa embeddings pré-treinados de palavra e documento (Universal Sentence Encoder), reduz a dimensão com UMAP e agrupa por densidade com HDBSCAN; o tópico é o centroide dos vetores do agrupamento. BERTopic: usa um modelo sentence-transformers (BERT) como embedder, UMAP + HDBSCAN para agrupar e c-TF-IDF para extrair os termos representativos de cada cluster. A técnica é a própria modelagem de tópicos; o que o artigo mede é qual dos quatro produz tópicos mais coerentes em texto curto.",
+  "representation": "Dois caminhos de texto para número. (1) LDA/NMF: o texto é reduzido a uma matriz termo-documento (frequência de termos ou pesos TF-IDF) depois de um pipeline clássico de NLP (remoção de stopwords, números e abreviações, tokenização, stemming com Porter, lematização com WordNet); não há embedding. (2) Top2Vec/BERTopic: o texto original é mantido sem preprocessamento e cada documento vira um vetor denso de embedding pré-treinado; esse vetor é reduzido por UMAP e agrupado por densidade (HDBSCAN), e o tópico é o centroide dos vetores do agrupamento. O BERTopic acrescenta c-TF-IDF (term frequency-inverse document frequency por cluster) para ranquear os termos que representam cada tópico; quanto maior o valor de um termo, mais representativo ele é do tópico.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A avaliação foi feita sobre 31.800 tweets únicos em inglês (de 50.000 coletados), um corpus de texto curto de uma única plataforma.",
+      "citacao": "The initial datasets included a total of 50,000 tweets posted in English; however, after cleaning the data and removing duplicate posts, the final datasets consisted of 31,800 unique tweets.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A conclusão de ranking dos quatro métodos, baseada em interpretação humana, coloca BERTopic e NMF à frente, seguidos de Top2Vec e LDA.",
+      "citacao": "this study supports the potency of BERTopic and NMF, followed by Top2Vec and LDA, in analyzing Twitter data.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "O NMF supera o LDA porque seus tópicos são mais coerentes com o julgamento humano (distinção clara entre tópicos), enquanto o LDA produziu tópicos universais/irrelevantes.",
+      "citacao": "the results obtained from NMF are more in line with human judgment, thereby outperforming LDA in general.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Não foi possível estabelecer um número ótimo de tópicos para os métodos de embedding, porque os tópicos se sobrepõem e misturam dois ou três assuntos.",
+      "citacao": "an optimal number of topics could not be established because most of the topics overlap with one another and cover a mixture of two to three different aspects.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O Top2Vec gerou 309 tópicos e o mais similar ao termo de busca teve similaridade de cosseno de apenas 0.50, evidência da quantidade grande de tópicos que exige inspeção manual.",
+      "citacao": "out of 309 topics, the similarity of Topic 10 proved to be the highest [0.50]",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Na seção de limitações os autores escrevem que \"the interpretation and justification of the results come at the expense of data accuracy\" e que \"the nature of social media differs in terms of user demographics, text presentation, or rhetoric, amongst others\". Admitem também que o estudo se limitou ao Twitter (\"the methodological approach in this study should be applicable to other channels as well\") e recomendam testar outras plataformas e modelos novos (GPT3, WuDao 2.0).",
+  "evidence": "A evidência é qualitativa: os autores inspecionam os tópicos extraídos por cada algoritmo e julgam, por interpretação humana, quais são coerentes. Não há métrica quantitativa comparando os quatro modelos entre si (nem F1, nem precisão de tópicos, nem coerência para Top2Vec/BERTopic). O único número objetivo é a coerência do LDA (0.52 para 14 tópicos), usada apenas para escolher K. O baseline implícito é o LDA, o método padrão da área; o resultado principal é que o NMF o supera em julgamento humano e que o BERTopic é o melhor no geral. A Tabela 5 resume prós/contras por modelo, sem números.",
+  "needs": "Não requer dados rotulados (é não supervisionado). LDA/NMF exigem pipeline de preprocessamento (stopwords, stemming, lematização) e grid search de hiperparâmetros; os autores fizeram busca de K de 2 a 15, mais alpha e beta. Top2Vec exige um modelo de embedding pré-treinado (Universal Sentence Encoder) e dispensa preprocessamento. BERTopic exige um modelo sentence-transformers (suporta 50+ idiomas), UMAP e HDBSCAN, e dispensa preprocessamento. Dados: 31.800 tweets em inglês. O artigo NÃO reporta tempo de execução, hardware nem uso de GPU.",
+  "cost_here": "Não reportado. O artigo não dá tempo de treino nem hardware. Para o nosso corpus (4.369 artigos PT-BR em CPU): LDA/NMF via tomotopy são baratos, mas exigem o grid search de K/alpha/beta que os autores mostram ser trabalhoso. Top2Vec/BERTopic precisam de um modelo sentence-transformers (torch/transformers já instalados) e UMAP+HDBSCAN — viáveis em CPU para 4.369 documentos, mas o tempo não está reportado em lugar nenhum do artigo. O artigo não usa português; os embeddings citados (Universal Sentence Encoder para Top2Vec) são de inglês.",
+  "transferable": "Transfere (no nível da técnica): (1) o NMF tende a bater o LDA em texto curto por usar pesos TF-IDF em vez de frequências cruas, e o LDA tende a produzir tópicos universais/irrelevantes; (2) a Tabela 5 como checklist de prós/contras por modelo; (3) métodos de embedding dispensam preprocessamento, mas geram muitos tópicos e outliers, exigindo inspeção manual; (4) o custo de afinar hiperparâmetros do LDA. NÃO transfere direto: o domínio é Twitter em inglês (posts de até 280 caracteres, tema COVID/viagem) e a unidade é o tweet, enquanto o nosso corpus são notícias em português, mais longas e multi-tópico; a avaliação é qualitativa e de um único domínio, então o ranking 'BERTopic/NMF > Top2Vec/LDA' não pode ser tomado como resultado geral. A distância de domínio e de língua é grande.",
+  "red_flags": [
+    "Avaliação só qualitativa (julgamento humano), sem métrica quantitativa comparando os quatro modelos entre si.",
+    "Benchmark em uma única plataforma (Twitter), uma única língua (inglês) e um único tema (viagem/COVID).",
+    "Sem ground truth de tópicos: a 'vitória' do BERTopic/NMF é interpretação subjetiva dos autores.",
+    "A coerência (0.52) só foi computada para o LDA; não permite comparação numérica com os outros modelos.",
+    "Não reporta tempo de execução, hardware nem custo, apesar de a decisão ser entre métodos de custo muito diferente.",
+    "A recomendação final ('BERTopic e NMF') apoia-se em prós/contras listados pelos próprios autores, não em medida."
+  ]
+}

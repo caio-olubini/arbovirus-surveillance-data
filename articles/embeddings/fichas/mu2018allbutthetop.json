@@ -1,0 +1,52 @@
+{
+  "key": "mu2018allbutthetop",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/09_mu_2017_all_but_the_top.pdf",
+  "author": "Mu & Viswanath",
+  "year": 2018,
+  "read": "Li o PDF inteiro (25 páginas) via pdftotext -layout. Capa e abstract (p.1); Introdução com a Observation sobre média não-nula e não-isotropia (p.1-2); Seção 2 Postprocessing com o Algorithm 1, a medida de isotropia e as Tables 1 e 2 (p.3-5); Seção 3 Experiments com as Tables 3 (word similarity, p.6-7), 4 (categorização, p.7), 5 (analogia, p.7) e 6 (STS, p.7-8); Seção 4 classificação supervisionada com a Table 7 e a discussão (p.8); Conclusão (p.9); Apêndice A (isotropia, Theorem A.1, p.13-14), Apêndice B (redes aprendem o passo 1, Tables da Figure 6, p.14-15), Apêndice C (multilíngue Tables 8-13, p.16-18; papel da dimensão Tables 14-18, p.17-19), Apêndice D (Table 19, analogia, p.19-20), Apêndice E (Table 20, STS, p.21), Apêndice F (Table 21, estatísticas de classificação, p.19-21) e Apêndice G (provas, p.21-25).",
+  "technique": "É um pós-processamento NÃO supervisionado e sem treino aplicado a word embeddings estáticos já prontos (word2vec, GloVe, RAND-WALK, TSCCA). Dado o conjunto de vetores de palavra {v(w)}, faz dois passos: (1) centralização — subtrai o vetor médio μ de todos os vetores (v'(w) = v(w) - μ); (2) remoção das direções dominantes — calcula a PCA dos vetores centrados, toma as D primeiras componentes principais u1..uD e projeta os vetores fora delas (v''(w) = v'(w) - Σ_i (u_i^T v'(w)) u_i). O único hiperparâmetro é D, com regra de bolso D ≈ d/100 (d = dimensão do embedding; d=300 nos experimentos principais, D=3 para word2vec e D=2 para GloVe). A motivação empírica: os vetores têm média não-nula e sua energia se concentra em poucas direções (ligadas à frequência da palavra). Para sentenças, a representação é a média dos vetores das palavras e a similaridade é o cosseno entre esses vetores médios.",
+  "representation": "Texto vira número em três camadas. (1) Palavra -> vetor denso de d dimensões (d=300): usa-se um embedding estático pronto. (2) O espaço é 'purificado': remove-se a média (centra) e projeta-se fora as D direções principais da PCA, deixando o conjunto de vetores mais isotrópico (energia menos concentrada em poucas direções). (3) Frase/segmento -> vetor: média simples dos vetores de palavra; a similaridade entre dois textos é o cosseno entre essas médias. A geometria do espaço é o objeto do artigo: o método ataca justamente a anisotropia (média compartilhada + direções dominantes) que enviesa a similaridade de cosseno.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Os vetores de palavra analisados não têm média zero e, depois de removida a média, a energia de cada vetor ainda se concentra em pouquíssimas dimensões (cerca de 8 de 300), ou seja, o espaço é fortemente não-isotrópico.",
+      "citacao": "much of the energy of most word vectors is contained in a very low dimensional subspace (say, 8 dimensions out of 300).",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "A escolha do número D de direções removidas segue uma regra de bolso (D ≈ d/100) que funciona de forma uniforme em várias línguas, várias representações e vários cenários de teste.",
+      "citacao": "a rule of thumb of choosing D around d/100, where d is the dimension of the word representations, works uniformly well across multiple languages and multiple representations and multiple test scenarios.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Na tarefa de similaridade de palavras, o pós-processamento melhora de forma consistente os sete datasets, com ganho médio de 2,3%.",
+      "citacao": "(average improvement of 2.3%) suggest that by removing the common parts, the remaining word representations are able to capture stronger semantic relatedness/similarity between words.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Na tarefa de similaridade textual semântica (STS), representando a sentença pela média dos vetores de palavra, o pós-processamento traz ganho médio de 4%.",
+      "citacao": "we see a consistent and significant improvement in performance because of postprocessing (on average 4% improvement).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Na classificação de texto supervisionada, com quatro arquiteturas de rede (CNN, vanilla-RNN, GRU-RNN, LSTM-RNN), o pós-processamento melhora 34 de 40 instâncias, em média 2,32%, e nas demais empata.",
+      "citacao": "the performance of postprocessing is better in a majority (34 out of 40) of the instances by 2.32% on average, and in the rest the instances the two performances (with and without postprocessing) are comparable.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores reconhecem que o ganho na tarefa de analogia é marginal: \"It can be noticed that while postprocessing continues to improve the performance, the improvement is not as pronounced as earlier.\" (p.7), atribuindo isso ao cancelamento de componentes dominantes na subtração dos vetores. Também admitem, na discussão da Seção 4, que a validação sistemática em outras aplicações e métodos fica para o futuro: \"Such a systematic study would entail a concerted and large-scale effort by the research community and is left to future research.\" (p.8), e que o segundo passo (remoção das direções principais) não pôde ser verificado como aprendido pela rede: \"In our experiment, we found that such a result cannot be inferred.\" (p.15). A cobertura multilíngue também é limitada por disponibilidade de dados: \"similarity datasets in Spanish and German were the only ones we could locate\" (p.17).",
+  "evidence": "O baseline é a própria representação original: o artigo compara antes vs depois do pós-processamento sobre o MESMO modelo (word2vec, GloVe, RAND-WALK, TSCCA) — não há comparação com baselines externos fortes nem medição empírica contra outros pós-processamentos (a comparação com Arora et al. 2017 é apenas conceitual). Tarefas e números: similaridade de palavras (Table 3, p.6), 7 datasets, ganho médio 2,3%; categorização de conceitos (Table 4, p.7), 3 datasets, ganho médio 2,5%; analogia (Table 5, p.7), ganho de 0,4% no total (0,5% semântica, 0,2% sintática) — marginal; similaridade textual semântica (Table 6, p.7-8), 20 datasets SemEval + SICK, ganho médio 4%; classificação de texto (Table 7, p.8), 5 benchmarks x 4 arquiteturas x 2 embeddings, melhora em 34/40 instâncias por 2,32% em média. Generalização: mesmo ganho em RAND-WALK e TSCCA (Apêndices C, p.16-17) e em alemão/espanhol (Table 9, p.17); com dimensões 300-1000 e D=d/100 os ganhos são 2,27% (similaridade), 3,37% (categorização), 0,01 (analogia) e 1,92% (STS) (Apêndice C.4, p.18).",
+  "needs": "Não exige treino, rótulos nem GPU. Exige a matriz de word embeddings pré-treinados (word2vec: 3.000.000 palavras x 300 dims; GloVe: 2.196.017 x 300; RAND-WALK: 68.430 x 300; TSCCA: 300.000 x 200) e um PCA/SVD dos vetores centrados. Único hiperparâmetro: D (regra D ≈ d/100). Línguas testadas: inglês (principal), alemão, espanhol, francês, italiano, holandês e chinês (Apêndice C). O artigo NÃO reporta tempo de execução, uso de memória nem qualquer medida de custo computacional (não reportado).",
+  "cost_here": "O artigo não reporta custo (não reportado). Sobre o nosso corpus o custo seria baixo e cabe em CPU: nenhum treino, apenas uma PCA/SVD única. O gargalo real seria a matriz de embeddings de palavra: para word2vec 3M x 300 são ~3,6 GB de memória só para carregar os vetores, e a covariância 300x300 é barata de diagonalizar (minutos em CPU). Para o nosso caso (4.369 artigos, ~965 semanas, PT-BR) a operação é trivial e não exige GPU nem dependência nova: numpy/scipy (ou torch, já disponível no extra 'embeddings') resolvem o SVD. O ponto sensível não é compute, e sim obter um embedding PT-BR de qualidade e decidir sobre qual matriz o PCA é feito (vetores de palavra vs os embeddings de sentença já construídos no braço 02).",
+  "transferable": "Transfere: a técnica é de nível de representação e agnóstica de domínio — é barata (CPU, sem rótulos, sem treino), e o fenômeno atacado (média não-nula + direções dominantes enviesando o cosseno) foi observado em mais de seis línguas, então há razão para testá-la sobre embeddings PT-BR. É um candidato natural a braço de pós-processamento sobre os embeddings de sentença do braço 02. NÃO transfere direto: (1) o artigo opera sobre word embeddings ESTÁTICOS (word2vec/GloVe); o nosso braço 02 usa encoders contextuais (transformers/BERTimbau), cuja geometria é diferente — a distância aqui é grande e o artigo não testa isso. (2) Todos os números absolutos e datasets são em inglês; a validação multilíngue se limita a similaridade de palavras em alemão e espanhol, nunca português nem notícia. (3) A unidade avaliada é par de palavras ou frase curta; o nosso corpus é artigo jornalístico inteiro, fora da distribuição testada. (4) Os valores de D (2 para GloVe, 3 para word2vec) não necessariamente valem para outro modelo/idioma.",
+  "red_flags": [
+    "O baseline é apenas 'antes vs depois' do mesmo modelo; não há comparação com baselines externos fortes nem medição empírica contra outros pós-processamentos (a comparação com Arora et al. 2017 é só conceitual).",
+    "O ganho na tarefa de analogia está dentro do ruído (0,4% no total; 0,01 em dimensões altas), então a alegação de melhora 'consistente' não vale para todas as tarefas.",
+    "Tudo é avaliado em word embeddings estáticos; nada é testado em encoders contextuais (tipo BERT), que é o que usamos no braço 02.",
+    "O método exige escolher D; a regra D ≈ d/100 é heurística e os próprios autores dizem que ajustar D caso a caso pode aumentar o ganho — ou seja, o resultado depende de tuning.",
+    "Alguns casos pioram apesar da alegação de 'consistently better' (ex.: GloVe no RG65 cai de 76,96 para 74,36; TSCCA em várias linhas quase não muda ou piora).",
+    "Avaliação majoritariamente intrínseca (similaridade, categorização, analogia); a evidência extrínseca é uma família de tarefas (STS + classificação de sentimento).",
+    "Validação multilíngue mínima e limitada por disponibilidade: só datasets de similaridade em alemão e espanhol, 'the only ones we could locate'.",
+    "Sinais de instabilidade na classificação supervisionada (ex.: vanilla-RNN IMDb com GloVe salta de 52,76 para 76,07), o que sugere que parte do ganho médio de 2,32% vem de variância, não de efeito sistemático."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "key": "hughes2020assessmentprediction",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/08_hughes_2020_assessment_prediction_model_antidepressant.pdf",
+  "author": "Hughes et al.",
+  "year": 2020,
+  "read": "Li o artigo completo em texto extraído do PDF (14 páginas): capa, abstract e Key Points (p.1); Introduction (p.2-3); Methods com definição de desfecho, covariáveis, métodos de classificação e modelos de tópicos supervisionados (p.2-5); Results com prevalência do desfecho, comparação de representações de features, generalização site A para site B, avaliação qualitativa de interpretabilidade, priorização de medicação e previsão de trocas de medicação (p.5-8); a Table com 6 tópicos representativos (p.8-9); Discussion (p.9-11); Limitations (p.11); Conclusions (p.11); ARTICLE INFORMATION e referências (p.11-14); e a lista do suplemento (p.13-14).",
+  "technique": "Modelo de tópicos supervisionado 'prediction-constrained' (PC-supervised LDA, de Hughes et al. 2018, ref. 23) aplicado a dados clínicos CODIFICADOS de prontuário eletrônico (EHR). O dado vira número em duas etapas: (1) cada paciente é um vetor de contagem sobre 9.256 'code words' (códigos ICD-9/ICD-10 de diagnóstico, CPT de procedimentos e laboratório, e identidade de medicamentos) selecionados de 36.875 possíveis; (2) o PC-LDA agrupa códigos que co-ocorrem em 10 tópicos e devolve, por paciente, um vetor de 10 covariáveis de tópico. Essas 10 covariáveis alimentam um classificador (regressão logística ou ensemble de 512 árvores extremamente aleatórias) que prevê estabilidade do tratamento. Ponto crítico: NÃO é NLP de texto livre — a entrada são códigos médicos estruturados, não palavras de linguagem natural.",
+  "representation": "Como o dado clínico vira número: vetor de contagem esparso de 9.256 códigos por paciente, reduzido a 10 proporções de tópico (representação de baixa dimensão). O modelo de tópicos é supervisionado pelo desfecho (estabilidade), então os tópicos são escolhidos por serem úteis à predição, e não por serem os temas mais frequentes — ao contrário de LDA não supervisionado, que redescobriria apenas comorbidades prevalentes. A representação de 10 dimensões retém quase toda a discriminação da de 9.256 dimensões (AUC 0,627 vs 0,628 com regressão logística) e é mais interpretável: tópicos rotulados por clínico, como 'depressão maior resistente a tratamento' (coeficiente +0,3) e 'dor nas costas/articulações' (coeficiente -0,1).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O estudo usa uma coorte grande de prontuários: 81.630 adultos com depressão maior, de dois sistemas de saúde.",
+      "citacao": "The cohort was composed of 81 630 adults (56 340 women [69%]; mean [SD] age, 48.46 [14.75] years; range, 18.0-80.0 years) across both sites who met the inclusion criteria based on diagnosis and treatment duration",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Uma representação de apenas 10 tópicos retém quase toda a capacidade discriminativa da representação completa de 9.256 code words, mesmo com um classificador linear simples (AUC 0,627 vs 0,628).",
+      "citacao": "The 10-covariate topic representation captured much of this discriminative capability even when using simple logistic regression, achieving a mean AUC of 0.627 (95% CI, 0.615-0.639).",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Modelos específicos por medicamento não superaram o modelo geral de estabilidade (AUC 0,647 vs 0,661).",
+      "citacao": "Figure 1 shows that in contrast to the general stability ensemble model’s mean AUC of 0.661, the drug-specific models achieved a mean AUC of 0.647 (95% CI, 0.635-0.658) when using the same settings: an ensemble of 512 decision trees that used high-dimensional demographics and words features.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Os modelos treinados no site A generalizaram para o site B com pouca queda de AUC: com as features de tópicos, 0,627 no site A e 0,619 no site B.",
+      "citacao": "Using the 10-dimensional topic features, the mean AUC was 0.627 (95% CI, 0.615-0.639) for site A and 0.619 (95% CI, 0.610-0.627) for site B.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O modelo de tópicos não melhora a predição frente à representação de alta dimensão, mas produz conceitos interpretáveis relevantes para a predição.",
+      "citacao": "Our results also suggest that although topic modeling may not improve prediction compared with high-dimensional representations, it yields readily interpretable concepts relevant to prediction.",
+      "pagina": 10
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que o desfecho usado difere dos desfechos padrão de ensaio clínico e que a discriminação foi modesta. Em Limitations (p.11): 'This study has limitations. The outcome that we examined, stability, was markedly different from standard outcomes in clinical trials, such as remission or 50% reduction in symptoms.' Na Discussion (p.9): 'The discrimination was modest, with AUCs in the range of 0.60-0.66.' E admitem não poder comparar com outro método: 'we were unable to identify any similar published studies in generalizable cohorts, thus we could not make a direct comparison with another method.'",
+  "evidence": "A evidência é comparação de AUC contra dois baselines explícitos, no conjunto de teste do site A e num conjunto externo do site B. Baseline de alta dimensão (demografia + 9.256 code words) com ensemble de 512 árvores: AUC 0,661 (IC 95% 0,648-0,672) para estabilidade geral. O mesmo baseline com regressão logística: 0,628 (0,614-0,639). A representação de 10 tópicos com regressão logística: 0,627 (0,615-0,639) — praticamente igual à alta dimensão com o mesmo classificador simples. Modelos droga-específicos: 0,647 (0,635-0,658), abaixo do geral (0,661). Validação externa site B: tópicos 0,627 -> 0,619. Ressalvas de medição: os autores afirmam 'We did not perform any significance tests' e não conseguiram comparar com nenhum método publicado semelhante.",
+  "needs": "Requer: (a) dados clínicos CODIFICADOS de EHR (códigos ICD/CPT + prescrições), não texto; (b) um rótulo supervisionado por paciente (aqui, estabilidade de tratamento em 90 dias); (c) implementação do PC-supervised LDA (código aberto em github.com/dtak/prediction-constrained-topic-models); (d) Python 2.7 + NumPy 1.11 + scikit-learn 0.18 (p.4). Treino em 25.524 pacientes do site A; 10 tópicos escolhidos como melhor troca entre performance de validação e tamanho do modelo. GPU: não mencionada. Recursos de compute: usaram 'Partners Research Computing'; custo/tempo de treino não reportado. Idioma: dados clínicos em inglês (EUA).",
+  "cost_here": "Para o NOSSO corpus (notícia PT-BR, CPU), a técnica não se aplica como está: a entrada do artigo são códigos médicos, não texto — o paper não faz NLP de linguagem natural. Um análogo seria PC-supervised LDA sobre uma matriz de contagem de palavras do nosso corpus, mas isso exigiria (1) um desfecho rotulado por documento, que não temos, e (2) uma implementação de PC-LDA fora do tomotopy instalado (o tomotopy traz SLDA supervisionado, mas não a variante prediction-constrained). O modelo em si é pequeno (10 tópicos), então rodar em CPU seria plausível se houvesse rótulos. Custo de compute do artigo: não reportado. Dimensionalidade de entrada do artigo: 9.256 features -> 10 tópicos.",
+  "transferable": "Transfere: a ideia de usar um modelo de tópicos supervisionado para comprimir alta dimensão (milhares de features) em poucos tópicos interpretáveis com perda mínima de AUC; e o achado de que os tópicos generalizam entre instituições (mais robustos a overfitting que features de token individual). Não transfere: o domínio é dado clínico codificado em inglês (ICD/CPT), sem texto de linguagem natural, sobre prontuários e não notícias em PT-BR — a distância de domínio é grande. Além disso o método é supervisionado: precisa de um alvo de predição rotulado, que o nosso braço de tópicos (não supervisionado) não tem.",
+  "red_flags": [
+    "AUCs modestos (0,60-0,66) e intervalos de confiança sobrepostos entre representações e entre modelos — os ganhos ficam dentro do ruído.",
+    "Os autores declaram que não fizeram nenhum teste de significância: 'We did not perform any significance tests.'",
+    "Sem comparação com outro método publicado: 'we were unable to identify any similar published studies in generalizable cohorts, thus we could not make a direct comparison with another method.'",
+    "O domínio é dado de prontuário codificado, não texto — distância grande do nosso corpus PT-BR de notícias.",
+    "O desfecho (estabilidade = continuação da prescrição por 90 dias) é um proxy, não resposta clínica real; os próprios autores dizem que difere de remissão ou redução de 50% de sintomas.",
+    "Avaliação de interpretabilidade é qualitativa, com tópicos rotulados post hoc por um único coautor (R.H.P.).",
+    "Stack antigo: Python 2.7 e scikit-learn 0.18."
+  ]
+}

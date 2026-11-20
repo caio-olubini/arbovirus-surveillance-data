@@ -1,0 +1,51 @@
+{
+  "key": "conway2010disease",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/30_conway_2010_disease_outbreak_event_corpus.pdf",
+  "author": "Conway et al.",
+  "year": 2010,
+  "read": "Li o PDF inteiro (10 páginas) por extração de texto com layout (pdftotext -layout). Cabeçalho/capa com título, autores e afiliações (p.1); Abstract e início da Introduction (p.1-2); Annotation Scheme com a lista completa das propriedades de entidade e dos slots fixos booleanos (p.2-3); Figure 1 (worked example de construção do event frame, p.4); Textbox 1 (base no Anexo 2 do Regulamento Sanitário Internacional da OMS) e Agreement Study com a Table 1 (p.5); Textbox 2 (fontes de desacordo), Corpus Description e Table 2 (fontes dos documentos) (p.6); Table 3 (estatísticas de eventos), Figure 2 (distribuição geográfica) e Textbox 3 (barreiras à adoção) (p.7); Figure 3, Summary e References (p.8-9); página de copyright e citação (p.10). Não li só o abstract: as limitações estão no Textbox 3 (p.7) e os números no corpo (Table 1 p.5, Tables 2-3 p.6-7).",
+  "technique": "Não é um artigo de embeddings. É um artigo de anotação/recurso: os autores definem um esquema de anotação — event frames em XML — para extrair eventos de surto de doença infecciosa de notícias, inspirado no instrumento de decisão do Anexo 2 do Regulamento Sanitário Internacional da OMS. Cada evento é um frame com propriedades de entidade (HAS_DISEASE, HAS_LOCATION.COUNTRY, HAS_LOCATION.PROVINCE, HAS_LOCATION.OTHER, HAS_AGENT) preenchidas por entidades nomeadas já marcadas, e slots fixos inferidos do texto (HAS_SPECIES human/non_human; TIME.relative historical/recent_past/present/hypothetical; e booleanos ZOONOSIS, DRUG_RESISTANCE, NEW_TYPE_AGENT, ACCIDENTAL_RELEASE, INTERNATIONAL_TRAVEL, FOOD_CONTAMINATION, HOSPITAL_WORKER, FARM_WORKER, MALFORMED_PRODUCT). Constroem um corpus de 200 notícias anotadas para avaliar algoritmos de extração de eventos — no caso, o sistema BioCaster. O pipeline pressupõe seleção prévia de documentos e NER antes do módulo de extração de eventos.",
+  "representation": "A representação NÃO é vetorial: o texto vira um frame simbólico de propriedade/valor (XML), não um embedding. Não há encoder, pooling, normalização de vetor nem geometria de espaço — nada que se compare ao braço 02 (embeddings) ou ao braço 03 (tópicos). O que a anotação produz é uma estrutura discreta (entidades + booleanos inferidos) que um sistema de extração deve reproduzir.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus reúne 200 documentos (todos em inglês) com 394 eventos anotados, e 75,4% deles descrevem doença humana em vez de animal.",
+      "citacao": "Of the 394 annotated events in the corpus, 75.4% describe human (rather than animal) disease events (see Table 3).",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "A concordância entre dois anotadores quanto ao NÚMERO de eventos de surto foi de apenas 67% — os próprios autores reconhecem que é baixa.",
+      "citacao": "We found that the two annotators agreed on the number of disease outbreak events 67% of the time.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "A concordância foi quase perfeita para as propriedades de entidade que importam — doença e país —, o que contrasta com o 67% no nível do evento.",
+      "citacao": "Agreement for HAS_DISEASE was 100% and for HAS_LOCATION.COUNTRY was 97.7%.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "A motivação do trabalho é que busca por termos (IR) sozinha gera muitos falsos positivos: 63% dos documentos selecionados por IR não contêm evento de surto.",
+      "citacao": "Steinberger et al estimated that 63% of documents selected using traditional IR techniques do not contain outbreak events",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O corpus não é totalmente reproduzível: por restrição de copyright ele não é distribuído diretamente, e só 176 dos 200 documentos ainda estavam online na data de referência.",
+      "citacao": "Note that as of July 2009, only 176 of the original 200 documents were currently available online.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram as limitações no Textbox 3 (\"Barriers to general adoption of the event annotation scheme\", p.7), nas palavras deles. Concordância: \"The current agreement level for number of events (67%) is not high.\" Gêneros: \"It is not clear how well the scheme would extend to other, less formal genres that may contain information of interest (eg, blog postings and message boards).\" Especificidade do esquema: \"The current event frames may not be suitable for all needs\" (conhecimento demais para uns, de menos para outros). Distribuição (p.7): \"due to copyright restrictions, we are unable to distribute the corpus directly.\"",
+  "evidence": "Não há comparação com baseline de modelo: os autores não treinam nem avaliam um extrator próprio. A evidência é (1) um estudo de concordância entre dois anotadores em 100 documentos — 67% no número de eventos; HAS_DISEASE 100%, HAS_LOCATION.COUNTRY 97.7%, TIME.relative 90.5%, SPECIES 90.2%; pior caso FOOD_CONTAMINATION 71.4% e ZOONOSIS 83.0% (Table 1, p.5); e (2) as estatísticas do corpus (200 docs, 394 eventos; 81.5% classificados como present; documentos de 45 a 1487 palavras, média 305.9). Números de sistemas existentes (GPHIN 56% dos surtos verificados pela OMS; HealthMap 84% de classificação correta em um mês; BioCaster NER F 76.97; PULS ~72% de eventos corretos) são citados na Introduction apenas para justificar a necessidade de um conjunto de dados comum — não como baseline do próprio trabalho.",
+  "needs": "Precisa do corpus (200 notícias, todas em inglês) e do esquema de anotação; o corpus é restrito por copyright, distribuído só via script de download em Perl que raspa os documentos originais da Web (176/200 ainda online em julho/2009). Exige anotadores humanos treinados e pressupõe NER prévio (entidades já marcadas). Não exige GPU, modelo de linguagem nem treino. Não reporta custo de anotação, tempo de anotação nem custo computacional.",
+  "cost_here": "não reportado — não é um modelo que se roda, é um recurso de anotação manual; o artigo não mede compute nem tempo de anotação. Sobre o nosso corpus (4.369 artigos PT-BR), o esquema teria de ser re-anotado do zero por anotadores treinados, e o corpus do artigo não é reutilizável (inglês + copyright + documentos de 2009 em boa parte fora do ar). Nenhuma inferência em CPU está envolvida, então não há número de custo de adoção a estimar.",
+  "transferable": "Transfere: a ideia de um frame de evento (doença + local + tempo + slots booleanos) como alvo explícito de extração, em vez de só recuperar documentos por termo; a motivação quantificada de que IR sozinho gera falsos positivos (63% dos documentos selecionados por IR não contêm evento); a prática de medir concordância entre anotadores antes de confiar no rótulo; e a função de gate-keeping da seleção de documentos em fluxo grande de notícias. NÃO transfere: o corpus em si (inglês, notícia, copyright, seleção não aleatória) e não há nada de representação vetorial/embedding a aproveitar. A distância de domínio é grande — nosso corpus é PT-BR, e o alvo aqui é um frame anotado à mão, não um vetor que se pluge nos braços 02/03.",
+  "red_flags": [
+    "Corpus pequeno (200 documentos) e não amostrado aleatoriamente — os autores dizem que os documentos foram selecionados pelo autor MC para representar doenças e áreas de interesse, não por sorteio.",
+    "Concordância de 67% no número de eventos é baixa, e os próprios autores a classificam como \"not high\".",
+    "Concordância degenerada: quatro das sete propriedades booleanas da Table 1 (DRUG_RESISTANCE, FARM_WORKER, INTERNATIONAL_TRAVEL, PRODUCT_MALFORMATION) marcam 100% apenas porque são sempre \"false\" nos 42 documentos — 100% por ausência de positivos, não por qualidade do esquema.",
+    "Sem baseline de algoritmo: nenhum extrator é treinado ou medido com o corpus, logo não há número de desempenho de extração de eventos a citar.",
+    "Só inglês e só notícia; os autores admitem não saber se o esquema estende a gêneros menos formais.",
+    "Reprodutibilidade limitada: corpus não distribuível por copyright e só 176/200 documentos ainda online — a própria fonte encolhe.",
+    "Nada de representação vetorial/embedding — não compete com os braços de embeddings e não deve ser comparado com eles como se fosse técnica de representação."
+  ]
+}

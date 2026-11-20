@@ -1,0 +1,53 @@
+{
+  "key": "reimers2020multilingual",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/06_reimers_2020_multilingual_distillation.pdf",
+  "author": "Reimers & Gurevych",
+  "year": 2020,
+  "read": "Li o PDF inteiro (14 páginas, EMNLP 2020, pp. 4512-4525) com pdftotext, página a página. Abstract e Introdução (p.1); seção 2 Training, com a perda MSE e a Figura 1 (p.1-2); seção 3 Training Data (p.2-3); seção 4 Experiments — 4.1 STS multilíngue com as Tabelas 1 e 2 (p.4-5), 4.2 BUCC com a Tabela 3 (p.5-6), 4.3 Tatoeba com a Tabela 4 (p.6-7); seção 5 Evaluation of Training Datasets com as Tabelas 5 e 6 (p.7); seção 6 Target Language Training com a Tabela 7 (p.7-8); seção 7 Language Bias com a Tabela 8 e a Figura 2 (p.8-9); Related Work e Conclusion (p.9); Apêndice com as Tabelas 9 e 10 do Tatoeba (p.12-14). Não há seção formal de limitações.",
+  "technique": "Destilação de conhecimento multilíngue (multilingual knowledge distillation). Parte de um modelo 'professor' monolíngue já treinado (no artigo, um SBERT em inglês = BERT-base + mean pooling, ajustado em NLI/STS em inglês) e treina um modelo 'aluno' multilíngue (no artigo, XLM-R) para imitar as saídas do professor. Para cada par de sentenças paralelas (s_i em inglês, t_i na língua-alvo), o aluno é forçado a mapear TANTO s_i QUANTO sua tradução t_i para o mesmo vetor que o professor produz para s_i, minimizando erro quadrático médio (MSE). É uma técnica de COMO construir o espaço vetorial — não de onde usá-lo. Hiperparâmetros: até 20 épocas, batch 64, 10.000 passos de warm-up, lr 2e-5.",
+  "representation": "O texto vira um único vetor denso de tamanho fixo (embedding de sentença) via encoder transformer (XLM-R, vocabulário SentencePiece de 250k entradas cobrindo 100 línguas) com mean pooling na saída. A propriedade central é geométrica: sentenças com o mesmo significado em línguas diferentes caem no MESMO ponto do espaço, porque ambas são puxadas para o vetor do professor em inglês. Assim o espaço fica alinhado entre línguas e herda as propriedades do espaço do professor (proximidade = similaridade semântica), ao contrário de mBERT/XLM-R sem ajuste, cujos espaços não são alinhados. Comparação de similaridade por cosseno.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Em similaridade semântica (STS 2017) o método alcança estado-da-arte em cenário cross-lingual, à frente de LASER, mUSE e LaBSE: na Tabela 2, XLM-R ← SBERT-paraphrases chega a ρ médio 83,7 contra 81,1 do mUSE, 73,5 do LaBSE e 67,0 do LASER.",
+      "citacao": "we observe state-of-the-art performances for mono- as well as for the cross-lingual setup",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Funciona para língua de baixo recurso: com apenas 36 mil pares paralelos de Tagalog — língua para a qual o XLM-R nem foi pré-treinado — a acurácia no Tatoeba fica em 86,2/84,0, contra 52,6/48,5 do LASER (Tabela 4).",
+      "citacao": "Even though Tagalog had the smallest dataset with 36k pairs and that XLM-R was not pre-trained for this language, we achieve high accuracy scores of 86.2 and 84.0.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Mais dados paralelos não garantem melhor resultado: o Tatoeba com 27 mil pares rende 76,7 em EN-AR, enquanto o UNPC com mais de 8 milhões de sentenças rende apenas 66,1 — o domínio do dado importa mais que o volume.",
+      "citacao": "With the Tatoeba dataset (only 27,000 parallel sentences), we achieve a score of 76.7, while with the UNPC dataset (over 8 Million sentences),",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O espaço vetorial resultante não tem viés de língua estatisticamente significativo, ao contrário de LASER e LaBSE: ao juntar todos os pares multilíngues num único pool, a queda é de apenas -0,19 (mUSE) e -0,11 (método proposto), contra -0,92 do LASER e -1,29 do LaBSE (Tabela 8).",
+      "citacao": "The results are depicted in Table 8. We observe that LaBSE has a difference of -1.29 and LASER has a difference of -0.92.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "No BUCC bitext retrieval, que busca traduções exatas, o método PERDE para LASER e LaBSE: F1 médio 88,6 (melhor variante) contra 93,0 e 93,5 (Tabela 3) — os autores reconhecem que LASER e LaBSE são a melhor escolha para esse objetivo.",
+      "citacao": "achieve state-of-the-art performances on BUCC outperforming mUSE and our approach. LASER and LaBSE were specifically designed to identify perfect translations across languages.",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção formal de Limitations, mas os autores declaram limites explícitos. (1) O método depende de pares paralelos: para línguas sem dados paralelos, 'But overall, the scores for languages without parallel data are in most cases low. This is expected, as the model did not learn how to align for these languages.' (p.12). (2) Avisam que os resultados no BUCC 'should be judged with care' porque parte do corpus rotulado como não-paralelo pode conter traduções válidas, tornando os escores incertos (p.6). (3) Admitem que para inglês-árabe (línguas dissimilares) os resultados são 'less conclusive' e que 'more data does not necessarily lead to better results' (p.7).",
+  "evidence": "Compara contra baselines fortes, com números em tabela. (1) STS 2017 — Tabela 1 (monolíngue, ρ médio): XLM-R←SBERT-paraphrases 84,6; XLM-R←SBERT-nli-stsb 82,0; mUSE 83,2; LASER 75,4; LaBSE 76,4; mean pooling XLM-R 42,7; XLM-R só com dados ingleses (nli-stsb) 75,3. Tabela 2 (cross-lingual, ρ médio): 83,7 vs mUSE 81,1, LaBSE 73,5, LASER 67,0, XLM-R-nli-stsb 55,6, mean pooling 17,8. (2) Tatoeba (baixo recurso) — Tabela 4: XLM-R←SBERT-nli-stsb 73,1/85,4/86,2/54,5 (en→xx) e 71,7/86,7/84,0/52,3 (xx→en) vs LASER 39,7/54,4/52,6/28,0 e 32,2/60,8/48,5/34,3. (3) BUCC bitext (Tabela 3) — AQUI PERDE: 85,7/88,6 de F1 médio, contra LASER 93,0 e LaBSE 93,5. (4) Viés de língua (Tabela 8) contra LASER/LaBSE. (5) Coreano (Tabela 7): destilação 81,47 (XLM-R) e 83,00 (XLM-R-large) vs treinar direto no coreano 79,19 (XLM-R) e 81,84 (XLM-R-large). O ganho no STS é grande e consistente; no BUCC é negativo, e os autores reconhecem a diferença de objetivo.",
+  "needs": "Precisa de: (a) um professor monolíngue já treinado — no artigo, SBERT-nli-stsb (BERT-base, ~110M parâmetros), ajustado em NLI/STS em inglês; (b) um aluno multilíngue (XLM-R-base, ~270M parâmetros, vocabulário SentencePiece de 250k, pré-treinado em 100 línguas); (c) pares de sentenças paralelas traduzidas (OPUS: GlobalVoices, TED2020, NewsCommentary, WikiMatrix, Tatoeba, Europarl, JW300, OpenSubtitles2018, UNPC), de 1k até 25M/38M pares. NÃO exige dados rotulados para a destilação — só pares traduzidos. O hardware/tempo de treino dos próprios autores NÃO é reportado; o único número de custo citado é o do LASER: 'LASER was trained for 93 languages on 16 NVIDIA V100 GPUs for about 5 days.' (p.9).",
+  "cost_here": "Alto. Nossa máquina é CPU-only, sem GPU. A parte cara do artigo é TREINAR o aluno XLM-R (~270M parâmetros) sobre milhões de pares paralelos — inviável em minutos/horas em CPU; e o custo de treino do próprio método não é reportado. Nosso corpus é monolíngue PT-BR (4.369 artigos, 965 semanas, 28 locations): o alinhamento cross-lingual, que é o produto do artigo, não nos serve. O que restaria é (i) usar o modelo já publicado (XLM-R←SBERT-paraphrases, cobre pt-br) só para inferência, ou (ii) reimplementar a ideia de destilar a geometria de um professor num aluno mais barato — mas isso exige treino. Inferência do modelo pronto sobre 4.369 docs em CPU é viável (minutos a dezenas de minutos) e não requer treino novo. Custo de nova dependência: alto — o XLM-R-base adiciona ~1 GB de pesos sobre os extras de embeddings já instalados.",
+  "transferable": "Transfere: o princípio geral de treinar um aluno para imitar a geometria de embeddings de um professor via MSE (destilação de espaço vetorial), e a observação de que treinar só com dados de uma língua NÃO alinha espaços. O modelo publicado cobre pt-br (listado entre as 50 línguas de treino; a Tabela 9 do apêndice traz por=94,8). NÃO transfere: (1) a distância de domínio é grande — a avaliação é similaridade de SENTENÇAS (STS/bitext/Tatoeba), não classificação de documentos de notícia nem clustering temático, e as sentenças são curtas (subtítulos, legendas, notícias curtas), não artigos longos como os nossos; (2) o artigo é sobre ALINHAMENTO ENTRE LÍNGUAS — nosso corpus é monolíngue PT-BR, então o mecanismo central (par traduzido → mesmo vetor) é irrelevante para nós; (3) não há nenhuma evidência no artigo sobre vigilância de doença, dengue ou séries semanais. A técnica é de representação e vale pelo método, mas o resultado medido NÃO é evidência de que funciona no nosso domínio.",
+  "red_flags": [
+    "Avaliação quase toda em inglês/EN-*: o professor é um SBERT inglês e os conjuntos STS 2017 e Tatoeba são centrados em EN-*; nenhuma medição no nosso alvo (PT-BR monolíngue, texto de notícia longo).",
+    "O artigo PERDE para LASER e LaBSE no BUCC bitext retrieval (F1 médio 88,6 vs 93,0/93,5) — não é universalmente melhor; os próprios autores dizem que não existe um espaço vetorial único adequado a toda aplicação.",
+    "O número-manchete ('up to 40 accuracy points' para línguas de baixo recurso, no abstract) é o melhor caso, não a média, e pode inflar a expectativa.",
+    "Benchmark contaminado, admitido pelos autores: parte do BUCC é rotulada 'não paralela' sem garantia, e em 57 de 60 falsos positivos analisados os pares eram na verdade traduções válidas (p.6) — os escores do BUCC são de confiança incerta.",
+    "Comparação mistura objetivos: LASER/LaBSE são treinados para casar TRADUÇÕES exatas, o método é treinado para similaridade semântica — vencer no STS e perder no BUCC reflete essa diferença de objetivo, não superioridade geral.",
+    "Alguns ganhos são pequenos (coreano +1,2/+1,5) e ficam na faixa da variação por seed que os próprios autores reportam (~0,3 pontos).",
+    "Dados paralelos de treino incluem versões traduzidas por Google Translate, com apenas 'samples' checados por humanos.",
+    "Hardware e tempo de treino dos próprios autores não são reportados — o custo de reproduzir é desconhecido; o único número é o do LASER.",
+    "Resultados principais medidos em um único tipo de encoder aluno (XLM-R); mBERT/DistilmBERT ficam ligeiramente atrás e não são reportados em detalhe."
+  ]
+}

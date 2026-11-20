@@ -1,0 +1,52 @@
+{
+  "key": "mortezaagha2026schemaconstrained",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/05_mortezaagha_2026_schema_constrained_biomedical_extraction.pdf",
+  "author": "Mortezaagha et al.",
+  "year": 2026,
+  "read": "Li o PDF inteiro (22 páginas), em texto extraído página a página (o pdftotext -layout embaralha a ordem porque o artigo é de duas colunas; refiz sem -layout). Seções lidas: capa/abstract (p.1); Introdução (p.2-3); Related work (p.3-5); Methods (p.5-13: ingestão/resume-hashing, schemas Pydantic e vocabulários fechados, chunking k=8, orquestração assíncrona e retry, Tabela 2 de parâmetros de sistema, merging determinístico chunk→estudo, QA e agregação); Results (p.13-17: cobertura do corpus, throughput/volume de chamadas, qualidade de transcrição proxy, Tabela 3 de correção antes/depois, Tabela 4 de completude, Figuras 7-8); Discussion (p.17-19); Limitations (p.19-20, seis limitações numeradas); Future directions (p.20); Conclusão (p.20-21); referências e metadados (p.21-22). Li as Tabelas 1-4 e os números de custo/throughput no corpo, não só no abstract.",
+  "technique": "Sistema de extração de evidência de PDFs biomédicos de texto completo. O motor de leitura é o Mistral OCR 3 (API comercial, id mistral-ocr-2512), um modelo visão-linguagem que recebe cada página como imagem e devolve Markdown com tabelas reconstruídas em HTML. Na MESMA chamada, a inferência é restringida por schemas tipados (modelos Pydantic convertidos em JSON schema) com vocabulários fechados, hierarquias de decisão e regras negativas explícitas, mais um prompt de sistema por payload. São cinco payloads: metadados/desenho de estudo, população e indicações, métodos/ensaios laboratoriais, desfechos e limiares, e desempenho diagnóstico. Cada PDF é fatiado em chunks de no máximo k=8 páginas (sem sobreposição); as legendas de figuras/tabelas são isoladas como unidades de texto próprias. As chamadas rodam assincronamente sob concorrência 3 e 5 RPS, com retry exponencial. As anotações por chunk são fundidas deterministicamente em um registro por estudo (campos escalares têm de concordar, senão geram flag de conflito; campos de lista viram conjunto; frases-evidência são preservadas). Saída: CSV/Parquet + reconstrução markdown multimodal. NÃO é embedding: não há encoder, pooling nem vetor; o 'número' é o campo tipado mais a frase verbatim que o justifica.",
+  "representation": "Artigo de APLICAÇÃO, não de representação. Não transforma texto em vetor: usa OCR+LLM comercial guiado por schema para extrair campos estruturados (contagens, enums, limiares) e a frase de evidência de cada decisão. O que ele mede no domínio é acurácia de extração de variáveis clínicas/metodológicas por estudo (correção por campo, completude, proveniência) e custo operacional (throughput, tempo por PDF, dólares por página) no domínio de medição de nível de anticoagulante oral direto (DOAC). Nenhuma métrica de geometria de espaço, pooling ou dimensionalidade aparece no artigo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O pipeline processou, sem intervenção manual e em uma única execução ponta a ponta, um corpus de 734 PDFs somando 7.228 páginas.",
+      "citacao": "734 PDFs comprising 7,228 pages were discovered, ingested, and assigned stable source identifiers",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "Sob a configuração de referência (concorrência 3, limite de 5 RPS), o throughput estável observado foi de 3,1 requisições OCR por segundo — abaixo do alvo, por backpressure de retries e processamento de legendas.",
+      "citacao": "The observed steady-state throughput was R = 3.1 OCR requests per second",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "O refinamento iterativo de schema e prompt elevou a correção avaliada por especialista (amostra aleatória de n=50 estudos por componente): definições de desfecho clínico e duração de seguimento 33%→95%, presença/tipo de desfecho 50%→100%, desenho de estudo 75%→100%.",
+      "citacao": "Table 3 Effect of schema and prompt refinement on expert-assessed extraction correctness. Values are reported as percentage correct with Wilson 95% confidence intervals, based on expert review of a random sample of n = 50 studies per component",
+      "pagina": 15
+    },
+    {
+      "afirmacao": "Os campos de evidência em nível de frase foram preenchidos em mais de 99% dos casos em que o construto estava presente e extraível do OCR.",
+      "citacao": "explicit supporting sentences were populated in >99% of cases where the construct was present and extractable from OCR output",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "O tempo médio de processamento foi de 11 segundos por PDF, contra ~30-40 minutos de extração manual por estudo relatados na literatura (redução de ordem de magnitude).",
+      "citacao": "the proposed pipeline processed a full-text PDF in a mean of 11 seconds",
+      "pagina": 19
+    }
+  ],
+  "ressalva_do_autor": "A seção Limitations (p.19-20) declara seis limitações, nas palavras dos autores: \"extraction correctness was assessed through internal consistency checks and expert review on limited random samples rather than through statistically powered evaluation against a fully annotated gold-standard corpus\"; e \"expert review was conducted collaboratively without blinding\", sem métrica formal de concordância entre anotadores (Cohen's κ). Admitem ainda que a qualidade do OCR foi estimada por heurísticas proxy e não por ground truth em nível de caractere; que não fazem alinhamento fino entre figuras, legendas, tabelas e referências no texto nem extraem valores de gráficos ou tabelas complexas; e que a transferência a outros domínios biomédicos \"depends on the availability and quality of domain-specific schema definitions, controlled vocabularies, and expert input\".",
+  "evidence": "Evidência principal: revisão por especialista (não cega) de uma amostra aleatória de 50 estudos, com correção de campo medida antes vs. depois do refinamento de schema/prompt (Tabela 3, p.15): definições de desfecho e duração de seguimento 33%→95%; presença/tipo de desfecho clínico 50%→100%; subgrupos de pacientes 63%→95%; desenho de estudo 75%→100%; uso de limiares 75%→100%; indicações para medição de DOAC 70%→90%. O BASELINE é o próprio sistema em versão anterior (ablação interna), NÃO um extrator concorrente — os autores declaram explicitamente que não fizeram comparação head-to-head contra sistemas alternativos. Completude por payload: metadados bibliográficos 99,9%, desenho de estudo 99,7%, população 91,6%, métodos/ensaios 98,6%, desfechos 97,9%, desempenho diagnóstico 98,2% (Tabela 4, p.15). Qualidade de transcrição: score proxy mediano 98,6% com IC95% [97,8-99,2%] (p.13). Os números do OCR em si (Mistral OCR 3: 88,9% em handwriting e 96,6% em table extraction, p.9) são de benchmark do fornecedor, não medidos pelos autores. Robustez: 10 retries e 15 erros transitórios, nenhuma falha fatal (p.14, p.17).",
+  "needs": "Requer: API comercial paga do Mistral OCR 3 (mistral-ocr-2512, dez/2025), a $2 por 1.000 páginas, com rede e limites de taxa; schemas tipados (Pydantic) e prompts de sistema por domínio, escritos em colaboração entre engenheiro NLP e especialista de domínio (2-4 semanas por schema novo, segundo os autores); corpus de PDFs de texto completo como entrada; e anotação de especialista para avaliar. NÃO requer GPU nem treino/fine-tuning: toda a inferência é via API, e nada é treinado sobre os artigos (setting inference-only). Não usa dados rotulados para treinar; os rótulos só entram na avaliação.",
+  "cost_here": "Nosso corpus é texto PT-BR já limpo (4.369 notícias), não PDFs multi-coluna: a camada de OCR (e o custo de $2/1.000 páginas) não se aplica a nós. O que restaria é a extração guiada por schema, que aqui depende de API paga (Mistral) ou de um LLM local — nenhum dos dois está nos extras fixados (embeddings, topics) e a máquina é CPU-only. Custo direto sobre o nosso corpus: não reportado pelo artigo (a métrica de $/página é de página de PDF, não do nosso texto). Não estimo como barato: exigiria nova dependência (API paga ou LLM local) fora do pyproject travado, e o custo de tempo/GPU do artigo não é transferível porque o pesado roda do lado do fornecedor, não em CPU nossa.",
+  "transferable": "Transfere o PADRÃO de projeto, independente de domínio: schema tipado + vocabulários fechados + regras negativas + evidência verbatim por decisão (provenance) + null-default conservador + merge determinístico. É esse desenho que interessa para a extração LLM do nosso braço 04, e o artigo afirma que adaptar a outro domínio exige trocar só schemas e vocabulários. NÃO transfere: a camada OCR/PDF (nossa entrada é texto PT-BR já limpo, não PDF escaneado/multi-coluna), os schemas DOAC, o fornecedor comercial, nem os números de acurácia. A distância de domínio é grande: o ganho medido é em variáveis clínicas esparsas escondidas em tabelas e legendas de PDF — contexto que não temos — e em inglês, não em notícia PT-BR. Além disso, a arquitetura dita 'domain-agnostic' ainda exige um especialista de domínio por schema (2-4 semanas), custo humano que não é grátis.",
+  "red_flags": [
+    "Sem comparação head-to-head contra qualquer sistema alternativo de extração (os próprios autores admitem na Discussion, p.18).",
+    "Avaliação de correção em apenas 50 estudos, revisão não cega e sem métrica de concordância entre anotadores (Cohen's κ) — correção autoavaliada, não gold-standard.",
+    "O ganho é medido 'antes vs depois' do próprio sistema, na mesma amostra usada para refinar schema/prompt → risco de overfit à amostra revisada.",
+    "Linhas com 100% são 'ausência de erros observados', não limite superior de desempenho (os autores ressalvam na Tabela 3).",
+    "Qualidade de OCR medida por heurística proxy, não por ground truth em nível de caractere — pode não capturar erros sutis que passam pela validação de schema.",
+    "Dependência de API comercial proprietária (Mistral OCR 3); os autores avisam que resultados variam entre versões da API; não é reproduzível offline.",
+    "Um único domínio (medição de nível de DOAC), corpus predominantemente born-digital em inglês, nenhum benchmark externo — generalização não demonstrada.",
+    "Não há nenhum componente de embedding/representação vetorial: se o interesse for como o texto vira número (encoder, pooling, dimensionalidade), o artigo não mede isso."
+  ]
+}

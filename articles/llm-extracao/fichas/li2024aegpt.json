@@ -1,0 +1,51 @@
+{
+  "key": "li2024aegpt",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/04_li_2024_aegpt_adverse_events_surveillance.pdf",
+  "author": "Li et al.",
+  "year": 2024,
+  "read": "Li integralmente as paginas 1-13 (capa/abstract, Introducao, Materials and methods, Experiment setup, Results com as Tabelas 1-5, Discussion, Error analysis e Conclusion). As paginas 14-16 sao apenas a lista de referencias. As Tabelas 3 e 4 (pagina 10) trazem o micro-F1 estrito e relaxado por modelo e por tipo de entidade; a Tabela 5 (pagina 12) traz a estatistica de erros do AE-GPT.",
+  "technique": "Reconhecimento de entidades nomeadas (NER) por LLM, com e sem fine-tuning, sobre narrativas de relatos de eventos adversos (VAERS). Compara GPT-2, GPT-3 (ada/babbage/curie/davinci), GPT-3.5, GPT-4 e Llama 2 (7b/13b-chat) em duas condicoes: inferencia zero-shot do modelo pre-treinado e fine-tuning com um conjunto anotado. O melhor modelo, um GPT-3.5 afinado via API da OpenAI, e batizado AE-GPT. Seis tipos de entidade: investigation, nervous_AE, other_AE, procedure, social_circumstance e temporal_expression. Ha pos-processamento que mantem o maior span em caso de entidades aninhadas.",
+  "representation": "Nao e um artigo de representacao: o texto nao e transformado em vetor por um encoder escolhido pelos autores. O relato bruto entra como prompt (o texto vai inteiro no contexto) e o modelo devolve as entidades e seus offsets de caractere; no fine-tuning, os embeddings internos do modelo sao atualizados automaticamente (via HuggingFace no Llama 2 e via API da OpenAI nos GPT). Nao ha pooling, normalizacao nem escolha de dimensionalidade feita pelo estudo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O AE-GPT (GPT-3.5 afinado) atinge micro-F1 de 0,704 em correspondencia estrita e 0,816 em relaxada, o melhor resultado entre os modelos avaliados.",
+      "citacao": "The fine-tuned GPT 3.5 model (AE-GPT) stood out with a 0.704 averaged micro F1 score for strict match and 0.816 for relaxed match",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O AE-GPT supera o baseline de Du et al., cujo melhor resultado era micro-F1 de 0,6802 no estrito (ensemble de BioBERT e VAERS BERT) e 0,8078 no relaxado (Large VAERS BERT).",
+      "citacao": "AE-GPT outperforms the proposed model in Du’s work (the highest exact match micro averaged F-1 score at 0.6802 by ensembles of BioBERT and VAERS BERT; highest lenient match micro averaged F-1 score at 0.8078 by Large VAERS BERT)",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "Afinar o modelo pesa mais que o tamanho: o GPT-3 afinado supera tanto o GPT-3.5 quanto o GPT-4 pre-treinados.",
+      "citacao": "the fine-tuned GPT-3 model outperforms both the pretrained GPT-3.5 and GPT-4 models",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "A classe social_circumstance e a mais dificil: mesmo o melhor modelo atinge apenas F1 de 0,5 nela.",
+      "citacao": "the fine-tuned GPT-3.5 model achieving the highest F1 score of 0.5 only in this category",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "O experimento usa apenas 91 relatos anotados, divididos em 72 para treino e 19 para teste.",
+      "citacao": "72 VAERS reports were designated for the training set and the remaining 19 reports for the test set",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "\"The dataset utilized in this research is relatively constrained, comprising only 91 VAERS reports. This limited scope might impede the generalizability of our findings to broader contexts. Moreover, it’s noteworthy that we primarily focused on VAERS reports, which differ in structure and content from traditional clinical reports, potentially limiting the direct applicability of our findings to other medical documentation.\" Os autores tambem admitem que nao testaram significancia estatistica dos eventos extraidos.",
+  "evidence": "Compara contra dois baselines. (1) Entre LLMs: mede pre-treinado vs. afinado para cada modelo, com micro-F1 estrito e relaxado; o GPT-3.5 afinado (0,704 estrito / 0,816 relaxado) supera o GPT-4 pre-treinado (0,308 / 0,515) e o Llama 2 afinado (0,134 estrito no 7b). (2) Contra trabalho anterior de NER clinico: supera o melhor modelo de Du et al. (ensemble BioBERT+VAERS BERT, 0,6802 estrito; Large VAERS BERT, 0,8078 relaxado). Os escores sao medias de 10 execucoes. Nao ha teste de significancia estatistica entre as diferencas.",
+  "needs": "Fine-tuning via API paga da OpenAI (GPT-3.5; GPT-4 nao estava disponivel para fine-tuning) ou via HuggingFace (Llama 2). Inferencia dos GPT pre-treinados em 8 GPUs Nvidia A100 de 80GB; Llama em 5 GPUs V100 de 32GB. Dados: 91 relatos anotados com 6 tipos de entidade, texto em ingles, dominio clinico/vigilancia de vacina. Nao usa modelo aberto de embeddings; nao ha pooling nem escolha de dimensao.",
+  "cost_here": "alto. Nao roda no nosso setup CPU-only sem GPU e com extras fixados: o caminho vencedor depende da API paga da OpenAI (custo por token nao reportado no artigo), e o caminho aberto (Llama 2 afinado) exige GPU que nao temos. Alem disso falta o insumo central — 91 relatos rotulados no dominio; nao temos conjunto anotado equivalente em PT-BR. Custo monetario do fine-tuning: nao reportado.",
+  "transferable": "Transfere a ideia geral: para extracao de entidades estruturadas a partir de texto livre, um modelo medio afinado em dados do dominio pode bater um modelo maior so pre-treinado. NAO transfere o resultado medido: o dominio e outro (narrativas clinicas de eventos adversos de vacina nos EUA, em ingles) versus nossas noticias da Agencia Brasil em PT-BR; a distancia de dominio e grande. Tambem nao transfere operacionalmente, porque o metodo exige API da OpenAI ou GPU, incompativel com o alvo CPU-only e com a politica de extras fixados. O achado de que fine-tuning importa mais que tamanho e a parte mais portavel.",
+  "red_flags": [
+    "Conjunto minusculo: 91 relatos, apenas 19 no teste — F1 calculado sobre 19 documentos tem variancia alta.",
+    "A classe social_circumstance tem so 2 instancias anotadas no gold; o F1 de 0,5 nela e praticamente um unico exemplo.",
+    "Um unico dominio e uma unica lingua (VAERS/influenza, ingles); sem teste em outro dominio.",
+    "Depende de GPT-3.5/4 proprietarios via API: reprodutibilidade limitada, e o GPT-4 nao pode ser afinado.",
+    "Diferencas entre modelos nao passam por teste de significancia estatistica; reporta media de 10 execucoes mas nao a dispersao.",
+    "Llama 2 afinado fica perto de zero (0,07 no 13b), o que sugere problema de configuracao/prompt e nao capacidade real do modelo — a comparacao pode ser injusta com o Llama.",
+    "Nao mede custo nem latencia; o unico dado de hardware e a configuracao de GPU, nao o tempo de execucao."
+  ]
+}

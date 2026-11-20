@@ -1,0 +1,51 @@
+{
+  "key": "consoli2025epidemiologicalkg",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/01_consoli_2025_epidemiological_kg_who_don.pdf",
+  "author": "Consoli et al.",
+  "year": 2025,
+  "read": "Li o texto principal inteiro (páginas 1-16 do PDF, que coincidem com a numeração de rodapé do artigo): capa e abstract (p.1), Background & Summary (p.1-2), Related Work (p.3-4), Methods com a descrição dos três LLMs do ensemble, os prompts de extração, a validação de JSON e o uso de SBERT/BioBERT (p.4-7), eKG FAIR Publishing com RDF/OWL e entity linking via BioPortal/GeoNames (p.7-9), Data Records e descrição do esquema (p.10-13, incluindo Tabelas 1-5), Technical Validation com a comparação de LLMs e a Fig. 6 (p.14-16) e Usage Notes / Code availability (p.16). Não li as referências (p.17-19) em detalhe. Não existe seção formal de 'Limitations': as ressalvas estão diluídas na descrição do DONs (p.4) e na Technical Validation (p.14).",
+  "technique": "É um 'Data Descriptor': constrói um grafo de conhecimento epidemiológico (eKG) a partir dos relatos narrativos em inglês do WHO Disease Outbreak News. A técnica é extração de informação (IE) por um ensemble de três LLMs open-source — Mistral-7B-OpenOrca, Zephyr-7B-Beta e Meta-Llama-3-70B-Instruct. Cada LLM é promptado separadamente a devolver um JSON com nome da doença, país, data (YYYY-mm-dd), casos e mortes; quando o relato excede o contexto de 8K tokens, faz-se sumarização preliminar. As três respostas são combinadas por votação por maioria (empate = escolha aleatória); saídas JSON inválidas passam por heurísticas de correção e menos de 1% é descartado. Termos semanticamente equivalentes são agrupados por dicionários de sinônimos construídos com similaridade sintática, WordNet e similaridade semântica (SBERT all-mpnet-base-v2 para países, BioBERT para doenças). O resultado vira triplas RDF/OWL, ligadas a ontologias via NCBO BioPortal e GeoNames. No domínio, mediu-se Precision/Recall/F1 da extração contra um subconjunto anotado do Incident Database (IDB).",
+  "representation": "O texto NÃO vira vetor denso no caminho principal: vira JSON simbólico (campos nomeados) por geração de LLM, e depois triplas <sujeito, predicado, objeto> em RDF/OWL. Embeddings aparecem apenas como métrica auxiliar: SBERT (all-mpnet-base-v2) e BioBERT geram sentence embeddings comparados por similaridade de cosseno para decidir se dois termos (ex.: 'Dengue' e 'Breakbone fever') são o mesmo conceito, com limiar fixado em 0,8. Não há estudo de pooling, normalização, geometria do espaço ou dimensionalidade — nenhuma contribuição sobre 'como transformar texto em número'.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O ensemble dos três LLMs, por votação de maioria, supera todos os modelos individuais e atinge o maior F1 nas quatro tarefas de extração de informação avaliadas.",
+      "citacao": "This method not only achieves the highest F1 scores across all four tasks but also mitigates the limitations of individual models.",
+      "pagina": 15
+    },
+    {
+      "afirmacao": "Após remover entradas incompletas, o conjunto extraído tem 2.556 registros, cobrindo 144 patógenos/doenças e 207 países distintos.",
+      "citacao": "After removing 353 entries with missing country and disease, the dataset consists of 2556 entries, listing 144 unique pathogens/diseases and 207 unique countries.",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "O grafo eKG, em 28 de fevereiro de 2025, representava cerca de 2,9 mil eventos de surto via 3,6 mil axiomas generalizados (≈46 mil triplas RDF).",
+      "citacao": "representing around 2.9K unique outbreak events via a total of 3.6K generalized axioms, as of the 28th February 2025",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Os autores não puderam avaliar a extração do número de mortes porque esse campo não está anotado no padrão-ouro (IDB), e só inferem comparabilidade com a extração de casos.",
+      "citacao": "It was not possible to evaluate the task of extracting the number of deaths as this information was not annotated in the IDB.",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "Para agrupar termos equivalentes, usa-se similaridade semântica por embeddings de frase (SBERT) com limiar fixado experimentalmente em 0,8.",
+      "citacao": "We set an experimental threshold of 0.8 for the semantic similarity ∈ [0, 1], meaning that two terms having a semantic similarity larger than this threshold were considered to represent the same concept.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que não foi possível avaliar a extração do número de mortes, porque o IDB não anota esse campo: \"It was not possible to evaluate the task of extracting the number of deaths as this information was not annotated in the IDB\" (p.14), acrescentando que a variação de termos para mortes (fatalities, casualties, deceased, passed away) pode afetar a comparabilidade. Também admitem, sobre a fonte, que \"the Disease Outbreak News is not an exhaustive record of all known disease outbreaks globally\" e que \"The criteria that the WHO employs to determine which epidemiological situation updates to release are not entirely clear\" (p.4).",
+  "evidence": "A evidência é a Technical Validation sobre um subconjunto do Incident Database (IDB) com 171 amostras anotadas por especialistas, tratando cada tarefa como classificação binária e reportando Precision/Recall/F1 (Tabelas 2-5). O baseline são 10 modelos individuais (GPT-3.5-Turbo-16k, GPT-4-32k, GPT-4-FewShot, Pythia-12B, MPT-30B-Chat, Meta-Llama-2-70B-Chat, Meta-Llama-3-70B-Instruct, Mistral-7B-OpenOrca, Zephyr-7B-Alpha, Zephyr-7B-Beta). O ensemble fica à frente em F1 nas quatro tarefas: nome da doença 0,851 (vs melhor individual GPT-3.5-Turbo-16k 0,842); país 0,962; casos 0,658 (vs GPT-4-FewShot 0,653); data 0,869. Há ainda uma checagem qualitativa: os casos de MERS-CoV reconstruídos na Arábia Saudita correlacionam-se com os casos reportados pela WHO (coeficiente de regressão significativo, p<0,01; p<0,001 ao excluir 2013). Os ganhos sobre os baselines são pequenos e alguns baselines (Pythia-12B, MPT-30B-Chat) são fracos.",
+  "needs": "Exige três LLMs (dois de 7B e um de 70B parâmetros), inferência com contexto de 8K tokens e infraestrutura de GPU/datacenter (usaram a JRC Big Data Analytics Platform e a plataforma GPT@JRC), PyTorch e LangChain; para o agrupamento de sinônimos, SBERT all-mpnet-base-v2, BioBERT, WordNet/NLTK; e um padrão-ouro rotulado (IDB, 171 amostras). Tudo em inglês (relatos WHO DONs e dicionários de sinônimos em inglês). Custo de execução em CPU ou por artigo: não reportado. O artigo não informa tempo de inferência, uso de GPU nem custo monetário.",
+  "cost_here": "Alto. O núcleo do método é inferência de um LLM de 70B parâmetros (Meta-Llama-3-70B-Instruct) somado a dois de 7B, sobre cada relato; em CPU-only isso é proibitivo para 4.369 artigos, e o artigo não reporta tempo por artigo para dimensionar. Nada disso está nos extras já instalados (embeddings/topics). O único componente diretamente reaproveitável em CPU é o SBERT all-mpnet-base-v2 (~110M parâmetros, viável, mas exige baixar um novo modelo). O custo real (GPUs/datacenter, GPT@JRC) não é quantificado pelo artigo — 'não reportado'.",
+  "transferable": "Transfere o enquadramento conceitual: usar modelos de linguagem para extrair campos estruturados de texto narrativo de vigilância e medir com Precision/Recall/F1 contra anotação humana. NÃO transfere a técnica principal para o nosso caso, porque a distância de domínio é grande: (a) é inglês, sobre relatos WHO longos e estruturados, não notícia PT-BR curta e ruidosa; (b) os dicionários de sinônimos e o WordNet são em inglês; (c) exige GPU para um LLM de 70B, incompatível com CPU-only. O uso de SBERT para similaridade semântica de termos é portável (há variantes multilíngues), mas o artigo não mede isso e não há nenhum achado sobre pooling/normalização/geometria que transfira. Nenhum resultado de representação (embedding) transfere — o artigo não estuda isso.",
+  "red_flags": [
+    "Padrão-ouro pequeno: apenas 171 amostras do IDB, e só 4 das 5 tarefas avaliadas (mortes não avaliada).",
+    "Ganhos do ensemble sobre os baselines são marginais e dentro do ruído: nome da doença F1 0,851 vs 0,842 do GPT-3.5-Turbo-16k (Δ≈0,009); casos F1 0,658 vs 0,653 do GPT-4-FewShot (Δ≈0,005).",
+    "Baselines fracos inflam a comparação: Pythia-12B (F1 0,315 em casos) e MPT-30B-Chat (0,531) puxam a média para baixo.",
+    "Avaliação só em inglês (IDB, relatos WHO), sem qualquer teste em outro idioma ou em notícia; não sustenta transferência para PT-BR.",
+    "Limiar de similaridade 0,8 escolhido 'experimentalmente' sem análise de sensibilidade do impacto no F1 final.",
+    "É um Data Descriptor: a contribuição é o recurso/dataset, não um estudo controlado de método; não há ablação do tamanho do ensemble nem do dicionário de sinônimos.",
+    "A tarefa de mortes é assumida comparável à de casos por analogia, sem evidência direta."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "key": "greene2017exploringpolitical",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/19_greene_2017_exploring_political_agenda_european.pdf",
+  "author": "Greene & Cross",
+  "year": 2017,
+  "read": "Li a capa (p.1), Introdução (pp.2-3), Related Work (pp.3-7), a seção 3 Methods com as duas camadas de NMF e a seleção de k por coerência TC-W2V (pp.8-14), a seção 4 Data (pp.14-16), a seção 5 de baseline NMF vs LDA com a Fig.1 (pp.16-19), o setup experimental e os case studies da seção 6 (pp.20-29), a seção 7 Conclusions (pp.29-30) e os apêndices B (validação intra/inter-tópico, Tabelas 3-4, Figs.7-8, pp.33-37) e C (comparação contra o DTM, Tabela 5, Figs.9-10, pp.38-41). Li também as notas finais da p.42. Não li a lista de referências (pp.43-47).",
+  "technique": "Modelagem dinâmica de tópicos em duas camadas de fatoração de matriz não-negativa (NMF). Camada 1: o corpus é cortado em janelas de tempo disjuntas (aqui, 60 trimestres de 1999-Q3 a 2014-Q2) e aplica-se NMF a cada janela, gerando um modelo de tópicos por janela. Camada 2: as linhas do fator H de cada janela (os t termos de maior peso de cada tópico de janela) viram 'documentos de tópico', empilhados numa matriz tópico-termo B; uma segunda NMF sobre B agrupa tópicos de janelas diferentes em k' tópicos dinâmicos que atravessam o tempo. O número de tópicos é escolhido por coerência TC-W2V (similaridade cosseno média entre vetores word2vec dos termos do topo do tópico), com inicialização NNDSVD. Não é encoder neural: é fatoração de uma matriz termo-documento.",
+  "representation": "O texto vira número em três passos: (1) cada janela vira uma matriz termo-documento A (n discursos x m termos), após tokenização, lemmatização e remoção de stopwords genéricas e parlamentares e de nomes de políticos; (2) aplica-se peso log TF-IDF e normalização pelo comprimento do documento; (3) NMF decompõe A ≈ WH, onde as linhas de H são os tópicos (pesos não-negativos sobre os termos do vocabulário) e as colunas de W dão o pertencimento de cada discurso aos tópicos. A camada 2 reduz de novo, agrupando tópicos de janela em tópicos dinâmicos. O word2vec entra apenas para medir coerência e escolher k, não para representar os documentos.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O artigo propõe um método de tópicos dinâmicos em duas camadas de NMF, desenhado para captar tanto tópicos amplos quanto tópicos de nicho com vocabulários especializados.",
+      "citacao": "designed to identify both niche topics with specific and specialised vocabularies, and broader topics with more general vocabularies",
+      "pagina": 29
+    },
+    {
+      "afirmacao": "NMF bate LDA em coerência de tópicos em 94,7% dos 300 experimentos (60 janelas x 5 valores de k), medido por Cv e TC-W2V.",
+      "citacao": "with a higher score than LDA in the case of 94.7% of all 300 experiments",
+      "pagina": 19
+    },
+    {
+      "afirmacao": "O corpus analisado é de 210.247 discursos em inglês do Parlamento Europeu, 77,95% do total coletado (269.696 discursos em 24 línguas).",
+      "citacao": "A corpus of 210,247 English language speeches was identified in total, representing 77.95% of the original collection",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "Contra o DTM probabilístico, com k=50 tópicos dinâmicos, o NMF tem coerência Cv mediana maior (0,458 vs 0,424).",
+      "citacao": "the NMF approach had a higher median coherence of 0.458 versus 0.424 for DTM",
+      "pagina": 38
+    },
+    {
+      "afirmacao": "Os descritores de tópicos do NMF mudam muito mais entre janelas consecutivas (Jaccard médio 0,166) que os do DTM (0,921), o que os autores leem como maior aderência às discussões de cada janela.",
+      "citacao": "the overall mean Jaccard score across all dynamic topics for the NMF-based approach is 0.166",
+      "pagina": 40
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram viés de seleção por disponibilidade de tradução para o inglês: \"MEPs from countries with less speeches in English will be systematically under-represented in the corpus, and our substantive results should be interpreted with this in mind. There is unfortunately little that can be done about this until such time as English translations are made available.\" (p.42, nota 5).",
+  "evidence": "Contra dois baselines. (a) LDA (MALLET, alpha=0.01, beta=50/k): NMF tem coerência maior em 94,7% dos 300 experimentos (60 janelas x 5 valores de k), por Cv e TC-W2V. (b) DTM probabilístico (Blei & Lafferty): com k=50, NMF tem Cv mediana 0,458 vs 0,424 e TC-W2V 0,277 vs 0,276 (ganho marginal). Também mede quanto os descritores mudam entre janelas (Jaccard médio 0,166 NMF vs 0,921 DTM) e valida os 57 tópicos dinâmicos contra a taxonomia de assuntos do Europarl por similaridade cosseno (Tabela 4). Não há rótulos de referência nem tarefa a jusante com F1: a evidência é intrínseca (coerência) mais validade de construto.",
+  "needs": "Exige: matriz termo-documento com peso log TF-IDF e normalização; uma implementação de NMF (os autores disponibilizam em Python: github.com/derekgreene/dynamic-nmf); um modelo word2vec treinado sobre o corpus para a coerência TC-W2V e para escolher k; LDA via MALLET para o baseline; tokenização/lemmatização e stopwords em inglês. Roda em CPU — o artigo não usa GPU. Não exige dados rotulados (não supervisionado). Língua do pipeline: inglês.",
+  "cost_here": "O artigo não reporta tempo de execução (não reportado). A carga é fatoração de matrizes esparsas (NMF) em CPU, sem GPU, o que combina com a nossa máquina. Sobre o nosso corpus (4.369 artigos, 965 semanas) o volume é ~50x menor que os 210.247 discursos do artigo, então a camada 1 (NMF por janela) tende a ser barata em CPU; o custo real está em montar a coerência TC-W2V, que precisa de um word2vec treinado em PT-BR. A dependência nova seria NMF (scikit-learn) e word2vec (gensim) — não reportado se já estão no ambiente; o tomotopy já instalado faz LDA/DMR, não NMF. Exige adaptar tokenização/lemmatização/stopwords para PT-BR.",
+  "transferable": "Transfere: o desenho de duas camadas (NMF por janela + NMF sobre os tópicos de janela) é independente de domínio e casa com as nossas 965 semanas; é CPU-friendly e não supervisionado, o que ajuda no cenário sem GPU e sem rótulos. Não transfere direto: todo o pré-processamento e a seleção de k por coerência dependem de word2vec e de recursos de língua em INGLÊS, e o artigo não traz nenhuma evidência cross-lingual nem sobre notícia/português. A distância de domínio é grande: discursos parlamentares formais (e traduzidos) do Parlamento Europeu não são notícia PT-BR de dengue, e o corpus do artigo é muito maior e com viés de disponibilidade de tradução. A frase dos autores de que o método serve 'for any political situation in which policy agendas are captured in text form' é extrapolação, não resultado medido.",
+  "red_flags": [
+    "Validação só intrínseca (coerência Cv/TC-W2V) e de construto (taxonomia do Europarl); nenhum rótulo de referência nem métrica a jusante (F1, acurácia).",
+    "Ganho sobre o DTM é marginal numa das medidas: TC-W2V mediana 0,277 vs 0,276, dentro do ruído; só a Cv (0,458 vs 0,424) mostra folga.",
+    "Corpus único e monolíngue (discursos em inglês do Parlamento Europeu); sem replicação em outra língua ou domínio.",
+    "Viés de seleção no corpus: apenas 77,95% dos discursos tinham inglês, com cobertura de 100% (Reino Unido) a 2,6% (Croácia) — os autores admitem sub-representação.",
+    "A mesma medida (TC-W2V) é usada para escolher k e para avaliar os modelos, o que pode favorecer o método que ela mesma seleciona.",
+    "Sem teste de significância estatística nas diferenças de coerência; reporta medianas, sem intervalo de confiança.",
+    "Vários hiperparâmetros escolhidos empiricamente (t=20, faixas de k e k'), sem análise de sensibilidade formal."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "key": "neveditsin2025structuredoutput",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/03_neveditsin_2025_structured_output_robustness_json.pdf",
+  "author": "Neveditsin et al.",
+  "year": 2025,
+  "read": "Li o PDF completo (11 páginas). Capa/abstract e Introdução (p.1); Related Work (p.1-2); Metodologia com Tabela 1 (7 modelos) e Tabela 2 (estatísticas das notas) e setup (p.2-3); Resultados com Tabela 3 (taxas de parseabilidade por modelo/formato) e Tabela 4 (McNemar pareado) (p.3); análise de comprimento e tipo de nota com regressão logística (p.4); Error Analysis e Conclusão (p.4-5); Limitations e Ethics Statement (p.5); Referências (p.6-7); Apêndices A (setup, prompts, regex) e B (categorias de erro) com Tabelas 5-11 (p.7-11).",
+  "technique": "Extração aberta de pares atributo-valor (open attribute-value extraction): sete modelos de linguagem pequenos e instruction-tuned (3-14B, de 4 fornecedores) recebem uma nota clínica e um prompt que manda serializar os pares extraídos em um formato escolhido — JSON, YAML ou XML — dentro de fences de código. A métrica central não é acurácia de conteúdo, e sim 'parseability': a proporção de saídas que um parser padrão valida sem correção manual. Compara dois cenários de prompt (aberto, 'extraia tudo', vs. direcionado a medicamentos, sintomas ou demografia) e cruza com tamanho do modelo, tipo de nota e comprimento.",
+  "representation": "Não é um método de representação vetorial: o texto NÃO vira embedding aqui, não há encoder, pooling nem geometria do espaço. A 'representação' avaliada é a forma serializada da saída do LLM — o formato (JSON/YAML/XML) e sua sintaxe — e a robustez estrutural dessa serialização, medida por parseability. O artigo não produz nem usa vetores; é sobre a estrutura textual da resposta do modelo, não sobre como codificá-la em número.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Entre os três formatos de serialização, JSON tem a maior parseabilidade, superando YAML e XML de forma estatisticamente significativa no teste de McNemar pareado.",
+      "citacao": "All comparisons yield statistically significant results, with JSON significantly outperforming both YAML and XML (p ≪ 0.05 in both cases).",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Prompt direcionado (a medicamentos, sintomas ou demografia) eleva a parseabilidade em todos os formatos, com ganho especialmente grande para YAML, que vai mal no modo aberto.",
+      "citacao": "Targeted prompts substantially boosted parseability across all formats, especially for YAML, which performs poorly in the open setting.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Modelos maiores são mais robustos estruturalmente: parseabilidade média de 90,3% (14B) contra 82,6% (8B) e 80,9% (3-4B), mas o efeito é modesto (Cramér's V = 0,11).",
+      "citacao": "Average parseability rates rose with size: Large models achieved 90.3%, followed by Medium (82.6%) and Small (80.9%).",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Documentos mais longos são menos parseáveis, sobretudo no cenário aberto, ainda que a correlação seja fraca (r = -0,081).",
+      "citacao": "These results suggest that longer documents are consistently less likely to be parsed successfully, especially in open-ended generation scenarios.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O tipo de falha muda com o prompt: no prompt aberto quase não há erros de extração (2,4% das falhas), mas no direcionado os erros de extração dominam (45,5% das falhas).",
+      "citacao": "Open prompts resulted in extraction-related errors only 2.4% of the time, while targeted prompts produced extraction errors in 45.5% of failures.",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram três limitações. (1) Configuração única de decodificação: 'all experiments were conducted using a single decoding configuration (greedy decoding without sampling), which may not generalize to alternative generation settings.' (2) Corpus pequeno e de um só domínio: 'the evaluation is based on the EHRCon dataset, which, although diverse in note types, contains only 105 documents and may not capture the full variability of clinical narratives.' (3) Só mede sintaxe, não semântica: 'our analysis focused exclusively on syntactic parseability, without assessing the semantic accuracy or clinical correctness of the extracted information'.",
+  "evidence": "Não há baseline externo: os autores comparam os três formatos entre si e o cenário aberto contra o direcionado, com testes estatísticos. McNemar pareado (Tabela 4): JSON vs YAML χ2 = 167.607; JSON vs XML χ2 = 69.351; YAML vs XML χ2 = 32.411, todos p ≪ 0.05 — JSON vence ambos. Qui-quadrado de tipo de prompt: χ2 = 1579.41, Cramér's V = 0.42. Tamanho de modelo: χ2 = 106.72, V = 0.11 (efeito modesto). Taxas (Tabela 3): Phi-4 atinge 100% de parseabilidade em JSON (aberto e direcionado); YAML no modo aberto cai a 23.4% no Llama-3.1-8B. Não há medida de acurácia semântica nem comparação com extração sem LLM.",
+  "needs": "Sete SLMs abertos instruction-tuned de 3 a 14B (Phi-4 14B, Phi-3.5-mini 3.8B, Llama-3.2-3B, Llama-3.1-8B, Mistral-8B, Qwen3-4B, Qwen3-14B), via HuggingFace pipeline, decodificação greedy (do_sample = False, top_p/temperature None), max_new_tokens = 8192. Dados: EHRCon (subconjunto de-identificado do MIMIC-III), 105 notas clínicas em inglês em 3 tipos (alta, enfermagem, médico), 4.101 entidades anotadas — usadas só como as notas; a métrica é parseabilidade por parser padrão (json/xml da stdlib, PyYAML), então não exige rótulos. GPU, hardware e tempo de execução: não reportado (o texto não menciona acelerador nem duração).",
+  "cost_here": "Alto. O custo dominante é GERAÇÃO de texto, não embedding: exigiria servir LLMs de 3-14B em CPU e gerar saída estruturada por documento; 14B em CPU é lento (minutos por nota, possivelmente horas para os nossos 4.369 artigos PT-BR, contra as 105 notas do estudo). Também há distância de domínio e idioma (nota clínica em inglês vs. notícia em português). GPU e tempo: 'não reportado'. Não traz ganho direto para os braços 01/02/03 (léxico, embedding, tópicos), que não geram texto estruturado por LLM.",
+  "transferable": "Transfere o desenho e a conclusão prática: se formos pedir saída estruturada a um LLM (extração de atributos/entidades), JSON é o formato mais robusto de parsear, prompt direcionado supera prompt aberto, modelos maiores erram menos estruturalmente e documentos longos degradam a parseabilidade — isso é sobre robustez de serialização e vale além do domínio clínico. Não transfere: os números exatos, porque a distância de domínio é grande — notas clínicas em inglês (MIMIC-III), com jargão, unidades e notação médica (ex.: '128/68', 'Ca++ : 8.3 mg/dL') que quebram parsers, enquanto o nosso é notícia PT-BR. O corpus deles é minúsculo (105 notas) contra 4.369 artigos nossos. E, crucialmente, o artigo NÃO trata de representação vetorial — não mede encoder, pooling nem geometria do espaço — então não serve de evidência para os nossos braços de embedding (02) nem de tópicos (03).",
+  "red_flags": [
+    "Corpus minúsculo e de um único domínio e idioma: 105 notas clínicas em inglês (EHRCon/MIMIC-III), longe dos 4.369 artigos PT-BR.",
+    "Só avalia parseabilidade sintática; não mede acurácia semântica nem correção clínica — os próprios autores admitem.",
+    "Uma única configuração de decodificação (greedy, sem sampling); os autores admitem que pode não generalizar.",
+    "Efeito de tamanho de modelo pequeno (Cramér's V = 0.11), perto do ruído; o ganho 'com tamanho' é modesto.",
+    "Categoria errada para o nosso problema de representação: não é sobre embeddings; usá-lo como evidência de representação seria misturar os dois grupos.",
+    "Apenas 7 modelos, todos open-weight, sem modelo clínico específico de domínio."
+  ]
+}

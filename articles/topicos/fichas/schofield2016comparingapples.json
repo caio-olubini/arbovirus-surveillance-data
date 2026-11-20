@@ -1,0 +1,50 @@
+{
+  "key": "schofield2016comparingapples",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/24_schofield_2016_comparing_apples_apple_effects.pdf",
+  "author": "Schofield & Mimno",
+  "year": 2016,
+  "read": "Li as 14 páginas do PDF (TACL vol. 4, pp. 287-300). Seções lidas: 1 Introdução, 2 Background (2.1 tratamentos por regra, 2.2 tratamentos contextuais), 3 Model and Data, 4 Evaluations (4.1 verossimilhança held-out, 4.2 coerência, 4.3 consistência de clustering/VOI, 4.4 palavras influentes), 5 Results (5.1 força do stemmer, 5.2 likelihood, 5.3 coerência, 5.4 clustering, 5.5 palavras influentes), 6 Related Work, 7 Conclusion, 8 Acknowledgements, References. Tabelas 1-4 (regras do S-stemmer; corpora de treino/teste; exemplo de preprocessamento em review do Yelp; exemplo de tópico do Yelp). Figuras 1-4 (type-token ratio; verossimilhança normalizada; coerência negativa; variation of information). Não existe seção de limitações.",
+  "technique": "É um estudo de PRÉ-PROCESSAMENTO lexical para LDA, não de embeddings neurais. Comparam nove métodos de normalização de palavra aplicados token a token: controle sem stemming (NS); truncamento de 4 e 5 caracteres (T4, T5); S-stemmer (SS); Lovins (LO); Porter (P1); Porter2 (P2); Paice/Husk (PH); Krovetz (KS); e lematizador WordNet (WL). Cada método conflaciona variantes morfológicas ('apple'/'apples') em um tipo único, reduzindo o vocabulário. Depois treinam LDA no MALLET com K = 10, 50 e 200 tópicos e medem verossimilhança held-out normalizada, coerência de tópico (Mimno et al., 2011), variation of information (VOI) intra/inter-tratamento, e duas métricas por palavra (score idf-probabilidade e variação de entropia). O texto vira número como bag-of-words sobre o vocabulário já conflacionado.",
+  "representation": "A técnica é a etapa de NORMALIZAÇÃO do texto que precede o modelo: a escolha de conflacionar (ou não) radicais define o vocabulário do corpus — ou seja, a dimensionalidade e o agrupamento de variantes morfológicas — e portanto a representação que o LDA aprende. O artigo pergunta se essa normalização melhora as distribuições tópico-palavra resultantes. Não há encoder neural, pooling nem geometria de espaço denso: é bag-of-words + LDA. A pergunta é agnóstica de domínio (testada em quatro corpora distintos) e vale como decisão de representação, por isso grupo 'representacao'.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A conclusão central: depois de controlar pelo tamanho do vocabulário, o stemming não melhora a coerência e pode reduzir a verossimilhança preditiva e aumentar a sensibilidade à inicialização aleatória.",
+      "citacao": "stemming does not improve coherence after controlling for the size of vocabulary, and may actually reduce predictive likelihood and increase sensitivity to random initializations",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "Stemmers baseados em regras dão pouco benefício de verossimilhança além de reduzir o vocabulário; não melhoram a qualidade do modelo.",
+      "citacao": "We observe for all standard rule-based stemmers treatments provide little likelihood benefit apart from reducing the vocabulary size",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A maioria dos tratamentos é estatisticamente indistinguível do controle sem stemming em coerência; com 200 tópicos os quatro tratamentos mais fortes (Lovins, Paice-Husk, T4 e T5) ficam significativamente piores.",
+      "citacao": "while no ArXiv treatment differs significantly in coherence at 10 topics, at 200, the four strongest treatments (Lovins, Paice-Husk, five-truncation and four-truncation) are significantly worse",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Contra a intuição, stemmers mais fortes produzem modelos menos estáveis: a VOI intra-tratamento (variação entre inicializações aleatórias do mesmo tratamento) cresce com a força do stemmer.",
+      "citacao": "The intra-treatment VOI trend shows that stronger treatments generally result in less consistent models",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "Como alternativa ao stemming do corpus inteiro, os autores recomendam aplicar stemming apenas na lista de palavras-chave exibida, depois do treino.",
+      "citacao": "As an alternative we suggest post-stemming the list of keywords, as shown in Table 4",
+      "pagina": 12
+    }
+  ],
+  "ressalva_do_autor": "O artigo não tem seção de limitações formal; os autores declaram limites de escopo no corpo do texto, nas palavras deles. Escopo linguístico, em Model and Data: \"we focus on modeling topics in English datasets using Latent Dirichlet Allocation (LDA)\" (p.3) — tudo é inglês. Limite metodológico admitido, em Influential Words: \"we cannot use the same entropy measurement on the context-sensitive lemmatizer\" (p.11). E, na Conclusão, admitem que stemming forte pode servir a casos específicos: \"While this does not improve the quality of the topic model by most measures, it may be suited for a particular task involving abnormally varied word forms to which the model is applied\" (p.12).",
+  "evidence": "Comparação controlada contra o corpus SEM stemming (NS) e entre os nove tratamentos, sobre quatro corpora (ArXiv, IMDb, NYT, Yelp), K = 10/50/200, com ao menos nove modelos por combinação corpus/tratamento/K ('we produced several thousand inferred models', p.6). Métricas: verossimilhança held-out normalizada por um unigram suavizado (PTLL_norm), coerência de Mimno et al. (2011), variation of information intra e inter-tratamento, e scores por palavra (idf-probabilidade e entropia). Resultados medidos: tratamentos Porter resultam em verossimilhança normalizada significativamente MENOR que o corpus sem stemming (p.8: 'treatments result in normalized log likelihoods significantly lower than the unstemmed treatment'); a maioria dos tratamentos é indistinguível do controle em coerência (p.8); VOI intra-tratamento cresce com a força do stemmer (p.9). Ainda assim há casos isolados em que a coerência melhora, como four-truncation no Yelp 'reaching a significant level at 200 topics' (p.8). Baseline = corpus sem stemming; NÃO há comparação com embeddings neurais nem com modelos neurais de tópicos.",
+  "needs": "Nove implementações de stemmer/lematizador (biblioteca Python 'stemming' de Chaput para Lovins, Paice/Husk e Porter; implementação do Lemur Project para Krovetz; WordNetLemmatizer do NLTK + Stanford POS Tagger para o lematizador), MALLET para treinar LDA, e quatro corpora em inglês (ArXiv, IMDb, NYT, Yelp) — que somam da ordem de 975K documentos de treino e 325K de teste (Tabela 2, p.4). Roda em CPU; o artigo não usa GPU. Dado rotulado: não exige — é LDA não supervisionado; só precisa de texto. Custo medido: a lematização custou MAIS tempo de CPU que treinar o modelo ('lemmatizing the corpus took more computational time than training the topic model', p.3).",
+  "cost_here": "O artigo não reporta horas de CPU nem tempo por documento ('não reportado'). Qualitativamente, o custo dominante foi a lematização, mais caro que o próprio treino do LDA. Para o NOSSO corpus (Agência Brasil, PT-BR, 4.369 artigos, 965 semanas, 28 locations, CPU-only): a técnica em si não exige GPU nem dependência nova — é stemming/lematização + LDA, e já temos tomotopy; uma implementação de stemmer de PT-BR seria o único acréscimo, e o custo disso sobre 4.369 documentos em CPU é baixo em ordem de grandeza, mas não há medição no artigo para PT-BR: 'não reportado'.",
+  "transferable": "Transfere: o DESENHO de avaliação — comparar cada normalização lexical contra um controle sem normalização, com múltiplos K e múltiplos corpora, medindo verossimilhança normalizada, coerência e estabilidade (VOI) — e a conclusão de que a normalização lexical raramente ajuda além de reduzir o vocabulário, o que é um alerta contra gastar esforço com stemming antes do modelo. Também transfere a ideia de pós-stemming da lista de keywords para exibição. NÃO transfere: todos os stemmers são específicos do inglês (Porter, Lovins, Paice/Husk, S-stemmer, Krovetz, WordNet); não há teste em português, nem em notícia de vigilância de doença, nem em texto curto de rede social. A distância de domínio é grande: os corpora são inglês (ArXiv científico, biografias do IMDb, NYT, reviews do Yelp) e o único de notícia é o NYT. As conclusões são sobre LDA bag-of-words clássico e podem não valer para representações densas de embedding.",
+  "red_flags": [
+    "Só inglês; nenhum corpus em português nem texto de vigilância de doença — distância de domínio e de língua grande.",
+    "Testa apenas LDA clássico (bag-of-words + MALLET); não compara com embeddings neurais nem com modelos neurais de tópicos, então a conclusão pode não valer para representações densas.",
+    "Muitos efeitos ficam DENTRO DO RUÍDO: os próprios autores dizem que a maioria dos tratamentos é 'estatisticamente indistinguível' do controle em coerência — ou seja, o resultado é principalmente de ausência de efeito, e ausência de efeito é difícil de provar.",
+    "Coerência medida por uma única métrica automática (Mimno et al., 2011), sem avaliação humana de interpretabilidade.",
+    "Stemmers próprios/de terceiros com correções manuais ('modified to correct errors in implementation', p.4), o que abre espaço para fragilidade de implementação afetar os resultados.",
+    "Três dos quatro corpora são de nicho (ArXiv, IMDb, Yelp); só o NYT é notícia, e nenhum é notícia em língua não-inglesa."
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "key": "ng2020nlp",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/10_ng_2020_nlp_extract_news_event_based.pdf",
+  "author": "Ng et al.",
+  "year": 2020,
+  "read": "Li as 6 páginas inteiras do PDF (Can Commun Dis Rep 2020;46(6):186-191): Background, Tabela 1 (glossário de terminologia NLP), a seção 'NLP algorithms and their application to public health' com as cinco aplicações (1 classificação de artigo por tipo de ameaça, 2 geoparsing, 3 extração de informação temporal e raciocínio temporal, 4 extração de contagem de casos, 5 sumarização automática de texto), Discussion, Conclusion, Funding e a lista de referências. É um artigo OVERVIEW/revisão narrativa: não há seção de métodos próprios, nem tabela de resultados, nem experimento. Os únicos números do texto vêm de trabalhos citados.",
+  "technique": "Revisão narrativa (overview) das aplicações de NLP em sistemas de vigilância baseada em eventos (EBS). Não propõe uma técnica nova; descreve um repertório de técnicas e onde cada uma se aplica: busca por palavra-chave e suas limitações (sinônimos, contexto); reconhecimento de entidades nomeadas (NER) rule-based com dicionários e regras (ex. 'H#N#' para nova cepa de influenza) e NER por aprendizado de máquina a partir de corpora anotados; classificação de artigo por taxonomia multilingue de ameaças; geoparsing (geotagging = NER de topônimos + geocoding contra um dicionário como GeoNames); extração de informação temporal (TimeML, ISO-TimeML, THYME) com extração de relações temporais e raciocínio temporal; extração de relações entre entidades (RelEx) para contagem de casos; sumarização extrativa e abstrativa. Aponta como tendência futura abordagens neurais: transformers, mecanismo de atenção e modelos de linguagem pré-treinados (ELMo, BERT, XLNet).",
+  "representation": "O artigo NÃO trata de representação vetorial (não discute encoder, pooling, normalização, geometria ou dimensionalidade do espaço de embeddings). O 'texto vira número' de forma implícita e fraca: tokenização do texto em palavras, anotação de entidades nomeadas e uso de features para classificadores ML (no geoparsing cita features como nome do topônimo, primeira e última posição de caractere e comprimento do caractere). Modelos de linguagem pré-treinados aparecem apenas como desenvolvimento emergente, sem qualquer detalhe de representação. Portanto é um artigo de APLICAÇÃO: vale pelo mapeamento de onde o NLP é usado na vigilância de doenças a partir de notícias, não por uma técnica de representação.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O campo de NLP existe desde os anos 1950, mas o avanço recente de tecnologia e métodos tornou as aplicações mais fáceis de implementar, a ponto de algumas tarefas superarem o desempenho humano.",
+      "citacao": "Although the field of NLP has been around since the 1950s (1), progress in technology and methods in recent years have made NLP applications easier to implement, with some tasks outperforming human performance (2).",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "A extração automática da contagem de casos não está incorporada em nenhum sistema de EBS; só existem algoritmos capazes de tarefas relacionadas que podem ser reaproveitados para construí-la.",
+      "citacao": "Currently, there is no NLP algorithm incorporated into EBS systems capable of this task, however, there are algorithms capable of tackling related tasks that can be leveraged to develop a case count algorithm.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A extração de relações entre entidades já é viável com bom desempenho: o RelEx identifica relações entre genes em resumos MEDLINE com F1 de 0,80, e serve de base para um algoritmo de contagem de casos de doenças de origem alimentar.",
+      "citacao": "Many algorithms already identify relationships between entities in diverse fields, for example, the RelEx algorithm identifies relations between genes that are recorded in MEDLINE abstracts and performs with an F1 of 0.80 (30).",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A extração de informação temporal a partir de texto já alcança desempenho próximo ao humano nos sistemas citados (TimeML, ISO-TimeML e THYME), o que sustenta a criação de um padrão de anotação temporal para notícias de saúde pública.",
+      "citacao": "Multiple temporal information extraction systems have been developed including TimeML (developed for temporal extraction of news articles in finance) (22); ISO-TimeML (a revised version of TimeML) (23); and THYME (developed for temporal extraction in patient records) (24). Results have reached near-human performance (25–28).",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "As próximas gerações de pesquisa em extração de informação apontam para a resolução de eventos (deduplicação e ligação de eventos iguais) e para abordagens neurais — transformers, mecanismo de atenção e modelos de linguagem em larga escala como ELMo, BERT e XLNet — para melhorar o desempenho atual.",
+      "citacao": "and advancements in neural NLP approaches such as transformers networks (35), attention mechanism (36) and large-scale language models such as ELMo (37), BERT (38) and XLNet (39) to improve on the current performance of algorithms.",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "While NLP algorithms are powerful, they are not perfect. Current key challenges involve grouping multiple sources referring to the same event together and dealing with imperfections in the accuracy of information extraction due to nuances in human languages.",
+  "evidence": "Não há evidência própria: é uma revisão narrativa, sem experimento e sem baseline do próprio artigo. Os únicos números vêm de trabalhos citados, em domínio diferente do nosso: RelEx com F1 de 0,80 na extração de relações entre genes em resumos MEDLINE (ref. 30) e sistemas de extração temporal com desempenho 'near-human' (refs. 25–28, sem métrica específica nem intervalo). O artigo não compara nada contra nenhum baseline; descreve aplicações e aponta o estado da arte citado.",
+  "needs": "Não reportado. O artigo não traz modelo, tamanho, requisito de GPU, idioma de treino nem dados rotulados próprios — não há nada a executar. Todos os corpora e exemplos citados são em inglês (MEDLINE, TimeBank, notícias de finanças, registros clínicos) e nenhum é em português. Para reproduzir qualquer um dos sistemas citados seria preciso ir à referência original, não a este artigo.",
+  "cost_here": "Não se aplica / não reportado: o artigo não fornece artefato executável (sem código, sem modelo, sem benchmark) para rodar sobre as 4.369 notícias da Agência Brasil. Não impõe dependência nova — é texto — mas também não entrega nada que se rode. O custo real de usá-lo é apenas o de leitura como referencial de enquadramento de tarefas.",
+  "transferable": "Transfere o enquadramento das tarefas de EBS sobre notícias (classificação de ameaça, geolocalização, extração temporal, contagem de casos, sumarização) e a ressalva de que nuances linguísticas degradam a extração — o que é pertinente para PT-BR. Não transfere método nem número: não há pipeline, código ou avaliação em português, e os valores (F1 0,80; 'near-human') são de domínio clínico/genômico em inglês e não medem nada no nosso corpus. Distância de domínio grande: inglês clínico/notícias de finanças/registros clínicos vs notícia PT-BR de arbovirose.",
+  "red_flags": [
+    "Revisão narrativa (overview): nenhum experimento próprio, nenhum baseline, nenhuma avaliação intrínseca ou extrínseca conduzida pelo artigo.",
+    "Números emprestados de sistemas citados em domínio diferente (relações gene-gene em MEDLINE; extração temporal em registros clínicos), não medidos no alvo do artigo.",
+    "'Near-human performance' citado sem métrica específica nem intervalo de confiança — ganho não quantificado.",
+    "Sem português: todos os exemplos e corpora citados são em inglês ('There are new cases of influenza in London', 'Paris hospital fears being overwhelmed as COVID-19 cases increase').",
+    "Publicado em 2020, anterior aos encoders PT-BR modernos; trata transformers/BERT apenas como tendência futura, sem avaliação.",
+    "Auto-citação: os autores citam trabalhos do próprio grupo (THEE, ref. 29; algoritmo de contagem de casos, ref. 31) como evidência de viabilidade."
+  ]
+}

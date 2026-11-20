@@ -1,0 +1,50 @@
+{
+  "key": "terragni2021octiscomparing",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/15_terragni_2021_octis_comparing_optimizing_topic.pdf",
+  "author": "Terragni et al.",
+  "year": 2021,
+  "read": "Li as 8 páginas do PDF (proceedings da EACL 2021 System Demonstrations, pp. 263-270). Capa com os cinco autores, abstract e Seção 1 Introdução (p.1); Seção 2 System design and architecture, 2.1 Datasets and Pre-processing com a Tabela 1 (estatísticas dos 4 datasets) e o workflow da Figura 1 (p.2); 2.2 Topic Modeling com a lista de modelos clássicos e neurais, 2.3 Evaluation Metrics e 2.4 Hyper-parameter Optimization (p.3); continuação do 2.4 (surrogates e acquisition functions), Tabela 2 comparando OCTIS a Gensim, STTM, PyCARET, MALLET e ToModAPI, e Seção 3 Existing frameworks (p.4); Seção 4 System usage com o exemplo de código Python e as quatro funcionalidades do dashboard web, Figuras 2-6 (p.5-6); Seção 5 Conclusions e future work (p.6); Referências (p.7-8). Extraí o texto com pdftotext -layout e conferi cada citação com scripts/conferir_fichas.py (todas exatas, 0 erro / 0 aviso).",
+  "technique": "OCTIS (Optimizing and Comparing Topic models Is Simple) é um framework open-source, em Python, para treinar, analisar, comparar e otimizar modelos de tópicos. Ele embala, atrás de uma interface comum de 'caixa preta', modelos clássicos (LDA, NMF, LSI, HDP, via gensim) e neurais (Neural LDA, ProdLDA, ETM, CTM), e oferece uma biblioteca Python mais completa e um dashboard web mais simples. As métricas de avaliação cobrem coerência, significância, diversidade e classificação. Os hiperparâmetros de cada modelo são escolhidos por Otimização Bayesiana (BO) com a biblioteca scikit-optimize, usando Processo Gaussiano e Random Forest como modelos substitutos (surrogates) e Probability of Improvement / Expected Improvement / Upper Confidence Bound como funções de aquisição; também há busca aleatória como alternativa. Não é um novo encoder nem um novo modelo de tópicos: é um harness de comparação e de busca de configuração.",
+  "representation": "O texto vira número no sentido de modelo de tópicos: cada documento é pré-processado (minúsculas, remoção de pontuação, lematização, remoção de stopwords, corte de palavras raras/frequentes por limiar e corte de documentos curtos) e o modelo devolve uma distribuição documento-tópico (vetor de K dimensões) e distribuições tópico-palavra. A métrica de classificação reutiliza a distribuição documento-tópico de cada documento como representação K-dimensional para treinar um classificador que prediz a classe do documento. Não há encoder neural nem pooling proposto pelo artigo: a 'representação' aqui é a saída inferida do modelo de tópicos, e o foco é escolher e comparar configurações, não propor um novo jeito de transformar texto em vetor.",
+  "afirmacoes": [
+    {
+      "afirmacao": "OCTIS é um framework para treinar, analisar e comparar modelos de tópicos cujos hiperparâmetros ótimos são estimados por Otimização Bayesiana.",
+      "citacao": "In this paper, we present OCTIS, a framework for training, analyzing, and comparing Topic Models, whose optimal hyper-parameters are estimated using a Bayesian Optimization approach.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O pré-processamento padrão do OCTIS usa a lista de stopwords em inglês do MALLET, ou seja, é dependente de idioma.",
+      "citacao": "we removed the punctuation, we lemmatized the text, filtered out the stop-words (using the English stop-words list provided by MALLET)",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O OCTIS integra, sob uma mesma interface, tanto modelos de tópicos clássicos quanto neurais.",
+      "citacao": "OCTIS integrates both classical topic models and neural topic models.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A ferramenta oferece 10 métricas de avaliação no dashboard web e 13 acessíveis pela biblioteca Python.",
+      "citacao": "OCTIS provides 10 evaluation metrics directly available in the web dashboard, and 13 accessible through the python library.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "O OCTIS se posiciona como a união dos recursos dos frameworks existentes, combinando modelos clássicos e neurais recentes numa única ferramenta.",
+      "citacao": "OCTIS stands at the union of the features of the existing frameworks: we integrated both classical and recent neural topic models",
+      "pagina": 4
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram duas limitações. Primeira, o pré-processamento padrão pode não servir para outros idiomas ou domínios: \"some of these features may not be appropriate for specific domains and languages, e.g. requiring language-specific or domain-specific stop-words\" (p. 2). Segunda, a otimização hoje é apenas de objetivo único, admitida no future work: \"OCTIS could integrate a multi-objective optimization strategy to optimize multiple metrics in the same BO procedure\" (p. 6).",
+  "evidence": "Não há experimento quantitativo nem comparação numérica com baseline — é um system demonstration. A evidência é qualitativa: a Tabela 2 (p. 4) contrasta OCTIS com Gensim, STTM, PyCARET, MALLET e ToModAPI recurso a recurso (modelos clássicos/neurais, tipos de métricas suportadas e método de tuning: BO vs MLE vs grid-search), e o texto conclui que \"OCTIS stands at the union of the features of the existing frameworks\" (p. 4). Há também a Tabela 1 (p. 2) com estatísticas dos 4 datasets pré-processados (20 NewsGroups 16309 documentos, BBC News 2225, M10 8355, DBLP 54595) e capturas do dashboard (Figuras 2-6). Nenhum número de coerência, F1 ou runtime é reportado para sustentar ganho de qualidade sobre qualquer alternativa.",
+  "needs": "Python; scikit-optimize (e dependências) para a BO; gensim para os modelos clássicos (LDA, NMF, LSI, HDP); PyTorch para os modelos neurais (Neural LDA, ProdLDA, ETM, CTM). O pré-processamento padrão usa a lista de stopwords em inglês do MALLET. Não é reportado requisito de GPU nem tempo de execução. Não exige dados rotulados para treinar (não supervisionado), mas as métricas de classificação exigem rótulos.",
+  "cost_here": "OCTIS não está entre os nossos extras instalados (embeddings, topics); adicioná-lo é dependência nova, com custo alto porque os extras estão fixados no pyproject.toml. A BO multiplica o número de execuções completas do modelo (iterações da BO vezes as execuções por configuração para calcular a mediana), o que em CPU encarece rápido; o artigo não reporta tempo de execução, então o custo real é 'não reportado'. Os modelos clássicos via gensim são viáveis em CPU; os neurais (ETM/CTM) exigem torch, que já temos pelo extra embeddings. O custo de rodar a busca de hiperparâmetros sobre os nossos 4.369 documentos PT-BR em CPU: não reportado.",
+  "transferable": "Transfere a ideia de usar Otimização Bayesiana para escolher hiperparâmetros de modelos de tópicos (por exemplo, o número de tópicos do nosso braço 03 DMR/tomotopy) e o tratamento de ruído via mediana de várias execuções do modelo. Transfere também o uso da distribuição documento-tópico como vetor de atributos para uma métrica de classificação. Não transfere bem: os datasets e o pré-processamento padrão são em inglês (stopwords do MALLET; 20 NewsGroups, BBC News, M10, DBLP) — a distância de domínio é grande para o nosso corpus de notícias em PT-BR, que exigiria stopwords em português. E, sobretudo, OCTIS é um harness de comparação e otimização, não uma técnica de representação: ele não melhora o embedding, apenas busca e compara configurações.",
+  "red_flags": [
+    "System demonstration sem experimento quantitativo, sem baseline e sem números (coerência, F1, runtime) — a evidência é uma tabela de recursos (Tabela 2).",
+    "Datasets exclusivamente em inglês (20 NewsGroups, BBC News, M10, DBLP) e stopwords padrão em inglês.",
+    "Não reporta custo/tempo de execução, apesar de a BO multiplicar o número de execuções completas do modelo.",
+    "A otimização é apenas de objetivo único; multi-objetivo é declarado como trabalho futuro.",
+    "Usa métricas de coerência de tópicos como objetivo de otimização, que são reconhecidamente frágeis.",
+    "Não há ablation mostrando que a BO supera a busca aleatória, embora a busca aleatória seja oferecida como alternativa."
+  ]
+}

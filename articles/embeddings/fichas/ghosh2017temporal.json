@@ -1,0 +1,51 @@
+{
+  "key": "ghosh2017temporal",
+  "grupo": "aplicacao",
+  "pdf": "articles/embeddings/22_ghosh_2017_temporal_topic_news_disease.pdf",
+  "author": "Ghosh et al.",
+  "year": 2017,
+  "read": "Li o PDF inteiro, páginas 1 a 12. Capa/abstract (p. 1); Materials and Methods, com Data sources, HealthMap, EpiNews, temporal topic modeling, EpiNews-ARNet e Algorithm 1 (p. 2-5); Results com Tabela 1 (p. 2), Tabela 2 (p. 3), Figuras 2-4 e Tabelas 3-4 (p. 6-9); Discussion (p. 9-11); References, Acknowledgements e Additional Information (p. 11-12). Página = página do PDF contando de 1, conferida pelo rodapé 'Scientific Reports | 7:40841'.",
+  "technique": "EpiNews: um framework de dois estágios. (1) Modelo de tópicos supervisionado e temporal — o corpus de notícias vira um tensor esparso de contagens {palavra, local, tempo}:count (V x L x T), e o modelo o decompõe em tópicos de doença, supervisionados por 'seed words' (palavras-âncora dadas à mão por doença). Produz quatro matrizes: distribuições de palavras sobre tópicos (regular e seed), tópicos por local, e xi, a 'temporal topic trend' — uma distribuição de cada tópico ao longo do tempo. Inferência por collapsed Gibbs sampling. (2) EpiNews-ARNet: regressão autorregressiva com entrada externa (ARX) regularizada por Elastic Net, que usa os casos passados (componente interna) mais a tendência de tópico (componente externa) para estimar casos 1 passo à frente. Não é encoder neural nem embedding: é modelagem de tópicos por contagem + regressão de série temporal.",
+  "representation": "O texto NÃO vira vetor denso. Cada artigo é reduzido a contagens de palavras por (local, semana/mês). A 'representação' é o tensor palavra x local x tempo, e o resultado útil é a série temporal xi de cada tópico de doença (uma distribuição sobre o tempo, valores de 0 a 1). Para alinhar escalas, xi é convertida em 'sampled case counts' por amostragem multinomial (Algorithm 1) antes de entrar na regressão. Portanto: representação = contagem/tópico probabilístico, não espaço vetorial de embeddings — a geometria do espaço não é o objeto do artigo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus é pequeno e desbalanceado por país: 11.209 artigos para a China, 9.872 para os EUA e apenas 1.204 para a Índia, com 21.879, 59.687 e 17.160 palavras únicas e 30, 51 e 30 locais, respectivamente (Tabela 2).",
+      "citacao": "Country-wise distribution of the total number of HealthMap news articles along with unique words and location names extracted from all the corresponding articles.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A maioria dos artigos chineses (87,94%) estava em chinês tradicional ou simplificado e teve de ser traduzida para o inglês com o Google Tradutor antes da modelagem.",
+      "citacao": "For China, majority (87.94%) of the articles were published in either Traditional Chinese or Simplified Chinese.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O melhor método (EpiNews-ARNet com sampled case counts como variáveis externas) atinge o menor NRMSE em 8 das 10 combinações país-doença.",
+      "citacao": "EpiNews-ARNet with sampled case counts as external variables is the best performing method achieving lowest NRMSE values for majority (8 out of 10) of the {country, disease} combinations.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O baseline que usa só casos passados (Casecount-ARMA, sem tópicos) nunca alcança o menor NRMSE em nenhuma combinação país-doença.",
+      "citacao": "For none of the {country, disease} combinations, Casecount-ARMA is able to achieve lowest NRMSE values",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Os autores atribuem as falhas de monitoramento à cobertura jornalística movida por interesse, que varia no tempo e cai conforme a temporada de surto avança.",
+      "citacao": "news media coverage during disease outbreaks is driven by interest. News coverage for certain diseases can be inconsistent over time.",
+      "pagina": 9
+    }
+  ],
+  "ressalva_do_autor": "Declaram dependência do noticiário e ausência de tratamento de erro de reportagem — 'our framework is heavily reliant on news corpora and does not account for possible reporting errors' (p. 9) — e que 'inconsistent news coverage can adversely affect the timely estimation of outbreaks by EpiNews-ARNet as shown in Fig. 5(c)' (p. 10). Também admitem não ter validado o Google Tradutor: 'Because of the unavailability of ground truth for these articles, we couldn't validate the performance of Google translate in this context' (p. 2).",
+  "evidence": "Comparação com dois baselines de série temporal: Casecount-ARMA (ARMA só sobre casos passados, sem tópicos) e EpiNews-ARMAX (ARMAX com tendências de tópico como entrada externa). Métrica: NRMSE da estimativa 1 passo à frente sobre um período de avaliação (treino estático + avaliação progressiva; Tabela 3). Tabela 4 (p. 8-9): EpiNews-ARNet com sampled case counts tem o menor NRMSE em 8/10 combinações, e Casecount-ARMA não é o melhor em nenhuma. Exemplos: HFMD na China 1,574 (ARMA) vs 0,626 (ARNet-sample); dengue na China 1,076 vs 0,549. Nos EUA os ganhos são pequenos (coqueluche 0,584 vs 0,558; raiva 0,875 vs 0,865) e em algumas células a variante com topic trends piora (dengue na Índia 0,966 vs 1,073). Sem comparação com embeddings ou modelos neurais, e sem teste de significância.",
+  "needs": "Corpus de notícias com data e geolocalização (lat/long, revertida para nome de local); contagens de casos oficiais como ground truth (Project Tycho nos EUA, NHFPC na China, IDSP na Índia); seed words por doença definidas à mão a partir de sites como CDC e WHO; pré-processamento com tokenização, lematização e remoção de stopwords (ferramenta comercial Rosette/RLP); tradução para inglês quando o texto não é inglês. O método é amostragem de Gibbs em CPU — não requer GPU, encoder neural nem embeddings. O artigo não reporta tempo de execução nem hardware.",
+  "cost_here": "Não reportado: o artigo não dá tempo de execução nem hardware. Pela natureza do método (amostragem de Gibbs sobre tensor esparso palavra x local x tempo, sem rede neural) não exige GPU, mas o custo real não é medido no artigo. Nosso corpus (4.369 artigos) é maior que o da Índia deles (1.204) e menor que o da China (11.209), escala em que rodaram.",
+  "transferable": "Transfere: o desenho de avaliação (estimar casos 1 passo à frente contra contagem oficial, treino estático + avaliação progressiva, métrica NRMSE) e, sobretudo, o achado de que o sinal de texto falha justamente quando o surto cresce e a cobertura cai — a cobertura é movida por interesse, não por incidência. Transfere também a exigência de ground truth de casos e de seed words por doença. NÃO transfere como técnica: EpiNews é modelo de tópicos + Elastic Net, não encoder/pooling de embeddings, então não diz nada sobre geometria, pooling ou dimensionalidade. Distância de domínio: o texto deles é inglês/chinês de fontes globais do HealthMap; o nosso é PT-BR da Agência Brasil. Eles contornaram o multilíngue traduzindo para o inglês (Google Tradutor), não com embeddings multilíngues. Eles cobrem dengue (Índia 2013, China 2014), então o alvo é próximo — mas o método avaliado não é o nosso.",
+  "red_flags": [
+    "Baselines só de série temporal (ARMA/ARMAX); nenhuma comparação com métodos de representação/embeddings — não responde à pergunta de representação.",
+    "Ganhos pequenos nos EUA (coqueluche 0,584 -> 0,558; raiva 0,875 -> 0,865), dentro de variação sem teste de significância estatística.",
+    "Em algumas células o método proposto piora em relação ao baseline (dengue na Índia: 0,966 do ARMA vs 1,073 do ARNet-topic).",
+    "Uso do Google Tradutor para o chinês sem validação — os próprios autores admitem falta de ground truth para a tradução.",
+    "Nenhum tempo de execução nem hardware reportado.",
+    "Corpora pequenos (Índia: 1.204 artigos) e avaliação fragmentada por país, sem agregação.",
+    "Qualidade dos tópicos avaliada só por listas de palavras no suplemento; a avaliação principal é extrínseca (correlação e NRMSE contra casos), sem métrica intrínseca."
+  ]
+}

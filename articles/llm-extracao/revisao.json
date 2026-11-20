@@ -1,0 +1,33 @@
+{
+  "familia": "llm-extracao",
+  "relatorio": "articles/llm-extracao/relatorio.md",
+  "relatorio_sha256": "8a76da3627e1372e939db3d8fb955b6ac16062dde0dca894e40a8f8a01889b2c",
+  "conforme": true,
+  "divergencias": [],
+  "claims_conferidas": 164,
+  "claims_orfas": 0,
+  "numeros_divergentes": 0,
+  "citacoes_sem_ficha": 0,
+  "autores_inventados": 0,
+  "vocabulario_proibido": 0,
+  "forca_nao_refletida": 0,
+  "estilo": {
+    "adjetivos_inflados": 0,
+    "glossas_vazias": [],
+    "hedges": 0,
+    "medidas": {
+      "palavras_por_frase_desvio": 18.1,
+      "palavras_por_frase_max": 86,
+      "palavras_por_frase_mediana": 21,
+      "passiva_por_mil": 1.4,
+      "travessao_por_mil": 10.2
+    },
+    "muletas": 0,
+    "oracoes_empilhadas": 0,
+    "paragrafos_densos": 0,
+    "prosa_opaca": [],
+    "script_rodou": true,
+    "termos_sem_glosa": 0
+  },
+  "gerado": "2026-11-10"
+}

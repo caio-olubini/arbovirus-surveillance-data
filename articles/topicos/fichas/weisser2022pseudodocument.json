@@ -1,0 +1,51 @@
+{
+  "key": "weisser2022pseudodocument",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/31_weisser_2022_pseudo_document_simulation_comparing.pdf",
+  "author": "Weisser et al.",
+  "year": 2022,
+  "read": "Li o PDF inteiro (28 páginas), não só o abstract: capa e abstract (p. 1); introdução (Sect. 1, pp. 2–3); os três modelos — LDA (2.1), GSDMM (2.2) e GPM (2.3) — e a inferência por amostragem de Gibbs colapsada (2.4, com os Algoritmos no apêndice D); a seção que propõe o método, com dados e pré-processamento (2.5.1) e a simulação de pseudo-documentos (2.5.2) e a avaliação (2.5.3); as métricas convencionais, coerência UMass (2.6.1) e top words (2.6.2); a avaliação empírica (Sect. 3, pp. 15–16); a conclusão (Sect. 4, pp. 16–17); e os apêndices A–E (Tabelas 3, 4 e 5 com as 10 top words por modelo em 20 tópicos; wordclouds Figs. 2–5; Figs. 6–9 de distribuição de palavras, desvio da uniformidade, correlação de coluna e coerência). Os trechos que ancoram a ficha estão nas páginas 11, 16 e 17 do PDF.",
+  "technique": "Compara três modelos probabilísticos de tópicos em texto curto e esparso (tweets): (1) LDA, o baseline padrão, em que cada documento é uma mistura de tópicos; (2) GSDMM (Gibbs Sampler Dirichlet Multinomial Model), em que cada documento pertence a um único tópico; (3) GPM (Gamma-Poisson Mixture), igual ao GSDMM mas modelando a contagem de cada palavra com uma Poisson em vez de multinomial. Todos são estimados por amostragem de Gibbs colapsada (o LDA também via Variational Bayes online). A contribuição metodológica é a 'Pseudo-Document Simulation': para comparar os modelos, gera-se um corpus sintético de documentos rotulados a partir da matriz palavra-tópico (β) estimada por cada modelo, refitam-se os modelos nesse corpus e mede-se quão bem eles recuperam os rótulos verdadeiros.",
+  "representation": "Texto vira número como matrizes bag-of-words de contagem/probabilidade, não como embeddings: cada documento é representado pela sua distribuição sobre tópicos (matriz documento-tópico θ, D×K) e cada tópico pela sua distribuição sobre o vocabulário (matriz palavra-tópico β, V×K). No LDA, θ_d ~ Dirichlet e o documento é mistura de tópicos; no GSDMM e no GPM cada documento é gerado por um único tópico (mistura ao nível do corpus), e o GPM troca a multinomial pela Poisson sobre a frequência de cada palavra. A 'representação' que a avaliação mede é a atribuição documento→tópico estimada (θ_S) contra a atribuição verdadeira do experimento (θ_T), comparadas por correlação de coluna.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Pela métrica padrão de coerência, o LDA parece superar tanto o GSDMM quanto o GPM para qualquer número de tópicos — o oposto do esperado, já que os dois últimos foram feitos para texto esparso.",
+      "citacao": "the comparison of the coherence scores seems to suggest that the LDA model outperforms both, the GSDMM and the GPM model, despite that the two latter models are specifically designed to handle sparse data corpora like the tweets used in this work",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "No experimento de pseudo-documentos, mais de 20.000 documentos do LDA não recebem tópico algum, porque o modelo estima a mesma prevalência (0,05) para todos os tópicos e não sobra um máximo para decidir a atribuição.",
+      "citacao": "for the LDA model over 20,000 documents are not assigned to any topic because a prevalence score of 0.05 is estimated for every topic",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "Pela correlação de coluna entre a matriz documento-tópico estimada e a verdadeira, o ranking se inverte em relação à coerência: GPM acima de GSDMM, que fica acima do LDA.",
+      "citacao": "This implies that the GPM performs better than the GSDMM while GSDMM performs better than the LDA",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "A conclusão é explícita: pela simulação de pseudo-documentos o LDA é superado pelo GSDMM e pelo GPM, contradizendo o veredito da coerência.",
+      "citacao": "In contrast, the model comparison with the Pseudo-Document Simulation method shows that the LDA model is outperformed by the GSDMM and the GPM models",
+      "pagina": 17
+    },
+    {
+      "afirmacao": "A avaliação gera 100.000 documentos simulados distribuídos em 20 tópicos (5.000 por tópico), de modo que um modelo perfeito atribuiria exatamente 5.000 documentos a cada tópico.",
+      "citacao": "We generated 100,000 documents in total for 20 topics and thus 5000",
+      "pagina": 16
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que o método não consegue isolar a fonte do desempenho: 'our method allows us to evaluate the overall model performance. However, we cannot distinguish whether an improved performance comes from a better estimation of β or from the ability of the model to retrieve θT'. Declaram também que a solução 'still requires the separate hyperparameter optimization for the individual models with coherence scores or the use of priors that are recommended in the literature for the specific models' — ou seja, a simulação compara modelos, mas não otimiza os hiperparâmetros deles.",
+  "evidence": "Evidência contra dois baselines: (a) o LDA, o modelo de tópicos padrão e mais usado; (b) a avaliação por scores de coerência UMass. Os scores de coerência dão vantagem clara ao LDA em qualquer K, mas a simulação de pseudo-documentos inverte o resultado em duas medidas: o LDA tem o maior desvio da distribuição uniforme esperada e deixa mais de 20.000 dos 100.000 documentos sem tópico atribuído, e tem a menor correlação de coluna entre θ_S e θ_T, enquanto o GPM tem a maior e o GSDMM fica no meio (GPM > GSDMM > LDA). O ganho é reportado de forma ordinal (ranking de correlação de coluna), não como número absoluto de melhora, sem intervalo de confiança e sem teste de significância.",
+  "needs": "Dados: ~1% do fluxo de tweets do Twitter (API Tweepy), apenas EUA (sem Alasca e Havaí), coletados por 1 semana (14 a 21 de julho de 2020) filtrando por 'covid', 'corona' e 'covid-19'; somente tweets em inglês. Pré-processamento: remoção de emojis/links/tags, stopwords e lematização via spaCy, remoção de palavras com menos de 2 letras, bigramas com limiar de ocorrência 30. Implementação: LDA via gensim; GSDMM e GPM via o pacote Python GPyM_TM (Mazarura et al. 2020). Hiperparâmetros: LDA com prior simétrico 1/K; GSDMM com λ_β = λ_α = 0,1; GPM com α = β = 0,001 e λ_α = 0,1. Não exige GPU (inferência é amostragem de Gibbs colapsada, roda em CPU). O número de iterações do Gibbs não aparece no corpo (fica no material suplementar). Não precisa de dados rotulados para treinar: os rótulos vêm da própria simulação.",
+  "cost_here": "Não reportado — o artigo não mede tempo de execução nem custo computacional de nenhum dos três modelos, nem da simulação de 100.000 documentos. Sem estimar para baixo: não precisa de GPU (Gibbs colapsado é CPU), mas GSDMM e GPM exigiriam uma dependência nova (pacote GPyM_TM) além do gensim/tomotopy já instalados, e a avaliação gera 100.000 documentos sintéticos por modelo, multiplicando o custo de refit. Tempo em CPU sobre as 4.369 notícias PT-BR: não reportado.",
+  "transferable": "Transfere: a crítica à coerência como critério de escolha de K (relevante porque o nosso braço 03 usa DMR/tomotopy e coerência para decidir K — o artigo sugere que a coerência pode favorecer o LDA por artefato) e a ideia de avaliar um modelo por um corpus sintético rotulado em vez de julgar top words à mão. GSDMM/GPM são bag-of-words e não dependem do idioma, então em princípio rodam em PT-BR. Não transfere bem: o achado central — GSDMM/GPM superam o LDA — é específico de texto CURTO e esparso (tweets de 4–30 palavras, um tópico por documento). As notícias da Agência Brasil são textos longos e multi-tópico, exatamente o regime em que o LDA é adequado e em que a premissa 'um documento = um tópico' do GSDMM/GPM é violada. A distância de domínio (tweet em inglês, 1 semana, EUA, Covid) para notícia em PT-BR (965 semanas, 28 localidades) é grande; o ganho não deve ser assumido como transferível. Além disso, o método de avaliação depende de gerar os documentos de teste a partir do próprio β estimado, o que é mais difícil de justificar em textos longos.",
+  "red_flags": [
+    "Resultado central medido em um único corpus (tweets em inglês, 1 semana, apenas EUA) — ganho medido em um só domínio e uma só língua.",
+    "Circularidade: o θ_T 'verdadeiro' é amostrado das próprias β estimadas pelos modelos na fonte, então o modelo avaliado também gerou a distribuição da qual saem os dados de teste.",
+    "Os autores não conseguem separar se o desempenho vem de melhor estimativa de β ou da capacidade de recuperar θ_T (limitação declarada por eles).",
+    "Vencedores declarados de forma ordinal (ranking de correlação de coluna), sem número absoluto de ganho, sem intervalo de confiança e sem teste de significância.",
+    "A nova métrica não é validada contra julgamento humano: o artigo mostra que a coerência é enganosa, mas não demonstra que a correlação de coluna se alinhe com a qualidade humana dos tópicos.",
+    "Sem reporte de tempo/custo de execução — impossível avaliar viabilidade em CPU a partir do artigo.",
+    "A comparação não inclui NMF nem embeddings neurais, que os próprios autores citam como competitivos em texto curto."
+  ]
+}

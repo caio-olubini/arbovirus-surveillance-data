@@ -1,0 +1,49 @@
+{
+  "key": "keller2009unstructured",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/07_keller_2009_unstructured_event_reports_ebs.pdf",
+  "author": "Keller et al.",
+  "year": 2009,
+  "read": "Li o PDF inteiro (7 páginas): capa/título e autores (p. 1), introdução, seção GPHIN Project com Background, Data Acquisition, Human Analysis Process, Data Dissemination e Project Results (p. 1-3), seção HealthMap Project com Background, Data Acquisition, Data Dissemination e Project Results (p. 3-4), seção EpiSPIDER Project com Background, Data Acquisition and Dissemination e Project Results (p. 4), a Table comparativa dos 3 sistemas (p. 5), a Discussion com a ressalva declarada sobre ruído e alertas falsos (p. 5-6) e a lista de referências (p. 6-7). Conferi os números nas seções Project Results e na Discussion, não só no abstract.",
+  "technique": "O artigo NÃO propõe uma técnica de representação de texto; é uma sinopse comparativa de três sistemas operacionais de vigilância de doenças baseada em eventos (GPHIN, HealthMap, EpiSPIDER), escrita pelos próprios arquitetos e metodologistas dos sistemas. A técnica, em cada sistema, é um pipeline de engenharia sobre texto livre (free-text) não estruturado: aquisição de notícias e feeds (Google News, Factiva, Al Bawaba, ProMED, Eurosurveillance, WHO), categorização por palavras-chave/taxonomia, NLP para extrair categoria de doença, local (geocodificação) e tempo, tradução automática (GPHIN traduz 9 línguas) e anotação de conceitos via UMLS/OpenCalais (EpiSPIDER). É um levantamento de sistemas, não um método replicável de transformar texto em número.",
+  "representation": "Não se aplica no sentido de embeddings: o texto não vira vetor denso. Aqui o texto livre vira um REGISTRO ESTRUTURADO — categoria de doença, local geocodificado, data e fonte — por regras, taxonomia, dicionários e extração de entidades nomeadas, não por aprendizado de representação. Não há encoder, pooling, normalização vetorial nem dimensionalidade do espaço discutidos em nenhum ponto do artigo. Por isso a ficha é de aplicação: o que ela oferece é o domínio e as métricas operacionais, não uma geometria de texto.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Numa avaliação retrospectiva da OMS (jul/1998 a ago/2001), 56% dos 578 surtos verificados foram inicialmente captados e disseminados pelo GPHIN.",
+      "citacao": "WHO retrospectively verified 578 outbreaks, of which 56% were initially picked up and disseminated by GPHIN",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Entre out/2006 e 20/nov/2007, o HealthMap processou mais de 35.749 alertas, cobrindo 171 categorias de doença e 202 países ou territórios.",
+      "citacao": "HealthMap had processed >35,749 alerts across 171 disease categories and 202 countries",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A maior parte dos alertas do HealthMap vem da mídia noticiosa (92,8%), contra 6,5% do ProMED e 0,7% de agências multinacionais.",
+      "citacao": "Most alerts come from news media (92.8%), followed by ProMED (6.5%) and multinational agencies (0.7%).",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O HealthMap processa em média 133,5 alertas de doença por dia (IC 95% 124,1-142,8).",
+      "citacao": "HealthMap processes an average of 133.5 disease alerts/day (95% confidence interval [CI] 124.1–142.8)",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O GPHIN processa cerca de 4.000 artigos por dia, número que sobe muito quando há eventos de grande repercussão em saúde pública.",
+      "citacao": "Each day, GPHIN handles ≈4,000 articles.",
+      "pagina": 2
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que os três sistemas são intrinsecamente ruidosos porque as fontes que usam ou planejam usar não são verificadas por profissionais de saúde pública, podendo gerar alertas falsos mesmo com supervisão humana — e dizem que uma avaliação dos três em paralelo ainda é um passo futuro, não algo que o artigo faça.",
+  "evidence": "São métricas operacionais, SEM comparação controlada nem baseline. GPHIN: 578 surtos verificados pela OMS, 56% captados pelo GPHIN; no SARS, a informação do GPHIN esteve cerca de 2-3 dias à frente do relatório oficial da OMS. HealthMap: 133,5 alertas/dia; >35.749 alertas em 171 categorias e 202 países; 92,8% vindos da mídia noticiosa. EpiSPIDER: 50-90 visitas/hora de 150-200 sites e 30-50 países. Não há comparação head-to-head entre os sistemas nem contra um baseline de vigilância tradicional; os próprios autores escrevem que \"Undertaking an evaluation of the systems in parallel is a critical next step\", ou seja, a avaliação comparativa ainda não foi feita.",
+  "needs": "Não exige treinar modelo nem GPU: são sistemas de engenharia. Dependem de feeds de notícia (alguns pagos, como Factiva e Al Bawaba), serviços externos de NLP/geocodificação (Google Maps, Yahoo Maps, Geonames, UMLS, OpenCalais), tradução automática (GPHIN, 9 línguas) e, no caso do GPHIN, analistas humanos que revisam e decidem publicar/alertar. Exigem dados multilíngues e supervisão humana; não exigem corpus rotulado para treino. Custo computacional e financeiro: não reportado.",
+  "cost_here": "Não reportado no artigo. O gargalo descrito não é CPU de modelo, e sim dependências externas (feeds, serviços de geocodificação/anotação, analistas humanos) e a ausência de avaliação quantitativa. Nada no artigo indica necessidade de GPU. Rodar categorização por palavras-chave e extração de entidades sobre 4.369 notícias em PT-BR é, por natureza, barato em CPU, mas o artigo não mede custo nenhum, então não há número a citar.",
+  "transferable": "A proximidade de domínio é alta: notícia como fonte dominante de vigilância de doença (92,8% dos alertas do HealthMap), uso de texto livre não estruturado e a necessidade de verificação humana. Relevância de língua existe: o GPHIN planeja portar para português e o HealthMap já é multilíngue (inclui português). O que NÃO transfere é uma técnica: o artigo é um levantamento de sistemas operacionais, não um método replicável, e não traz nenhum resultado sobre representação vetorial que se aplique ao nosso braço 02 (embeddings). O que se aproveita é o enquadramento do domínio e as métricas de escala (quanto volume de notícia vira alerta), não um procedimento que possamos reimplementar.",
+  "red_flags": [
+    "Sem baseline e sem avaliação controlada; os próprios autores dizem que a comparação dos sistemas em paralelo é 'critical next step'.",
+    "Métricas operacionais auto-relatadas pelos arquitetos dos próprios sistemas ('we ... the architects, developers, and methodologists for the information systems described herein'), sem avaliação externa independente.",
+    "Avaliação apenas descritiva/intrínseca (contagens de uso e cobertura geográfica), sem medir se os alertas levaram a ação ou se estavam corretos.",
+    "GPHIN baseado predominantemente em mídia em inglês (com algum francês), viés de língua declarado pelos autores.",
+    "Os autores admitem propensão a ruído e alertas falsos com consequências econômicas e sociais, mas não quantificam taxa de falsos positivos nem o impacto."
+  ]
+}

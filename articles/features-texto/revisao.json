@@ -1,0 +1,35 @@
+{
+  "familia": "features-texto",
+  "relatorio": "articles/features-texto/relatorio.md",
+  "conforme": false,
+  "divergencias": [
+    "L29 — atribuição trocada: o capítulo escreve 'o próprio BioCaster registra que melhorias em aprendizado de máquina ainda não substituem a análise humana (Brownstein et al., 2008)'. A ficha citada (brownstein2008surveillance) é o artigo do HealthMap (é ela que sustenta 85,1% de relatos de mídia, 'heat index', 300 relatos/dia) e não contém a palavra 'BioCaster' em nenhum campo; o suporte para 'NLP vs. análise humana' existe na ficha do HealthMap, não do BioCaster. Como escrito, o sujeito nomeado (BioCaster) não tem apoio na ficha citada — o par nome-do-sistema × citação não fecha (BioCaster corresponderia a Collier et al., 2008 / Collier, 2010, 2011)."
+  ],
+  "claims_conferidas": 68,
+  "claims_orfas": 0,
+  "numeros_divergentes": 0,
+  "citacoes_sem_ficha": 0,
+  "autores_inventados": 0,
+  "vocabulario_proibido": 0,
+  "forca_nao_refletida": 0,
+  "estilo": {
+    "script_rodou": true,
+    "oracoes_empilhadas": 0,
+    "termos_sem_glosa": 0,
+    "paragrafos_densos": 0,
+    "adjetivos_inflados": 0,
+    "muletas": 0,
+    "hedges": 0,
+    "medidas": {
+      "palavras_por_frase_mediana": 23,
+      "palavras_por_frase_max": 83,
+      "palavras_por_frase_desvio": 17,
+      "passiva_por_mil": 1,
+      "travessao_por_mil": 9.44
+    },
+    "prosa_opaca": [],
+    "glossas_vazias": []
+  },
+  "relatorio_sha256": "f1a37d7c8b71e406cef5f35c1c8187cec4114cba5703f762e5bf458b6d5ab5e2",
+  "gerado": "2026-11-10"
+}

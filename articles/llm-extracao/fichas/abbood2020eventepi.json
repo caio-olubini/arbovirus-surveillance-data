@@ -1,0 +1,50 @@
+{
+  "key": "abbood2020eventepi",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/09_abbood_2020_eventepi_nlp_event_based_surveillance.pdf",
+  "author": "Abbood et al.",
+  "year": 2020,
+  "read": "Li o corpo inteiro do artigo, páginas 1 a 13 do PDF: capa/abstract (p.1), author summary (p.2), introdução sobre vigilância baseada em eventos (p.2-3), related work (p.3-4), Materials and methods com as duas partes (extração de informação-chave via EpiTator + heurística/naive Bayes, p.4-6; relevance scoring com embeddings e classificadores, p.6-7), Evaluation (p.7), Results com as Tabelas 1, 2 e 3 (p.8-9), Web service (p.10), Conclusion (p.10-11), lista de Supporting information (p.12-13) e Author Contributions (p.13). Não li em detalhe as referências (p.13-16) nem os anexos S1-S8 (só o PDF principal, não os arquivos suplementares). Os números de custo de treino ficam no S1 Text, que não está neste PDF.",
+  "technique": "Framework chamado EventEpi para vigilância baseada em eventos (EBS), com duas partes independentes. (1) Extração de informação-chave: usa o EpiTator (biblioteca sobre o spaCy) para propor entidades de doença, local, data e contagem num artigo; depois filtra essas propostas até uma única entidade-chave por classe, ou pela heurística da mais frequente (o modo) ou por um classificador naive Bayes de Bernoulli/ multinomial treinado em frases rotuladas como 'chave' ou 'não chave' (o rótulo vem do banco de eventos curado do RKI, o IDB). (2) Pontuação de relevância: trata 'o artigo é relevante?' como classificação binária (relevante se está no IDB, irrelevante caso contrário) e compara representações — bag-of-words com tf-idf, embeddings de palavra (word2vec) e embeddings de documento (média dos embeddings de palavra) — contra vários classificadores (naive Bayes multinomial/complemento, kNN, regressão logística, MLP, SVM e uma CNN). O desbalanceamento é tratado com sobreamostragem ADASYN até 1:1.",
+  "representation": "O texto vira número de três formas comparadas: (a) bag-of-words com tf-idf, vetor de frequências de termos ponderado; (b) embeddings de palavra de 300 dimensões treinados do zero com word2vec (skip-gram, softmax hierárquico, 5 épocas) sobre a Wikipédia de 2020 mais 61.320 artigos de WHO DON e ProMED, porque os embeddings pré-treinados (Wikipedia 2014 + Gigaword) não cobriam termos epidemiológicos; (c) embedding de documento = média de todos os embeddings de palavra do documento (não doc2vec dedicado, por falta de dados). A CNN opera sobre a sequência de embeddings de palavra (não sobre a média), com documentos truncados a 400 palavras e preenchidos com zero. Proximidade no espaço de embeddings deve corresponder a similaridade semântica.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus de avaliação da relevância tem 3.236 artigos (WHO DON e ProMED de 2018), com apenas 164 rotulados como relevantes — forte desbalanceamento.",
+      "citacao": "This resulted in a dataset of 3236 articles, 164 of them labeled",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Os embeddings de palavra foram treinados do zero (word2vec, 300 dimensões) em vez de usar pré-treinados, porque os pré-treinados não representavam termos específicos de epidemiologia.",
+      "citacao": "Thus, we produced custom 300-dimensional embeddings, training the word2vec algorithm",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Para extrair país e doença, a heurística simples da entidade mais frequente já acerta bem (85% e 88%), mas ela fracassa completamente em data e contagem de casos (0%).",
+      "citacao": "The most frequent approach worked well for detecting the key country (85% correctly classified) and disease (88% correctly classified).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "A heurística da mais frequente não serve para data e contagem de casos: nenhuma entidade foi classificada corretamente, o que motiva o uso do naive Bayes nessas duas classes.",
+      "citacao": "date and case-count entities using the most-frequent approach did not work and no entity was correctly classified (0% correctly classified in both cases).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Na pontuação de relevância, a regressão logística tem a melhor sensibilidade (0,82) e o melhor IBA (0,61), mas nenhum modelo passa de precisão 0,22 — todos superajustam a classe positiva.",
+      "citacao": "While the logistic regression has the highest sensitivity (0.82) and IBA (0.61), no model has a higher precision than 0.22 which suggests that all classifier overfit the positive class.",
+      "pagina": 9
+    }
+  ],
+  "ressalva_do_autor": "\"More work is needed to bring EventEpi into production. While key disease and country can satisfactorily be extracted, the performance of key date and confirmed-case count extractions needs to be improved.\" (p.11). Os autores também admitem que \"no model has a higher precision than 0.22 which suggests that all classifier overfit the positive class\" (p.9) e que a pontuação de relevância ainda não serve para filtrar conteúdo, só para ordenar (p.10).",
+  "evidence": "Comparação explícita entre representações e classificadores. Relevância (Tabela 3, p.9, 38 relevantes/771 irrelevantes no teste): regressão logística sensibilidade 0,82 / IBA 0,61; SVM 0,79 / 0,59; complement NBC 0,61 / 0,51; kNN 0,63 / 0,48; CNN 0,55 / 0,42; multinomial NBC e MLP 0,42 / 0,37. Baseline do desbalanceamento: sem sobreamostragem ADASYN o desempenho cai para sensibilidade 0,03 e IBA 0,02 (p.9, S2 Table). Extração de informação-chave: heurística mais-frequente acerta país 85% e doença 88%, mas 0% em data e contagem (p.8); com naive Bayes de Bernoulli a data chega a sensibilidade 0,81 / IBA 0,55 (Tabela 1) e a contagem a sensibilidade 0,81 / IBA 0,55 com precisão 0,20 (Tabela 2). Os autores classificam esses resultados como 'modestos'. Não há comparação com um baseline externo de ponta (ex.: BERT); a comparação é interna, entre representações e classificadores que os próprios autores não ajustaram.",
+  "needs": "Exige: o rótulo curado de um órgão de vigilância (o IDB do RKI) como verdade de referência para relevância e para as entidades-chave; o EpiTator + spaCy para NER; scikit-learn (NBC, SVM, kNN, LR, MLP), Keras (CNN), NLTK (tokenização), gensim/word2vec, imbalanced-learn (ADASYN); para os embeddings, um corpus grande (61.320 artigos de epidemiologia + Wikipédia de 2020). Língua: apenas inglês (WHO DON e ProMED). Dados rotulados: 3.236 artigos para relevância, frases rotuladas para as entidades. GPU: não exigida para os classificadores clássicos; a CNN usa Keras e pode usar GPU. Recursos de computação e tempo ficam no S1 Text, não no PDF principal — 'não reportado' aqui.",
+  "cost_here": "O artigo diz que \"training of the algorithms was only a matter of minutes, it might be cheap to perform hyperparameter optimization\" (p.10), ou seja, o pipeline clássico é leve e roda em CPU. Custo numérico exato de CPU/GPU e tempo de treino: 'não reportado' no PDF principal (remete ao S1 Text, ausente neste arquivo). Adaptação ao nosso corpus: treinar word2vec do zero sobre ~4,4 mil notícias curtas em PT-BR é barato, mas o EpiTator/spaCy é inglês e não roda em português sem trocar o NER; a parte de rotulagem exigiria um banco curado que não temos. A dependência nova relevante (gensim/imbalanced-learn/EpiTator) não está nos extras fixados; a CNN em Keras seria o item mais caro em CPU.",
+  "transferable": "Transfere: (a) a arquitetura geral — NER para propor entidades, um filtro aprendido para escolher a entidade-chave, e um classificador de relevância sobre representação vetorial — é o mesmo desenho que usaríamos para notícia PT-BR; (b) a receita de representação (word2vec treinado no domínio + média das palavras como embedding de documento) e o achado de que, com poucos dados desbalanceados, um modelo simples (regressão logística) bate modelos mais complexos; (c) o tratamento explícito do desbalanceamento e a métrica IBA para classe rara. NÃO transfere direto: o EpiTator/spaCy é inglês e não cobre PT-BR; o domínio é notícia formal em inglês de agências (WHO DON, ProMED), enquanto o nosso é notícia brasileira curta (Agência Brasil) sobre dengue; e a definição de 'relevante = está no banco curado' depende de um banco de eventos que nós não temos. A distância de língua e de origem do texto é grande para a parte de extração; para a parte de representação/relevância a distância é moderada.",
+  "red_flags": [
+    "Benchmark e vocabulário só em inglês (WHO DON, ProMED, Wikipédia em inglês); nada em português ou multilíngue foi testado.",
+    "Classe positiva minúscula: 164 relevantes no total e apenas 38 no conjunto de teste — as diferenças de IBA entre modelos (ex.: 0,61 vs 0,59 do SVM) cabem folgadamente no ruído de uma amostra desse tamanho.",
+    "Todos os modelos superajustam a classe positiva; nenhum passa de precisão 0,22, e a própria escolha do melhor modelo é feita sobre esse conjunto pequeno.",
+    "Prova de conceito assumida: os autores declaram que não ajustaram os classificadores, então a comparação embeddings vs bag-of-words mede configurações não otimizadas, não o teto de cada representação.",
+    "Rótulos de relevância vêm da decisão subjetiva de um único órgão (IDB do RKI); os autores reconhecem viés de rotulagem, mas nenhuma avaliação inter-anotador é reportada.",
+    "A explicação do modelo (layer-wise relevance propagation na CNN) mostrou padrões 'implausible' segundo os próprios autores, o que sugere que o classificador pode estar aprendendo atalhos."
+  ]
+}

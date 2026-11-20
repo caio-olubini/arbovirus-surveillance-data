@@ -1,0 +1,51 @@
+{
+  "key": "you2021text",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/16_you_2021_text_mining_promed_mail.pdf",
+  "author": "You et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (21 páginas) com pdftotext -layout, página a página. Capa/folha de rosto p.1 (título; três autores — Jingxian You, Paul Expert, Céire Costelloe, Imperial College London; rodapé medRxiv 'this version posted January 13, 2020', DOI 10.1101/2020.01.10.20017145). Abstract p.1-2. Introdução p.2-5 (ProMED; casos Ebola 2014-2016 e Zika 2015; as três fases da resposta da OMS). Methods p.5-7 (text processing/keyword extraction; fórmula do PageRank com damping d=0.85 e top-k=10; text distillation/redes de coocorrência e centralidades degree, closeness, eigenvector, betweenness, visualizadas no Gephi). Result p.7-10: Table 1 (palavras-chave de 3 relatos isolados 4735420/4736083/4735363), Table 2 (Ebola 2014, 3 fases PHEIC), Table 3 (Zika 2015, pre/PHEIC/post-PHEIC). Discussion p.11-13 (seção 'Natural language processing (semantic level)'; análise epidemiológica; Ebola 2019 RDC) com Table 4 (coeficientes de Jaccard do Ebola 2019, p.13). Conclusion p.13-14. Acknowledgements/Competing/Contribution/Funding p.14-15. References p.15-18. Figures 1-4 p.19-21 (imagens; só as legendas são texto). Nota sobre o ano: o PDF NÃO contém nenhuma ocorrência de '2021'; o único ano na capa/cabeçalho é 2020 ('this version posted January 13, 2020'), então reportei year=2020 apesar de o nome do arquivo e a chave usarem 2021.",
+  "technique": "Pipeline de mineração de texto em Python sobre relatos do ProMED-mail (sistema de alerta de surtos) para caracterizar o ESTÁGIO de um surto. Três etapas: (1) filtrar relatos por país/continente, doença e intervalo de datas; (2) pré-processar — divisão em sentenças, tokenização, remoção de stopwords e stemming, via NLTK; (3) extrair as top-10 palavras-chave de cada relato com TextRank, algoritmo de grafo derivado do PageRank no qual palavras são nós e a coocorrência dentro de uma janela deslizante define o peso das arestas (damping d=0.85). Em seguida, constroem redes de coocorrência das palavras-chave de todo o corpus, calculam medidas de centralidade (degree, closeness, eigenvector, betweenness; visualização no Gephi) e comparam os rankings entre fases do surto. É NÃO supervisionado, sem treino e sem embeddings. Aplicação no domínio: dois estudos de caso (Ebola 2014-2016 e Zika 2015) e um teste retrospectivo no Ebola 2019 (RDC).",
+  "representation": "O artigo NÃO trata de representação no sentido de encoder/pooling/normalização/geometria/dimensionalidade — não usa vetores densos nem embeddings. O texto vira um GRAFO: nós são palavras, o peso da aresta é a coocorrência numa janela, e a 'importância' de uma palavra é um escore de centralidade de grafo (TextRank/PageRank). As 'features' são palavras ranqueadas, não vetores. A única menção a embeddings é como trabalho FUTURO: os autores propõem 'to employ a pre-trained word embedding model for NER task' (p.12). Portanto é artigo de APLICAÇÃO: vale pelo que mede no domínio (relatos de surto do ProMED, em inglês), não por uma técnica de representação transferível.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus do ProMED é fortemente desbalanceado por doença — a dengue reúne mais de 4000 relatos, enquanto a maioria das outras doenças tem apenas centenas ou dezenas de alertas —, e é por isso que os autores descartam abordagens baseadas em frequência de termo.",
+      "citacao": "there are over 4000 reports of Dengue disease, while only hundreds or dozens of alerts for most other diseases.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Diante de um corpus heterogêneo, desbalanceado e não rotulado, os autores escolhem o TextRank como algoritmo de extração de palavras-chave, em vez de métodos supervisionados ou baseados em frequência.",
+      "citacao": "Taking all these aspects of the corpus into considerations, we chose TextRank as the most suited algorithm for keyword extraction.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "No Zika de 2016, os relatos em português e espanhol superam os em inglês (162 em português e 140 em espanhol contra apenas 65 em inglês), mas os autores analisaram somente os relatos em inglês.",
+      "citacao": "162 of them were in Portuguese, and 140 were in Spanish compared to only 65 were in English.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "A validação é qualitativa: as palavras mais centrais de cada fase coincidiram com os fatos do mesmo período definidos de forma independente por outras organizações (as fases da OMS), sem métrica quantitativa como F1, precisão ou recall.",
+      "citacao": "we obtained summary words for each phase based on centrality ranking and they matched the facts of the same period of time which were independently defined by other organizations.",
+      "pagina": 11
+    },
+    {
+      "afirmacao": "No teste retrospectivo do Ebola 2019 (RDC), os autores medem a sobreposição de palavras-chave por coeficiente de Jaccard e encontram maior correlação com a fase final (PHEIC phase 3) do Ebola 2014 do que com as outras duas fases.",
+      "citacao": "Congo has a closer correlation with the final PHEIC stage of the 2014 Ebola outbreak compared with two other stages.",
+      "pagina": 13
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram na Discussion (seção 'Natural language processing (semantic level)') que o pipeline é limitado pela qualidade das palavras-chave extraídas: \"The current pipeline may be somewhat limited by the quality of extracted keywords. For example, it failed to detect synonyms like “evd” and “ebola virus disease”. It also failed to extract phrases like “Ogun state”.\" (p.11), e acrescentam que \"if we stick to the automated process, an extremely high accuracy approach is needed\" porque o objetivo final do ProMED é ser um sistema de alerta precoce. Admitem também que, embora o pipeline \"does not have a limitation of languages\", analisaram apenas os relatos em inglês: \"since we are not familiar with Portuguese or Spanish, and in order to avoid potential translation problems, we only analysed the report in English.\" (p.10).",
+  "evidence": "Não há baseline numérico. O artigo não compara o TextRank com TF-IDF nem com topic modelling por números — escolhe o TextRank por argumento (corpus desbalanceado e não rotulado inviabilizaria abordagens de frequência e supervisionadas), não por experimento. A evidência é: (a) correspondência qualitativa entre as palavras mais centrais de cada fase e as fases do surto definidas de forma independente pela OMS (ex.: 'hospital' e 'worker' no topo da fase 1 do Ebola; 'vaccine' predominando depois), sem F1, precisão ou recall; (b) coeficientes de Jaccard na Table 4 comparando a lista de palavras-chave do Ebola 2019 (RDC) com as três fases do Ebola 2014 (0%, 11,11%, 25% — 'Share 0 words', 'Share 2 words', 'Share 4 words' em listas de 20/18/16 palavras únicas); (c) a Table 1, que mostra as palavras-chave extraídas de apenas 3 relatos isolados, incluindo um caso de falha ('Ogun State' reduzido a 'state'). É validação descritiva, não benchmark.",
+  "needs": "Exige apenas: TextRank (não supervisionado, sem treino), NLTK para pré-processamento (tokenização, stopwords, stemming) e Gephi para visualização/centralidade. Não exige GPU, não exige dados rotulados, não exige embeddings nem modelo pré-treinado — a própria discussão trata um modelo de embedding como trabalho futuro. Língua: processa relatos em inglês; o corpus é multilíngue mas PT/ES não foram processados. Tamanho do corpus, tempo de execução e uso de memória: não reportados.",
+  "cost_here": "Não reportado — o artigo não dá tempo, memória nem custo computacional. Pela natureza da técnica, seria barato em CPU: TextRank + NLTK sobre 4.369 artigos é pré-processamento léxico e grafo, sem GPU e sem torch/transformers. Mas NLTK não está entre os nossos extras instalados (embeddings, topics), então exigiria uma dependência nova — leve, porém não declarada no pyproject. Para PT-BR, seria preciso stopwords e stemmer de português. Como o artigo não mediu custo, não é possível afirmar 'barato' a partir dele; o custo real é não reportado.",
+  "transferable": "O que transfere: a ideia de desenho — acompanhar o ESTÁGIO de um surto por palavras-chave de maior centralidade ao longo do tempo, de forma não supervisionada e barata em CPU — pode virar uma família de features léxico/grafo para os nossos braços, sem embeddings. O que NÃO transfere: o método não é de representação, então não informa os braços 02 (embedding) nem 03 (DMR); não há encoder, pooling, dimensionalidade ou geometria a reaproveitar. Distância de domínio: o contexto (texto de vigilância de doença) é próximo do nosso, mas a distância de língua e de tipo de fonte é grande — os relatos do ProMED são moderados, curados por especialistas e em inglês, enquanto o nosso corpus são notícias brutas em PT-BR; o artigo explicitamente NÃO processou português (162 relatos em PT no Zika ficaram de fora). Portanto o resultado medido não se transfere diretamente; o valor está no desenho, não no número.",
+  "red_flags": [
+    "É preprint do medRxiv, não revisado por pares ('not certified by peer review').",
+    "Não há baseline: nenhuma comparação numérica com TF-IDF, topic modelling ou outro método de extração; o TextRank é escolhido por argumento ('we chose TextRank as the most suited algorithm'), não por resultado.",
+    "A validação é qualitativa — correspondência narrativa com as fases da OMS — sem F1, precisão ou recall.",
+    "A extração de palavras-chave de relato único é ilustrada em apenas 3 relatos (Table 1).",
+    "Apesar de o corpus ser multilíngue (162 relatos em português só no Zika 2016), só os relatos em inglês foram analisados; nenhum resultado em português.",
+    "O ganho quantitativo (Jaccard) é pequeno e sobre listas minúsculas: no máximo 25% de sobreposição entre listas de 16-20 palavras.",
+    "Os autores citam embeddings/BERT como possível melhoria futura mas não os testam; a conclusão sobre adequação do TextRank não é medida contra alternativas."
+  ]
+}

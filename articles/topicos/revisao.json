@@ -1,0 +1,39 @@
+{
+  "familia": "topicos",
+  "relatorio": "articles/topicos/relatorio.md",
+  "relatorio_sha256": "bd13061fa559b3e5c45f9eabbe3a7be29d7250e80d1bfbaaf145286a2ac06c24",
+  "conforme": false,
+  "divergencias": [
+    "ERRO do script (termo sem glosa): L35 'STM' — primeira aparição fora de glosa válida; o parêntese '(STM, que permite que metadados de cada documento desloquem a prevalência e o conteúdo dos tópicos)' tem mais de 5 palavras e o script não o conta como glosa.",
+    "ERRO do script (termo sem glosa): L65 'transformer' — primeira aparição fora de glosa válida; o parêntese '(um transformer, a arquitetura neural por trás do BERT)' excede 5 palavras e não é contado como glosa.",
+    "ERRO do script (termo sem glosa): L115 'saco de palavras' — usado sem parêntese de apresentação.",
+    "ERRO do script (termo sem glosa): L23 'TF-IDF' — primeira aparição fora de glosa válida; o parêntese '(frequência do termo no corpus ponderada pela sua raridade)' excede 5 palavras e não é contado como glosa.",
+    "Afirmação órfã (L137): a seção 'O que ficou de fora' descreve sete artigos incluídos no corpus sem nomeá-los nem citá-los; como esses artigos têm ficha, a exceção da seção de seleção do corpus (que só vale quando não há ficha a citar) não se aplica."
+  ],
+  "claims_conferidas": 59,
+  "claims_orfas": 7,
+  "numeros_divergentes": 0,
+  "citacoes_sem_ficha": 0,
+  "autores_inventados": 0,
+  "vocabulario_proibido": 0,
+  "forca_nao_refletida": 0,
+  "estilo": {
+    "script_rodou": true,
+    "oracoes_empilhadas": 0,
+    "termos_sem_glosa": 4,
+    "paragrafos_densos": 0,
+    "adjetivos_inflados": 0,
+    "muletas": 0,
+    "hedges": 0,
+    "medidas": {
+      "palavras_por_frase_mediana": 25,
+      "palavras_por_frase_max": 106,
+      "palavras_por_frase_desvio": 20.6,
+      "passiva_por_mil": 1.01,
+      "travessao_por_mil": 8.39
+    },
+    "prosa_opaca": [],
+    "glossas_vazias": []
+  },
+  "gerado": "2026-11-10"
+}

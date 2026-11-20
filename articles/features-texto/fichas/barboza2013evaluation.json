@@ -1,0 +1,51 @@
+{
+  "key": "barboza2013evaluation",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/12_barboza_2013_evaluation_epidemic_intelligence_systems.pdf",
+  "author": "Barboza et al.",
+  "year": 2013,
+  "read": "Li o artigo inteiro via extração de texto (pdftotext e pypdf): capa com abstract, citação e metadados (p.1); Introdução (p.1-2); Métodos com o projeto EAR, Tabela 1 (sistemas participantes) e Tabela 2 (instituições) (p.2-3); Resultados qualitativos e quantitativos — detection rate, EPPV, F1 e sensibilidade/timeliness (p.4); Figura 1 e início da Discussão (p.5); Tabela 3 (DR/EPPV/F1 por sistema), parágrafo sobre DR subestimado e continuação da Discussão (p.6); Figura 2, Tabela 4 e parágrafo explícito de limitações (p.7); Tabela 5 (sensibilidade por sistema) e Conclusões (p.8); Referências (p.9). Os números que ancora a ficha vêm das Tabelas 3, 4 e 5 e do parágrafo de limitações, não do abstract.",
+  "technique": "Não propõe uma técnica de representação de texto. Avalia sete sistemas especialistas (expert systems) de web-based epidemic intelligence — Argus, BioCaster, GPHIN, HealthMap, MedISys, ProMED-mail e Puls — que varrem a internet (notícias, fóruns, press releases, sites oficiais) atrás de sinais de eventos de doença. Alguns são totalmente automáticos (BioCaster, MedISys, Puls), outros com moderação humana (Argus, GPHIN, ProMED-mail) e um parcialmente moderado (HealthMap). O artigo mede o desempenho desses sistemas — detection rate, EPPV, F1, sensibilidade e timeliness — contra um gold standard oficial, não um encoder.",
+  "representation": "O passo texto-para-número acontece DENTRO de cada sistema e não é descrito no artigo: não há encoder, pooling, normalização nem geometria de espaço vetorial discutidos. O que o artigo trata é a passagem de texto web bruto (sinais não processados) para eventos verificáveis, armazenados em plataformas web e revisados por um analista humano. Nada aqui trata de como transformar texto em vetor; pelo desenho e pelo que mede, este artigo é de aplicação.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O detection rate dos seis sistemas avaliados ficou entre 31% e 38%, e subiu para 72% quando se considera o sistema combinado virtual (pool dos seis).",
+      "citacao": "For the six systems, the overall detection rate (DR) ranged from 31% to 38%, from 29% to 57% for human cases and from 20% to 40% for epizootics",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A sensibilidade do sistema combinado virtual (sete sistemas) chega a 93% no total, 100% para casos humanos e 87% para epizootias — mostrando complementaridade entre os sistemas.",
+      "citacao": "When considering the virtual combined system (seven systems) overall sensitivity increased to 93%, 100% for human cases and 87% for epizootics",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O sistema combinado detectou eventos em média 10,2 dias antes da notificação oficial pela WHO ou OIE.",
+      "citacao": "events were detected on average 10.2 days (6.7; 13.8) before their reporting by WHO/OIE",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A precisão dos sistemas é baixa: o EPPV geral ficou entre 3% e 24% e o F1-score entre 6% e 27%, refletindo o ruído dos sinais brutos.",
+      "citacao": "Overall EPPV ranged from 3% to 24% and the F1-score ranged from 6% to 27%",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Nenhum sistema isolado foi capaz de detectar todos os eventos do gold standard antes da notificação pública oficial pela WHO ou OIE.",
+      "citacao": "No single system was able to detect all events included in the gold standard before their public reporting by WHO or OIE.",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram as limitações explicitamente: \"A number of limitations have been identified in this study. The first one concerns the gold standard.\" (p.7). Sobre generalização: \"Excluding such parameters may limit the results generalizability\" (p.8). E admitem que a métrica principal pode estar subestimada: \"The calculated DRs are likely to be underestimated and hence should not be regarded as a proxy for sensitivity.\" (p.6).",
+  "evidence": "Comparação contra um gold standard oficial: os 29 eventos de A/H5N1 reportados por WHO (14) ou OIE (15) em março de 2010. Métricas: DR 31-38% nos sistemas individuais vs 72% no combinado; EPPV 3-24%; F1 6-27%; sensibilidade 38-72% (individual) vs 93% (combinado); timeliness média do combinado 10,2 dias (IC95% 6,7-13,8) antes da WHO/OIE. O baseline é cada sistema isolado, com o 'sistema combinado' como referência de teto. Também situa os resultados frente a estudos anteriores (HealthMap ~12 dias antes da WHO; Argus 1-16 dias). Não há baseline de embedding nem comparação entre métodos de representação — a comparação é entre sistemas inteiros heterogêneos.",
+  "needs": "Não exige modelo nem GPU para rodar: exige os sete sistemas web (três deles com acesso restrito — Argus, GPHIN e Puls) e o gold standard de notificação oficial WHO/OIE. É um estudo de avaliação de sistemas existentes e não entrega um método reprodutível no nosso stack. Língua: cobertura multilíngue dos sistemas, estudo conduzido em inglês. Dados rotulados: 29 eventos definidos manualmente como gold standard. Nada disso é reportado como custo computacional.",
+  "cost_here": "Não reportado. O artigo não reporta custo computacional, tamanho de modelo nem tempo de execução. Não é um encoder que possamos rodar sobre os 4.369 artigos: é a avaliação de sistemas externos de propriedade dos autores. Como nosso pipeline é CPU-only e os extras já estão fixados, não há aqui um caminho de dependência a adotar, e o artigo não oferece como aplicar a técnica ao nosso corpus.",
+  "transferable": "Transfere: o arcabouço de avaliação — detection rate, sensibilidade, EPPV/F1 e timeliness de detecção de eventos a partir de notícias, contra um gold standard oficial. É o tipo de validação externa que nossos braços 01-03 hoje não têm. Transfere também a lição de que nenhum detector isolado cobre todos os eventos e que combinar fontes eleva a sensibilidade a 93%. NÃO transfere: a técnica em si — não há representação vetorial de texto aqui, então nada sobre encoder, pooling ou dimensionalidade; e os sete sistemas são proprietários e não reproduzíveis. Distância de domínio: o alvo (notícia web sobre doença) é próximo do nosso, mas a língua (inglês/global vs PT-BR) e o desenho do experimento (um mês, uma doença, 29 eventos) são distantes.",
+  "red_flags": [
+    "Estudo de um único mês (março/2010) e de uma única doença (A/H5N1), com apenas 29 eventos no gold standard — poder estatístico pequeno.",
+    "Os próprios autores afirmam que o desenho NÃO permite comparar sistemas entre si ('comparison would be misleading'), o que limita qualquer ranking de desempenho.",
+    "GPHIN foi excluído da análise quantitativa (366 sinais descartados por incompatibilidade de formato), então um dos sete sistemas fica de fora.",
+    "Sem baseline de representação/embedding: nenhuma comparação entre métodos de texto-para-número, só entre sistemas inteiros heterogêneos.",
+    "Diferenças de timeliness não significativas (ANOVA 0.553) e dificuldade de normalizar fuso horário — o efeito está dentro do ruído.",
+    "DR e sensibilidade provavelmente subestimados (gold standard incompleto), o que os próprios autores admitem.",
+    "Avaliação qualitativa baseada em percepção de apenas 10 usuários (respostas Yes/No), não em medição objetiva."
+  ]
+}

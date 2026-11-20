@@ -1,0 +1,51 @@
+{
+  "key": "collier2008biocaster",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/03_collier_2008_biocaster_text_mining_rumors.pdf",
+  "author": "Collier et al.",
+  "year": 2008,
+  "read": "Li o PDF inteiro (2 páginas). Página 1: cabeçalho (Bioinformatics Applications Note, Vol. 24 no. 24 2008, pp. 2940-2941, doi:10.1093/bioinformatics/btn534), lista de autores, Abstract, seção 1 Introduction e seção 2 Methods. Página 2: continuação de Methods (pipeline, ontologia BCO), seção 3 Performance Evaluation, seção 4 Conclusions, Acknowledgements e References. Autoria na capa (12 nomes): Nigel Collier, Son Doan, Ai Kawazoe, Reiko Matsuda Goodwin, Mike Conway, Yoshio Tateno, Quoc-Hung Ngo, Dinh Dien, Asanee Kawtrakul, Koichi Takeuchi, Mika Shigematsu e Kiyosu Taniguchi. Não há tabelas; a única figura é a Fig. 1 (diagrama do pipeline, página 2). Todos os números de desempenho estão na seção 3 (página 2); a descrição do sistema está nas seções 1-2. Conferi cada citação contra o texto extraído página a página.",
+  "technique": "BioCaster é um sistema de text mining centrado em ontologia para detectar e rastrear a distribuição de surtos de doenças infecciosas a partir de sinais linguísticos publicados na web. O fluxo tem quatro estágios: (1) classificação de tópico/relevância, que funciona como porteiro do restante do processamento; (2) reconhecimento de entidades nomeadas (NER) para 18 tipos de termos definidos pela BioCaster ontology (BCO); (3) detecção de pares doença-localização, plotados num portal público (Global Health Monitor) sobre Google Maps; (4) reconhecimento de eventos com uma Simple Rule Language (SRL) inspirada em DIAL, baseada em expressões regulares, skipwords, string literals, guard lists e listas de verbos de infecção/vítimas/ocupações. Os documentos entram continuamente por mais de 1700 feeds RSS, agregados por um script em Perl que a cada hora identifica links novos. A ontologia faz a ponte entre termos leigos e códigos formais (ICD-10, MedDRA, MeSH, SNOMED-CT). É um artigo de aplicação em vigilância de saúde pública, não de representação de texto.",
+  "representation": "O texto vira número por features clássicas, NÃO por embeddings neurais. Na classificação de tópico, o modelo de maior acurácia usa texto bruto, n-gramas, features derivadas de tags semânticas da ontologia e seleção de features por chi-quadrado, alimentando um classificador naive Bayes. No NER usa-se um SVM sobre representação semelhante de n-gramas/tags. Em ambos os casos a representação é um vetor esparso de n-gramas e tags — o artigo não usa nem discute vetores densos de embedding, pooling ou geometria de espaço. A única 'representação' adicional é a própria ontologia, usada para inferência simbólica entre termos.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A classificação de tópico (relevância) atinge 94,8% de acurácia com naive Bayes sobre texto bruto, n-gramas, features de tags semânticas e seleção chi-quadrado, superando um SVM de 92,1% — a vantagem vem de recall maior (0,97 contra 0,90), apontado como requisito de um sistema de vigilância.",
+      "citacao": "The system achieved an accuracy score of 94.8% (F-score 0.93, Recall 0.97, Precision 0.89), outperforming an SVM with accuracy of 92.1%",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O reconhecimento de entidades nomeadas (NER) com SVM alcançou F-score de 76,97% somando todas as classes de entidades nomeadas.",
+      "citacao": "the NER system using a support vector machine (SVM) achieved an F-score of 76.97% for all NE classes",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "A ontologia foi avaliada por cobertura de termos: em 32 semanas, sobre 29.443 relatos positivos, a cobertura foi de 78% das doenças, 69% dos patógenos e 76% dos sintomas mencionados ao menos uma vez.",
+      "citacao": "During a 32-week period we observed the percentage of English terms mentioned in 29 443 positive reports with coverage estimated at 78% of diseases, 69% of pathogens and 76% of symptom terms found at least once",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "A classificação automática de relevância tópica por naive Bayes funciona como porteiro do pipeline, liberando só os documentos relevantes para os níveis seguintes de processamento.",
+      "citacao": "Automatic classification of the reports for topical relevance using a naïve Bayes algorithm then acts as the gate-keeper for further levels of processing",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O sistema ingere continuamente documentos reportados por mais de 1700 feeds RSS, classificando-os por relevância temática e plotando-os em mapa do Google com informação geocodificada.",
+      "citacao": "The system continuously analyzes documents reported from over 1700 RSS feeds",
+      "pagina": 1
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem que a avaliação da ontologia foi apenas informal, por cobertura de termos: \"Evaluation of the ontology was done informally using corpus coverage of terms.\" E deixam a avaliação quantitativa dos sinais específicos de domínio contra padrões humanos para o trabalho futuro: \"Future quantitative evaluation will focus on the effectiveness of domain-specific signals against human standards, such as ProMed and WHO reports.\"",
+  "evidence": "Há comparação explícita com baseline na classificação de tópico: naive Bayes 94,8% de acurácia (F 0,93 / R 0,97 / P 0,89) contra um SVM de 92,1% (F 0,89 / R 0,90 / P 0,88), ambos no mesmo corpus padrão-ouro de 1000 notícias anotadas; a escolha é justificada pelo recall maior, não por acurácia bruta. O NER reporta F 76,97% SEM baseline de comparação, e o número vem de trabalho anterior (Kawazoe et al. 2006), não de experimento refeito aqui. A ontologia não tem baseline: só cobertura percentual, declarada informal. Não há avaliação contra ProMed ou WHO — os autores dizem que isso é trabalho futuro. Não há teste de significância nem intervalo de confiança.",
+  "needs": "Modelo/artefatos: classificadores clássicos naive Bayes e SVM (não redes neurais) mais a ontologia BCO em OWL (v2, abril de 2008; 102 doenças; termos, sinônimos e traduções em oito línguas; mapeamentos para ICD-10, MedDRA, MeSH e SNOMED-CT). Dados rotulados: 1000 notícias anotadas para classificação de tópico e 200 para o NER (18 tipos de termos). Língua avaliada: inglês. Infra: cluster Linux (NPACI Rocks) para análise semântica de alto desempenho; sem menção a GPU. Não reporta tempo de treino/inferência, memória nem custo computacional.",
+  "cost_here": "Não reportado — o artigo não mede tempo de execução, hardware além de 'cluster Linux', nem custo de curadoria da ontologia ou da anotação. Sobre o nosso corpus (4.369 notícias PT-BR, 965 semanas, CPU only): o classificador em si é leve em CPU (naive Bayes/SVM sobre n-gramas esparsos) e não exige nenhuma dependência nova de embedding — a técnica é anterior aos transformers. Mas o custo real e não quantificado é o corpus anotado por especialistas e a ontologia, e a cobertura foi medida só em inglês; não há número para português. Não estimar como barato: o custo é de anotação, não de compute.",
+  "transferable": "Transfere: a arquitetura de agregar notícias por feeds RSS e filtrar relevância antes do processamento pesado; a ideia de usar uma ontologia de doenças/lugares como ponte entre linguagem leiga e códigos formais; e a prática de medir cobertura de vocabulário contra o próprio corpus. Não transfere: os classificadores (naive Bayes/SVM sobre n-gramas em inglês) não informam nenhuma escolha de embedding — o artigo não tem nada sobre representação densa, pooling ou geometria de espaço; a ontologia é voltada a inglês/Ásia-Pacífico, sem PT-BR; e a tarefa é detecção de evento geo-localizado em notícia, não a nossa série semanal de contagens por UF. Distância de domínio: mesmo meio (notícia de saúde pública), mas língua (inglês vs PT-BR) e formato de alvo (evento vs contagem) são diferentes.",
+  "red_flags": [
+    "Avaliação só em inglês, apesar de a ontologia se declarar multilíngue (oito línguas) — nenhum resultado quantitativo em outra língua.",
+    "A avaliação da ontologia é apenas informal (cobertura percentual de termos), sem baseline humano.",
+    "O NER reporta F 76,97% sem nenhum baseline de comparação e o número vem de trabalho anterior (Kawazoe et al. 2006), não de experimento refeito aqui.",
+    "O baseline da classificação (SVM 92,1%) é um modelo dos próprios autores, não um sistema externo; o ganho do naive Bayes é pequeno em acurácia e apoiado sobretudo em recall.",
+    "Corpus de treino pequeno (1000 notícias para tópico, 200 para NER) e sem validação cruzada, teste de significância ou intervalos de confiança reportados.",
+    "Sem tempo de execução, memória, hardware medido ou custo de curadoria da ontologia/anotação.",
+    "Artigo de 2 páginas, sem tabelas e sem ablação; o desempenho operacional em produção não é medido."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "key": "crossley2011readability",
+  "grupo": "representacao",
+  "pdf": "articles/features-texto/24_crossley_2011_readability_formulas_simplification.pdf",
+  "author": "Crossley et al.",
+  "year": 2011,
+  "read": "Li o PDF inteiro (18 paginas; no rodape do proprio artigo, pp. 84-101 de Reading in a Foreign Language, Volume 23, No. 1, abril 2011). Extrai o texto com pypdf e li pagina a pagina (PDF 1-18). Seccoes lidas: capa com os tres autores e filiacoes (PDF 1); Abstract (PDF 1); introducao sobre simplificacao e abordagem intuitiva (PDF 1-4); 'Traditional Readability Formulas' (PDF 4-5); 'Coh-Metrix L2 Reading Index' com a formula explicita e a definicao das tres variaveis (PDF 5-8); Method - Corpus Selection, Selected Readability Formulas, Statistical Analysis (PDF 6-8); Analysis - ANOVA, 'Accuracy of Model', e os DFA de cada formula com as Tabelas 1 a 8 (PDF 9-12); 'Comparisons between Formulas' com a Tabela 9 de t-tests (PDF 13); Discussion (PDF 13-15); Conclusion e ressalvas (PDF 15-16); References e 'About the Authors' (PDF 16-18). Conferi cada citacao literalmente contra o texto extraido e localizei a pagina PDF de cada trecho.",
+  "technique": "Nao e embedding e nao usa rede neural. O artigo compara formulas de legibilidade (readability), isto e, dois modos de reduzir um texto inteiro a um unico numero. (a) Formulas tradicionais: Flesch-Kincaid Grade Level e Flesch Reading Ease, baseadas so em comprimento de frase (palavras por frase) e de palavra (silabas por palavra). (b) Coh-Metrix L2 Reading Index: soma ponderada de tres indices calculados pela ferramenta Coh-Metrix - frequencia de palavra CELEX (media logaritmica para palavras de conteudo), similaridade sintatica entre frases adjacentes e sobreposicao de palavras de conteudo entre frases adjacentes. O que o artigo mede no dominio: a capacidade de cada formula de classificar o nivel de simplificacao (beginner/intermediate/advanced) de 300 noticias simplificadas para aprendizes de ingles, via analise discriminante (DFA) com cross-validation leave-one-out, reportando recall, precision e F1.",
+  "representation": "Como o texto vira numero aqui: features hand-crafted agregadas numa unica pontuacao por texto. Nao ha encoder, pooling, normalizacao vetorial, dimensionalidade nem espaco denso - nada de embedding. As formulas tradicionais usam duas features de superficie (numero de palavras por frase e de silabas por palavra). O Coh-Metrix L2 Reading Index e um vetor de apenas tres numeros por texto, combinados por pesos fixos: -45.032 + (52.230 x Content Word Overlap Value) + (61.306 x Sentence Syntax Similarity Value) + (22.205 x CELEX Frequency Value). A tese do artigo e que features ligadas a coesao, decodificacao e parsing representam a dificuldade de leitura melhor do que comprimento de palavra/frase.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus do estudo tem 210.538 palavras, distribuídas em 300 notícias simplificadas (100 por nível: beginner, intermediate, advanced).",
+      "citacao": "The total size of the news corpus used in this study is 210,538 words (N =300)",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O Coh-Metrix L2 Reading Index classificou corretamente 180 dos 300 textos (60,0%), contra 33,3% de acaso.",
+      "citacao": "The results demonstrate that the discriminant analysis for the Coh-Metrix L2 Reading Index readability formula correctly allocated 180 of the 300 texts",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "As predições do Coh-Metrix L2 Reading Index foram significativamente mais acuradas que as das fórmulas tradicionais.",
+      "citacao": "The results demonstrate that the predictions made by the Coh-Metrix L2 Reading Index were significantly more accurate than those made by the traditional readability formulas.",
+      "pagina": 13
+    },
+    {
+      "afirmacao": "O baseline tradicional Flesch-Kincaid Grade Level acertou 148 dos 300 textos (49,3%), abaixo do índice Coh-Metrix.",
+      "citacao": "The results demonstrate that the discriminant analysis for the Flesch-Kincaid Grade Level readability formula correctly allocated 148 of the 300 texts in the total set",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "O índice é uma soma ponderada de três variáveis: sobreposição de palavras de conteúdo, similaridade sintática entre frases adjacentes e frequência de palavra CELEX.",
+      "citacao": "-45.032 + (52.230 x Content Word Overlap Value) + (61.306 x Sentence Syntax Similarity Value) + (22.205 x CELEX Frequency Value)",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram limitações explícitas na conclusão (p.15/PDF 15). (1) O próprio melhor modelo acerta pouco e só tem concordância moderada: \"it must be noted that it only classified 59% of the text levels accurately and demonstrated only a moderate agreement with the actual level classification\". (2) Parte do erro vem de o índice medir poucas features: \"it is also likely that many of the intuitive simplification features in the texts that lead to better text comprehension were not measured by the Coh-Metrix L2 Reading Index\" e \"the reading index only considers three variables, while the process of intuitive text simplification likely modifies a much larger number of linguistic features\". (3) Ressalva sobre a generalização de gênero: \"One reservation for this claim, though, is that academic and news texts appear to share many common linguistic features\". Os autores pedem mais estudos de leitura com aprendizes de níveis e línguas maternas variados, e com textos autênticos e simplificados controlados, para validar fórmulas mais avançadas.",
+  "evidence": "Baseline = as duas fórmulas tradicionais (Flesch-Kincaid Grade Level e Flesch Reading Ease); acaso = 33,3% (3 classes). Acurácia por DFA (conjunto total e cross-validado idênticos): Coh-Metrix L2 Reading Index 60,0% (180/300); Flesch-Kincaid 49,3% (148/300); Flesch Reading Ease 44,3% (133/300). Kappa de Cohen: .400 (moderate) para o Coh-Metrix, .240 (fair) para Flesch-Kincaid e .165 (slight) para Flesch Reading Ease. F1 médio: .587, .488 e .436, respectivamente. t-tests entre fórmulas: Coh-Metrix vs Flesch-Kincaid t(598) = -2.635, p < .010; Coh-Metrix vs Flesch Reading Ease t(598) = -3.883, p < .001; as duas tradicionais não diferem entre si (t(598) = 1.227, p > .015). ANOVA com tendência linear significativa para as três (Coh-Metrix F(2,297) = 51.657, eta_p = .258). O artigo também cita evidência anterior (Crossley et al. 2008): as três variáveis produziram correlação múltipla de .93 e R2 de .86 sobre um critério de leitura.",
+  "needs": "Exige a ferramenta Coh-Metrix (software externo) para calcular os três índices; as normas de frequência do CELEX (corpus de 17,9 milhões de palavras) para a feature de frequência; textos em INGLÊS; e rótulos de nível (beginner/intermediate/advanced) para treinar a análise discriminante. Não usa GPU, rede neural nem modelo de linguagem - não há tamanho de modelo a reportar. A estatística (ANOVA, DFA com leave-one-out sobre 300 textos) é barata em CPU. Custo computacional de execução: não reportado.",
+  "cost_here": "Custo de execução do artigo: não reportado, mas a análise é leve em CPU (DFA sobre 300 textos). O bloqueio é outro: o Coh-Metrix não está instalado no nosso ambiente e é inglês-only, sem equivalente PT-BR pronto. Reimplementar as features no nosso corpus é barato para frequência de palavra e sobreposição de palavras de conteúdo (basta um léxico de frequência PT-BR), mas a similaridade sintática exigiria um parser de dependências. Além disso, a tarefa depende de rótulos de nível de simplificação, que o nosso corpus (4.369 artigos PT-BR de dengue) não tem - temos query e contagem de casos, não nível de leitura. Para 4.369 artigos PT-BR o artigo não reporta custo nessa escala ('não reportado'). Custo de nova dependência: alto (ferramenta externa e inglês-only).",
+  "transferable": "Transfere: (i) a lição de desenho, independente de domínio, de que features de superfície (comprimento de palavra/frase) são fracas e que coesão, decodificação e parsing carregam mais sinal; (ii) a metodologia de avaliação - DFA com cross-validation leave-one-out, comparação contra acaso e contra baseline, reportando recall/precision/F1 e Kappa. Não transfere direto: a fórmula concreta usa normas de frequência do INGLÊS (CELEX) e foi validada em notícias simplificadas para aprendizes de inglês de uma única fonte (onestopenglish / Guardian Weekly), com rótulos de nível feitos por um time pequeno de autores. Distância de domínio grande: língua diferente (PT-BR vs inglês), gênero/fonte diferente (notícia de dengue de agência vs notícia simplificada de revista), tarefa diferente (nível de simplificação vs sinal de vigilância) e tipo de representação diferente (features hand-crafted, não embedding). Nada aqui fala de encoder, pooling, normalização ou dimensionalidade.",
+  "red_flags": [
+    "Uma única língua (inglês) e um único gênero (notícias simplificadas de uma única fonte, onestopenglish / Guardian Weekly) - nenhum dado de português, notícia de doença ou vigilância.",
+    "Mesmo o melhor modelo acerta só 60,0% dos textos e tem apenas concordância moderada (Kappa .400) - não é um classificador forte, e o ganho absoluto sobre o acaso é modesto.",
+    "Baseline fraco por construção: compara só com duas fórmulas de superfície; não compara com representações mais ricas (bag-of-words, embeddings, modelos neurais).",
+    "A 'verdade' usada como rótulo é o nível atribuído intuitivamente por um time pequeno de autores - não há critério objetivo de compreensão (ex.: escore de leitura de alunos).",
+    "Os autores admitem que o índice mede apenas três variáveis e que parte das features relevantes da simplificação não é capturada - o próprio vencedor pode estar subestimando o que mede.",
+    "Requer a ferramenta Coh-Metrix (dependência externa, inglês-only) e normas CELEX; sem esses artefatos os números não são reproduzíveis.",
+    "O resultado de destaque (60% vs 49%/44%) vem de um único corpus e de uma única rodada de DFA; não há replicação em outros corpora ou línguas."
+  ]
+}

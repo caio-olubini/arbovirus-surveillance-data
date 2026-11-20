@@ -1,0 +1,50 @@
+{
+  "key": "chae2009fluency",
+  "grupo": "representacao",
+  "pdf": "articles/features-texto/23_chae_2009_fluency_shallow_structural_features.pdf",
+  "author": "Chae & Nenkova",
+  "year": 2009,
+  "read": "Li o PDF inteiro, 9 páginas (Proceedings of the 12th Conference of the European Chapter of the ACL, Atenas, 30 mar-3 abr 2009, pp. 139-147). Página 1: capa, abstract e Introdução. Páginas 2-3: Seção 2 (Features), com a definição de cada estatística de superfície. Páginas 3-5: Seção 3 (Feature analysis), Tabela 1 (distribuição das notas de fluência) e Tabela 2 (correlações de Pearson, p.5). Páginas 4-6: Seção 4 (Experiments with machine translation data), Tabela 3 (acurácia humano vs máquina, p.5) e Tabela 4 (comparação por par, p.6). Página 6: Seção 5.1 (aplicação a texto humano, Wall Street Journal). Páginas 6-7: Tabela 6 (acurácia na transferência, p.7). Páginas 7-8: Seção 5.2 (correlação com qualidade global) e Tabela 7 (p.8). Página 8: Seção 6 (Conclusão) e início das Referências. Página 9: Referências. Uso a numeração do PDF a partir de 1 (PDF p.1 = impressa 139); toda página citada é a do PDF.",
+  "technique": "Quatro classificadores clássicos do Weka — árvore de decisão (J48), regressão logística, máquina de vetores de suporte (SMO) e perceptron de múltiplas camadas — treinados com validação cruzada de 10 folds para prever a fluência de uma sentença. As features são estatísticas de superfície da ESTRUTURA sintática, extraídas por regra a partir da análise do parser de Charniak: comprimento da sentença em palavras, profundidade da árvore sintática, número de fragmentos na análise, proporção/comprimento de sintagmas preposicionais, nominais e verbais (PP, NP, VP), distância entre verbos (VP distance) e comprimento dos modificadores do núcleo do NP. Nenhuma feature usa o conteúdo lexical da sentença. O alvo são notas de fluência de 1 a 5 dadas por avaliadores de tradução automática (5 = inglês impecável, 1 = incompreensível), aplicadas a traduções chinês→inglês do corpus LDC2003T17.",
+  "representation": "O texto vira número por contagem estrutural, sem nenhum vetor aprendido e sem encoder: cada sentença é reduzida a um punhado de escalares tirados da árvore sintática (comprimentos, profundidades, proporções e contagens de tipos de sintagma). Não há embedding, pooling, normalização nem geometria vetorial — a representação é um vetor de features explícitas de tamanho fixo, calculado por regra sobre a análise. É o degrau de estatísticas de superfície que a família features-texto estuda, com a diferença de que aqui as estatísticas são sobre a ESTRUTURA da sentença, não sobre as palavras. O artigo também testa uma normalização (dividir os comprimentos pelo tamanho da sentença) e relata que as versões NÃO normalizadas correlacionam mais com a fluência.",
+  "afirmacoes": [
+    {
+      "afirmacao": "As features de superfície da estrutura sintática são significativas, mas fracamente correlacionadas com a fluência — é o resumo que os próprios autores dão do achado central.",
+      "citacao": "Correlation analysis reveals that the structural features are significant but weakly correlated with fluency.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Traduções automáticas se separam de traduções humanas com 87% de acurácia; separar traduções automáticas boas das ruins cai para 61%.",
+      "citacao": "Machine translations can be distinguished from human translations with accuracy of 87%; machine translations with low fluency can be distinguished from machine translations with high fluency with accuracy of 61%.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Na comparação por par entre sentenças com notas de fluência diferentes, a acurácia é muito alta: 91,34% com o perceptron de múltiplas camadas.",
+      "citacao": "When any two sentences with different fluency assessments are paired, the prediction accuracy is very high: 91.34% for the multi-layer perceptron classifier.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O modelo treinado em dados de tradução automática não transfere para texto escrito por humanos: a acurácia cai para 57%.",
+      "citacao": "The model for distinguishing machine translations from human translations is the better one, with accuracy of 57%.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "A fração de sentenças fluentes de um artigo, segundo avaliador humano, tem correlação baixa (0,127) com a qualidade global do texto.",
+      "citacao": "The correlation between the percentage of fluent sentences in the article as given by the human assessor and the overall text quality is rather low, 0.127.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que o próprio experimento é pequeno e não permite generalização: \"Admittedly, our pilot experiments with human assessment of text quality and sentence level fluency are small, so no big generalizations can be made.\" (p.8). E, sobre reaproveitar avaliações de tradução automática, escrevem: \"Such results raise the need for caution when using assessments for machine produced text to build a general model of fluency.\" (p.8).",
+  "evidence": "Baseline explícito: o acaso (\"random baseline\"). Correlações de Pearson de cada feature com a fluência na Tabela 2 (p.5), todas fracas; a maior em módulo é a adequação (0,701), que NÃO é uma feature sintática, seguida de comprimento da sentença (-0,132), comprimento do NP não normalizado (-0,124) e distância entre verbos (-0,116). Acurácia de distinguir humano de máquina: 82,68% a 86,99% conforme o classificador (Tabela 3, p.5). Comparação por par: 91,34% (MLP) quando as sentenças são de fluência diferente, e 71,23% (SVM) quando são traduções da MESMA sentença (Tabela 4, p.6). Transferência para 290 sentenças de 30 artigos do Wall Street Journal anotadas por um único avaliador: 57% (humano vs máquina) e 44% (bom vs ruim) (Tabela 6, p.7). Correlação com a qualidade global do artigo: 0,127 (humano), -0,055 e 0,076 (modelos) (Tabela 7, p.8).",
+  "needs": "Roda em CPU: são quatro classificadores do Weka sobre features extraídas por um analisador sintático. Exige um parser (Charniak) para o inglês e, para o alvo, notas de fluência dadas por avaliadores humanos. Custo computacional não reportado (nem FLOPs, nem tempo de execução, nem tamanho de modelo). GPU: não usada. O custo que o artigo descreve é o da anotação: o corpus de tradução tem 2.634 sentenças (soma da Tabela 1, p.4) e a parte de texto humano tem 290 sentenças anotadas por um único avaliador.",
+  "cost_here": "Barato em princípio e sem dependência pesada: um parser e um classificador clássico, sem GPU, sem modelo pré-treinado — nada que contrarie o teto de dependências do pyproject. O gargalo não é computacional, é de recurso linguístico: as features vêm de estrutura sintática e dependem de um parser de constituência para português cujo desempenho em notícia de arbovirose não é medido aqui. E o alvo (notas de fluência por avaliador) não existe para o nosso corpus; usar o modelo exigiria anotar sentenças em português, custo que o artigo não reporta.",
+  "transferable": "Transfere o resultado negativo, que é o mais útil para nós: features de superfície da estrutura da sentença capturam qualidade de forma fraca, e o sinal forte só aparece em tarefas fáceis (duas sentenças de fluência muito diferente, 91%); quando a tarefa fica fina (bom vs ruim, 61%) ou cruza domínio (57% em texto humano), o modelo desaba. O artigo recomenda construir corpus próprio em vez de reaproveitar avaliações alheias — exatamente o nosso caso, sem corpus de notícia de dengue em português anotado. NÃO transfere o domínio: as sentenças são traduções chinês→inglês e prosa do Wall Street Journal; nada em português, nada de notícia de doença. As features também exigem um parser de constituência para português, cujo comportamento no nosso texto o artigo não mede.",
+  "red_flags": [
+    "As correlações centrais são fracas por construção: o próprio artigo as chama de 'weakly but significantly correlated', e a significância vem do tamanho da amostra (2.634 sentenças), não da força do efeito.",
+    "O alvo é uma nota subjetiva de fluência de avaliadores de tradução automática, não um desfecho de tarefa; o artigo admite não saber se ela mede o mesmo que a fluência de texto escrito por humanos.",
+    "A transferência para texto humano falha (57% e 44%) e a amostra dessa parte é minúscula: 290 sentenças de 30 artigos anotadas por UM único avaliador, e o artigo nota que nenhuma das correlações dessa parte é significativa.",
+    "Os autores qualificam o experimento como piloto e dizem que nenhuma generalização ampla pode ser feita a partir dele.",
+    "A feature mais correlacionada do artigo (adequação, 0,701) NÃO é uma estatística de superfície — depende de comparação com tradução de referência humana, que nós não temos; as features sintáticas propriamente ditas ficam todas abaixo de 0,14 em módulo.",
+    "Nada em português e nada de notícia de doença; as features dependem de um parser cujo comportamento no nosso texto não é medido."
+  ]
+}

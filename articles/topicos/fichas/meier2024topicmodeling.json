@@ -1,0 +1,50 @@
+{
+  "key": "meier2024topicmodeling",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/22_meier_2024_topic_modeling_three_decades.pdf",
+  "author": "Meier & Eskjær",
+  "year": 2024,
+  "read": "Li o artigo completo (15 páginas): abstract e introdução (p.1-3), trabalho relacionado com a Tabela 1 (p.2-3), Materials and methods — pré-processamento, especificação e validação do modelo (p.4-6), Results RQ1-RQ4 com Tabelas 3-4 e Figuras 2-8 (p.7-11), Discussion and conclusion (p.11-13) e referências (p.14-15). Conferi os números nas Tabelas 1 e 3 e nas páginas de resultados, não só no abstract.",
+  "technique": "Structural topic model (STM), da família LDA de pertencimento misto (mixed-membership), implementado no pacote R stm (Roberts et al., 2014, 2019). Como o texto vira número: saco-de-palavras — tokenização em unigramas, minúsculas, remoção de pontuação, SEM stemming, remoção de stopwords dinamarquesas e poda absoluta de termos raros (n<20), resultando em vocabulário de 61.895 palavras. Cada documento vira uma distribuição sobre tópicos e cada tópico uma distribuição sobre o vocabulário. O diferencial do STM é permitir que covariáveis de nível de documento (ano de publicação e orientação política do veículo) desloquem a prevalência e o conteúdo dos tópicos durante a estimação. K escolhido por algoritmo de estimativa (Mimno & Lee) rodado 100 vezes (média K=91,7), fixado em 90 e depois reduzido a 85 por validação humana; os 85 tópicos foram agrupados manualmente em 14 temas.",
+  "representation": "A representação é saco-de-palavras probabilístico (contagens de palavras), não embeddings: nenhum encoder neural, nenhum pooling nem normalização vetorial. A 'representação' de um documento é a distribuição de probabilidade sobre K tópicos latentes; a de um tópico é a distribuição sobre o vocabulário. A geometria relevante é a do simplex de proporções de tópicos, e as covariáveis (ano, orientação política) entram como preditores da posição nesse simplex.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O estudo aplica topic modeling a 63.743 artigos de notícias sobre mudança climática na Dinamarca (1990-2021), vindos de 6 jornais impressos e 2 emissoras públicas (online).",
+      "citacao": "In total, we applied topic modeling to a corpus of 63,743 articles.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "A técnica é um structural topic model (STM), que — ao contrário do LDA padrão — deixa covariáveis de nível de documento (ano de publicação e orientação política) influenciarem a prevalência e o conteúdo dos tópicos.",
+      "citacao": "STM is superior as it allows corpus structure, i.e., document-level information, to influence topic prevalence and content during the model estimation process.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "O modelo final retém 85 tópicos (de um K inicial de 90), após validação humana que descartou só os tópicos julgados incoerentes pelos três coders.",
+      "citacao": "In total, this process resulted in 85 topics.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Os temas mais prevalentes são política climática (12,51% dos artigos), impactos da mudança climática (10,05%) e relações exteriores (7,21%).",
+      "citacao": "The table shows that the most popular themes concern Climate Politics (12.51%), Climate Change Impacts on nature and ecosystems (10.05%), and Foreign Affairs (7.21%).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O viés de outlet (orientação política do veículo) tem efeito marginal no nível dos temas — no máximo ~1% — ainda que apareça com efeito maior em tópicos individuais.",
+      "citacao": "while we detect clear evidence of ideological bias on the theme level, the effect is only marginal (around max 1%, see X-axis Figure 7).",
+      "pagina": 11
+    }
+  ],
+  "ressalva_do_autor": "Os autores reconhecem que a análise fica no nível de agenda-setting e pedem uma análise mais fina para capturar o viés ideológico: \"A more granular analysis is required to capture subtle ideological variations regarding source selection, framing, and visualization of climate change.\" Também admitem que a mídia pública foi coberta só parcialmente — \"This study only includes the latter.\" (só notícia online, não os boletins de rádio/TV) — e que \"The implications of such differences call for more detailed studies.\"",
+  "evidence": "Estudo descritivo/exploratório: NÃO há baseline preditivo nem F1. A evidência é (a) validação humana dos tópicos com concordância média entre coders de 91,11% (87,78-93,33% par a par); (b) intervalos de confiança de 95% por bootstrap (1.000 reamostragens) para as diferenças de proporção de tópicos entre centro-direita, centro-esquerda e mídia pública; (c) comparação qualitativa (Tabela 4) com três outros modelos de um único país (Rússia, Índia, EUA). Tamanhos de efeito: viés no nível de tema no máximo ~1%; o tópico Sunspot Theory ~2% mais provável em jornais de direita; Flooding ~3% na mídia pública. Não compara contra nenhum modelo alternativo (LDA, embeddings) — não dá para dizer se o STM supera algo.",
+  "needs": "Modelo: structural topic model (pacote R stm; família LDA de pertencimento misto). CPU only — nenhuma GPU mencionada. Língua: dinamarquês; exige lista de stopwords do idioma; sem stemming; poda absoluta n<20 → vocabulário de 61.895 palavras. Dados: não rotulados (não supervisionado), mas dependem de um arquivo de imprensa proprietário (Infomedia), que os autores não podem compartilhar. Hardware e tempo de execução: não reportado.",
+  "cost_here": "Não reportado — o artigo não informa tempo de execução nem hardware. Ele usa o pacote R stm sobre 63.743 documentos e não menciona GPU, ou seja, roda em CPU. Para o nosso corpus (4.369 docs, ~7% do tamanho deles) não há número do artigo; adotar STM exigiria R + pacote stm (dependência nova), embora a mesma capacidade de DMR com covariáveis já exista no nosso tomotopy (braço 03).",
+  "transferable": "Transfere o MÉTODO, não o domínio. Transfere: (a) amostragem inclusiva de palavras-chave — manter artigos com uma única menção em vez de tratá-los como ruído; (b) decisão de não fazer stemming; (c) seleção de K por algoritmo de estimativa + validação humana em vez de métrica automática de coerência; (d) modelar covariáveis de nível de documento (ano, veículo) via STM/DMR; (e) medir diferenças entre grupos por bootstrap com IC 95%; (f) tratamento explícito de quase-duplicatas. NÃO transfere: o domínio é distante — clima na Dinamarca, sistema de mídia democrático-corporativista, língua dinamarquesa — contra dengue em notícia PT-BR. O achado de que o viés de outlet é marginal no nível de tema e maior no nível de tópico é resultado do domínio dinamarquês, não uma lei geral. A distância de escala também importa: 63.743 documentos deles contra 4.369 nossos — 85 tópicos provavelmente é granularidade fina demais para nós.",
+  "red_flags": [
+    "Sem baseline: o estudo não compara o STM com LDA, embeddings ou qualquer alternativa; não há métrica preditiva (F1, perplexidade) nem comparação de modelos. É puramente descritivo.",
+    "Avaliação só intrínseca/humana: os autores deliberadamente abandonam métricas automáticas de coerência; a qualidade do modelo repousa em julgamento humano (3 coders), difícil de reproduzir.",
+    "Corpus único, país único, língua única (dinamarquês) — validade externa limitada; a comparação com outros países (Tabela 4) é qualitativa.",
+    "Quase-duplicatas mantidas no corpus: os próprios autores citam Schofield et al. de que duplicação pode sobrecarregar padrões tópicos, mas não removem — risco de distorcer tópicos.",
+    "Achados que os autores não explicam (ex.: Business and Economy menos prevalente em jornais de direita) sugerem ruído, não sinal.",
+    "Dados não compartilháveis (Infomedia, sob direitos autorais) — resultado não reproduzível de fora."
+  ]
+}

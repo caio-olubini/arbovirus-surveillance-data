@@ -1,0 +1,51 @@
+{
+  "key": "grootendorst2022bertopicneural",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/34_grootendorst_2022_bertopic_neural_topic_modeling.pdf",
+  "author": "Grootendorst",
+  "year": 2022,
+  "read": "Li o PDF inteiro (10 páginas), página a página. Pág. 1: capa (único autor, Maarten Grootendorst; arXiv:2203.05794v1, 11 Mar 2022), abstract e Introdução. Pág. 2: fim da Introdução, Trabalho Relacionado, Seção 3 (as três etapas do BERTopic) e Seção 3.2 (Document clustering, maldição da dimensionalidade, UMAP/HDBSCAN). Pág. 3: fim da 3.2, Seção 3.3 (Topic Representation, equações 1 e 2 do TF-IDF clássico e do c-TF-IDF) e Seção 4 (Dynamic Topic Modeling). Pág. 4: Seção 4.1 (Smoothing), Seção 5 (Experimental Setup) e 5.1 (Datasets). Pág. 5: Tabela 1, Seções 5.2 (Models), 5.3 (Evaluation) e o hardware dos experimentos. Pág. 6: Tabela 2, Tabela 3 e Seções 6.1-6.4 (Performance, Language Models, Dynamic, Wall time). Pág. 7: Figura 1, Seção 7 (Discussion) e 7.1 (Strengths). Pág. 8: Seção 7.2 (Weaknesses), Seção 8 (Conclusion) e início das Referências. Págs. 9-10: só Referências. Extraí o texto com pdftotext (modo sem -layout, que preserva a ordem de leitura das duas colunas) e confirmei cada citação contra esse texto.",
+  "technique": "BERTopic não treina rede neural: é um pipeline de três etapas sobre embeddings prontos. (1) Cada documento vira um vetor denso com um encoder transformer pré-treinado, via o framework Sentence-BERT (SBERT) — o encoder fica congelado, não é ajustado no corpus. (2) Os vetores passam por redução de dimensionalidade com UMAP e são agrupados com HDBSCAN, um clustering hierárquico por densidade que trata ruído como outlier (documentos não atribuídos a tópico). (3) Cada cluster vira um tópico cuja representação é uma distribuição palavra-tópico obtida por c-TF-IDF, um TF-IDF 'class-based': concatena-se os documentos do cluster numa única 'classe' e a importância do termo é tf no cluster vezes log(1 + A/tf_t), onde A é a média de palavras por classe e tf_t a frequência do termo em todas as classes. O número de tópicos é reduzido fundindo iterativamente o tópico menos comum com o mais similar.",
+  "representation": "Como o texto vira número: documento -> vetor SBERT (encoder transformer pré-treinado, congelado) -> vetor de baixa dimensão (UMAP) -> rótulo de cluster (HDBSCAN) -> pesos palavra-tópico (c-TF-IDF). A única etapa que capta contexto é o encoder; a representação final do tópico é contagem de palavras (bag-of-words) sobre os documentos concatenados do cluster. O artigo estende isso ao tempo: fita o modelo no corpus inteiro para gerar tópicos globais e, por timestep, multiplica a frequência de termo local pelos IDF globais já calculados, sem re-embedar nem re-agrupar.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O BERTopic é um pipeline de três etapas em que cada documento vira embedding de um modelo de linguagem pré-treinado, esses embeddings são reduzidos e agrupados, e só então o tópico é extraído.",
+      "citacao": "BERTopic generates topic representations through three steps. First, each document is converted to its embedding representation using a pre-trained language model.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "A contribuição central, o c-TF-IDF, mede a importância da palavra no cluster (classe) e não no documento individual.",
+      "citacao": "Thus, this class-based TF-IDF procedure models the importance of words in clusters instead of individual documents.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Nos benchmarks, o BERTopic tem coerência de tópico alta em todos os datasets, com o melhor resultado no corpus menos pré-processado (tweets do Trump).",
+      "citacao": "From Table 1, we can observe that BERTopic generally has high topic coherence scores across all datasets.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O BERTopic perde sistematicamente em diversidade de tópico para o CTM em todos os datasets, mesmo sendo competitivo em coerência.",
+      "citacao": "Although BERTopic demonstrates competitive topic diversity scores, it is consistently outperformed by CTM.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O custo foi medido com GPU disponível; os autores avisam que o tempo de parede sobe significativamente ao gerar embeddings sem GPU — exatamente o nosso cenário CPU-only.",
+      "citacao": "As a result, the wall time is expected to increase significantly when embedding documents without a GPU.",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram fraquezas próprias na Seção 7.2 (Weaknesses). Primeira, nas palavras deles: 'First, BERTopic assumes that each document only contains a single topic which does not reflect the reality that documents may contain multiple topics.' Segunda: a representação do tópico não usa o contexto captado pelo encoder, pois 'the topic representation itself does not directly account for that as they are generated from bags-of-words.' Também admitem, na Seção 7, que a avaliação é limitada: 'Although we attempted to validate BERTopic across several experiments, topic modeling techniques can be validated through many other evaluation metrics, such as metrics for unsupervised and supervised modeling performance.'",
+  "evidence": "Comparação com LDA, NMF, CTM, Top2Vec (variantes Doc2Vec e MPNET) e, no cenário dinâmico, LDA Sequence. Métricas: coerência de tópico via NPMI e diversidade de tópico (fração de palavras únicas), de 10 a 50 tópicos em passos de 10, média de 3 rodadas x 5 passos = 15 valores por célula (Tabela 1) e 27 no dinâmico (Tabela 3). Tabela 1: BERTopic-MPNET tem a maior coerência nos três corpora — TC .166 (20 NewsGroups), .167 (BBC), .066 (Trump) contra LDA .058/.014/-.011 e NMF .089/.012/.009 — mas perde em diversidade para o CTM em todos (.851/.794/.663 vs .886/.819/.855), e o Top2Vec-Doc2Vec supera sua coerência em 2 de 3 datasets (.192 e .171 vs .166 e .167). Tabela 2: estabilidade entre encoders SBERT (MiniLM .159/.170/.060 vs MPNET .166/.167/.066), usada para sugerir o modelo menor quando falta GPU. Tabela 3 (dinâmico): BERTopic .079 TC no Trump vs LDA Sequence .009, e .231 vs .173 no UN; a suposição de tópicos linearmente evolutivos não altera o resultado. Nenhum teste de significância em nenhuma comparação.",
+  "needs": "Não exige dados rotulados (é não supervisionado) nem treino do encoder. Exige: um modelo SBERT pré-treinado (default all-mpnet-base-v2; alternativas all-MiniLM-L6-v2, Universal Sentence Encoder, Doc2Vec), UMAP, HDBSCAN e a biblioteca BERTopic. Avaliado apenas em inglês. Nos experimentos havia GPU (Tesla P100-PCIE-16GB); tamanho dos modelos e memória não reportados. Doc2Vec é oferecido como alternativa para quem não tem GPU, mas o próprio artigo questiona sua estabilidade. Corpora usados: 20 NewsGroups (16309 artigos), BBC News (2225 documentos, 2004-2005) e tweets do Trump (44253, 2009-2021).",
+  "cost_here": "Custo de dependência nova: BERTopic + umap-learn + hdbscan, que não estão nos extras fixados hoje (embeddings = torch+transformers; topics = tomotopy). Como o braço 02 já produz embeddings, o encoder é reaproveitável; o que falta é a camada UMAP+HDBSCAN+c-TF-IDF, que não treina nada. Tempo absoluto em CPU não é reportado pelo artigo: só há tempos relativos na Figura 1 (dataset Trump, de 1.000 a 43.000 documentos), medidos com GPU. O artigo afirma apenas que sem GPU o wall time sobe significativamente. Rodar sobre nossos 4.369 documentos em CPU é plausível em minutos, mas isso é estimativa nossa, não número do artigo. UMAP é o gargalo provável e não é determinístico.",
+  "transferable": "Transfere: o pipeline inteiro (embed -> UMAP -> HDBSCAN -> c-TF-IDF) é agnóstico de língua e de domínio; o c-TF-IDF é pura contagem de palavras e roda em PT-BR sem mudança. Como o braço 02 já gera embeddings de 6 configurações, dá para aplicar UMAP+HDBSCAN+c-TF-IDF sobre eles sem re-treinar nada e comparar com o léxico (braço 01) e o DMR (braço 03). A extensão dinâmica (Seção 4) é conceitualmente vizinha do nosso braço 03 (temporal), mas o método é outro: suavização de c-TF-IDF por timestep sobre tópicos globais, não DMR. Não transfere: todos os benchmarks são em inglês (20 NewsGroups, BBC News, tweets do Trump, debates da ONU) — nada em português, nada em vigilância de arbovirose, nada em notícia de agência. Nossos documentos são notícias longas (mais perto de 20NG/BBC que dos tweets), e o modelo atribui um único tópico por documento, o que o autor admite ser irreal para textos multi-temáticos.",
+  "red_flags": [
+    "Todos os benchmarks em inglês; nenhum resultado em português nem em domínio de vigilância de doença.",
+    "Sem teste de significância; diferenças pequenas (ex.: .166 vs .192 em coerência, BERTopic vs Top2Vec-Doc2Vec no 20NG) podem estar dentro do ruído, apesar da média de 15 rodadas.",
+    "A vantagem não é uniforme: o CTM supera o BERTopic em diversidade de tópico nos três datasets, e o Top2Vec-Doc2Vec supera em coerência em 2 de 3.",
+    "Avaliação apenas intrínseca (coerência NPMI e diversidade), ambas proxies; os próprios autores citam Hoyle et al. 2021 de que NPMI pode não valer para modelos neurais.",
+    "Custo medido só com GPU; nenhum tempo absoluto em CPU reportado.",
+    "O autor é o criador da biblioteca BERTopic — autoavaliação (potencial conflito de interesse).",
+    "Doc2Vec, a alternativa 'sem GPU' sugerida pelo artigo, tem a estabilidade questionada pelo próprio texto (falha nos tweets do Trump)."
+  ]
+}

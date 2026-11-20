@@ -1,0 +1,52 @@
+{
+  "key": "muthusami2024investigatingtopic",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/33_muthusami_2024_investigating_topic_modeling_techniques.pdf",
+  "author": "Muthusami et al.",
+  "year": 2024,
+  "read": "Li o PDF inteiro (13 páginas, Scientific Reports 14:12003, 2024) via pdftotext com extração por página. Foco: capa/autores/abstract (p.1), introdução e contribuições (p.1-2), related work (p.2-3), Materiais e métodos com os dois datasets e o setup do LDA e do NMF, incluindo as tabelas de tópicos top-10 (p.3-5), seção Evaluation com dendrogramas e a discussão de linkage/distância (p.6-8), Tabela 1 e silhuetas do LDA (p.9), Tabela 2 e silhuetas do NMF (p.10-11), limitações e conclusão (p.11-12), data availability, referências e contribuições (p.12-13). Cada citação foi conferida contra a extração do PDF em modo leitura (colunas separadas) com espaços normalizados.",
+  "technique": "Comparação de duas famílias de modelos de tópicos clássicos, mais um método de avaliação proposto. LDA é o representante probabilístico-generativo: modela cada documento como mistura de tópicos e cada tópico como distribuição sobre palavras, ajustado por amostragem de Gibbs com priors α = 10/k e ϕ = 0,1. NMF é o representante não-probabilístico: fatora a matriz documento-termo X ≈ WH com atualizações multiplicativas de Lee & Seung por distância euclidiana. Ambos extraem 10 tópicos por dataset. A contribuição é a avaliação: clustering hierárquico aglomerativo (Ward, single, complete, average/UPGMA e McQuitty) sobre as distâncias entre tópicos, escolha do número de clusters por Dindex/Hubert (LDA) e pelo índice de previsão de cluster (CPI) do intNMF (NMF), e qualidade medida por largura de silhueta.",
+  "representation": "O texto vira uma matriz documento-termo (DTM) após pré-processamento (remover 'RT', URLs, hashtags, pontuação, espaços em branco, stopwords, além de minúsculas e de termos repetidos). O LDA converte cada documento numa distribuição sobre tópicos e cada tópico numa distribuição sobre palavras (o 'beta' por tópico); o NMF decompõe a DTM em W (n×r, vetores-base/metagenes) e H (r×p, coeficientes), com r << min(n,p). Em ambos, cada documento passa a ser um vetor no espaço latente de tópicos, e os tópicos viram pontos agrupados por distância (gama, cophenetic, ângulo) e pontuados por silhueta — ou seja, a avaliação mede a geometria do espaço de tópicos: separação entre clusters (distância inter-cluster maximizada) e coesão dentro do cluster (distância intra-cluster minimizada).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O estudo roda LDA e NMF sobre dois benchmarks pequenos de texto curto em inglês — SemEval 2016 (4.870 tweets) e BBC News (2.225 documentos) —, sem nenhum corpus em português.",
+      "citacao": "SemEval 2016 (Task 6), which consisted of 4870 tagged English tweets regarding five major aspects, including atheism, climate change, feminist movement, Hillary Clinton, and legalization of abortion in the United States.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "No LDA, as duas partições ótimas de tópicos têm silhueta baixa e desigual — 0,09 e 0,42 no SemEval (média 0,156 na Tabela 1) —, e no BBC as médias por cluster caem para 0,06 e 0,02 (média 0,033).",
+      "citacao": "cluster 1 has a lower average silhouette width, i.e., 0.09 (9%), and cluster 2 has an average silhouette width, i.e., 0.42 (42%)",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "No NMF as partições atingem silhueta quase perfeita no mesmo dado — 1,00 e 0,92 no SemEval (média 0,955 na Tabela 2) e 0,95 e 0,61 no BBC (média 0,810) —, bem acima do LDA.",
+      "citacao": "clusters 1 and 2 both have maximum average silhouette widths, i.e., 1.00 (100%) and 0.92 (92%)",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "O número ótimo de clusters encontrado é 2 em ambos os datasets, tanto para o LDA (via Dindex/Hubert) quanto para o NMF (via CPI do intNMF) — apesar de os modelos terem 10 tópicos.",
+      "citacao": "The experimental results revealed that the optimum number of clusters for the LDA-fitted model was two on both datasets.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O único baseline de avaliação citado é a perplexidade, descartada por argumento qualitativo, sem nenhum número comparando as duas medidas.",
+      "citacao": "Therefore, the suggested method was better than other techniques, i.e., perplexity.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "The limits of this work include topic stability, the quantity of datasets used, and the types of models evaluated, all of which will be addressed in future work.",
+  "evidence": "A evidência é puramente intrínseca (largura de silhueta) sobre 10 tópicos, comparando os dois modelos entre si. Números: LDA com clustering hierárquico dá silhueta média 0,156 (SemEval) e 0,033 (BBC) — Tabela 1; NMF dá 0,955 (SemEval) e 0,810 (BBC) — Tabela 2. O único baseline externo é a perplexidade, descartada por argumento qualitativo ('difícil de compreender'), sem nenhum número que compare as duas medidas. Não há tarefa extrínseca (classificação, previsão) nem correlação com julgamento humano além de afirmação; não há baseline numérico de outro método de avaliação concorrente.",
+  "needs": "Modelos clássicos, sem GPU: LDA com amostragem de Gibbs e NMF (Lee & Seung) rodam em CPU. Dados pequenos e em inglês (4.870 tweets e 2.225 notícias), 10 tópicos. Nenhum modelo pré-treinado, nenhum embedding, nenhum dado rotulado. Os datasets não são públicos ('available from the corresponding author on request') e não há código divulgado. O artigo não reporta tempo de execução.",
+  "cost_here": "Compute barato: LDA e NMF sobre 4.369 notícias PT-BR com 10 tópicos rodam em CPU em segundos a poucos minutos (tempo absoluto não reportado pelo artigo). O LDA já é coberto pelo nosso extra 'topics' (tomotopy), então essa parte é quase gratuita; o NMF e o clustering hierárquico exigem scikit-learn/scipy, e o custo de dependência nova é alto porque os extras estão fixados no pyproject. O custo real de reuso é outro: os datasets não são públicos, não há código, e nada foi testado em português ou em documento longo — só texto curto em inglês.",
+  "transferable": "Transfere: (a) a ideia de avaliar tópicos por separação/coesão via silhueta sobre clusters hierárquicos, diretamente aplicável ao nosso braço 03 (LDA/DMR/tomotopy) como forma barata de julgar qualidade; (b) a observação de que o NMF (fatoração) tende a produzir clusters mais compactos que o LDA no mesmo dado, o que motiva testar NMF como baseline do tomotopy. Não transfere: o número não vale — foi medido em tweets e notícias em inglês, com 10 tópicos reduzidos a só 2 clusters, e a silhueta é medida intrínseca, não diz nada sobre prever casos de dengue. A distância de domínio é grande: inglês→português, tweet/texto curto→notícia, e avaliação intrínseca→série temporal de casos. O artigo também não usa embeddings/transformers, então não informa o braço 02.",
+  "red_flags": [
+    "Avaliação só intrínseca (silhueta); nenhuma tarefa extrínseca (classificação, previsão) nem correlação medida com julgamento humano.",
+    "Baseline fraco: só a perplexidade, descartada por argumento qualitativo, sem nenhum número comparativo entre as medidas.",
+    "Silhueta do NMF quase perfeita (1,00 e 0,92) é suspeita — com apenas 2 clusters sobre 10 tópicos, a separação pode ser trivial/artificial.",
+    "Só 2 datasets, ambos em inglês e de texto curto; nenhum teste em português nem em documento longo.",
+    "Sem repetições, sem variabilidade entre execuções e sem significância estatística; a estabilidade de tópicos é admitida como limitação não resolvida.",
+    "Datasets não públicos (sob pedido ao autor correspondente) e sem código — resultado não reproduzível.",
+    "Número de tópicos fixado em 10 sem varredura mostrada, e a alegação de que o método proposto 'outperforms' não é comparada numericamente com nenhum método de avaliação concorrente além da perplexidade.",
+    "A leitura de qualidade é feita pelos próprios autores por inspeção manual dos top-10 termos, sem anotador independente."
+  ]
+}

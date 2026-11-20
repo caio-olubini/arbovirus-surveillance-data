@@ -1,0 +1,52 @@
+{
+  "key": "chuluunsaikhan2020incorporatingdeep",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/02_chuluunsaikhan_2020_incorporating_deep_learning_news.pdf",
+  "author": "Chuluunsaikhan et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (22 paginas) via pdftotext -layout, pagina a pagina. Capa/abstract, Keywords e Introducao com a motivacao e as contribuicoes (pp.1-3); revisao de literatura em quatro categorias (pp.4-6); Materials and Methods (pp.6-12): aquisicao por web crawling, Tabela 2 do dataset, LDA com a Equacao 1 e a ressalva do K manual (pp.8-9), selecao de features por correlacao de Pearson com a Equacao 2 e a Figura 4 (p.10), LSTM com as Equacoes 3-7 (pp.10-11); Results (pp.11-20): setup experimental (CPU i9-9900K + GPU RTX 2080, p.11), Tabela 4 e 5 (dataset e split sazonal, p.13), Tabela 6 de metodos concorrentes (p.14), Tabela 7 de hiperparametros do LSTM e Tabela 8 (pp.15-16), Tabela 9 de erros por estacao com/sem feature selection (p.17), a comparacao por tipos de preco e a Figura 9 (p.19) e o resumo dos experimentos (p.20); Discussion and Conclusions (p.20). As limitacoes declaradas estao na Secao 2.3.1 (p.8, sobre o LDA) e na Secao 3.2.3 (p.16, sobre o modelo). Nao li so o abstract.",
+  "technique": "Aplicacao de topic modeling classico (nao de embeddings) para previsao de preco. Usa LDA (latent Dirichlet allocation, bag-of-words) sobre noticias em coreano para extrair topicos/palavras-chave, atribui o topico mais provavel a cada artigo, converte o resultado em vetores TF-IDF (importancia das palavras-chave), junta com a serie de preco do porco, faz selecao de features por correlacao de Pearson e treina uma LSTM de camada unica (com uma camada densa adicional) para prever o preco diario de varejo. O que ele mediu no dominio: erro de previsao (RMSE/MAE/MAPE) do preco diario de varejo do porco na Coreia do Sul a partir de noticias de um site monotematico.",
+  "representation": "O texto vira numero em duas etapas, sem encoder neural nem pooling. (1) Apos limpeza, tokenizacao e remocao de stopwords, o KoNLPy (tagger Okt) faz POS-tagging do coreano e mantem apenas substantivos e verbos, gerando um bag-of-words (BoW) — representacao por contagem de palavras. (2) O BoW alimenta o LDA, que devolve K topicos como distribuicoes de palavras; o resultado e convertido em TF-IDF, que da a importancia numerica das palavras-chave. Essa matriz de features esparsa e alinhada com a serie de preco e entra na LSTM. E representacao por contagem/frequencia, nao um espaco vetorial denso de embeddings — o artigo nao usa encoder contextual, pooling nem geometria de embeddings.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus e de 10.854 noticias diarias e 2.466 precos diarios de varejo do porco, de janeiro de 2010 a dezembro de 2019, excluindo fins de semana.",
+      "citacao": "There are 10,854 daily news articles and 2466 daily prices, excluding weekends.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O LDA foi aplicado a mais de 10.000 noticias para extrair os topicos usados como features de previsao.",
+      "citacao": "We applied the LDA model to obtain relevant topics from more than 10,000 news articles.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "A LSTM reduz o erro (RMSE) em 37% frente ao gradient boosting, 42% frente ao random forest, 53% frente ao ridge e 66% frente ao ARIMAX.",
+      "citacao": "The result of the LSTM model was 37% lower than the result of the gradient boosting model, 42% lower than the result of the random forest model, 53% lower than the ridge model, and 66% lower than the ARIMAX model in terms of RSME.",
+      "pagina": 16
+    },
+    {
+      "afirmacao": "A selecao de features por correlacao de Pearson, aplicada a cinco datasets, cortou o numero de features em mais de 80%.",
+      "citacao": "The feature selection method was applied to five different datasets. It decreased the number of features by more than 80%.",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Mesmo com o preco de leilao sendo o pior caso, o erro percentual (MAPE) da LSTM fica abaixo de 10% para todos os tipos de preco avaliados.",
+      "citacao": "The result of the auction price is worse than the others, but for all MAPE outcomes, the errors are less than 10 percent.",
+      "pagina": 19
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram duas limitacoes. Sobre o LDA: 'It is necessary to set K manually, and this is a limitation of the LDA method, as the result of the LDA model changes greatly depending on the number of topics.' (p.8). Sobre o desempenho: 'there is still scope to improve the model', porque a serie de precos 'contains noises', exigindo 'sophisticated data preprocessing methods' no futuro (p.16).",
+  "evidence": "Comparacao contra 6 baselines em RMSE/MAE/MAPE: estatisticos (ARIMAX, ridge), ML (random forest, gradient boosting) e deep learning (MLP, CNN). A LSTM fica 37%/42%/53%/66% abaixo de GB/RF/ridge/ARIMAX e 28% abaixo do MLP e 16% abaixo da CNN em RMSE (p.16); o resumo afirma 'at least 16% lower error rate' (p.20). Com split por estacao + selecao de features (Tabela 9, p.17), a LSTM aparece como melhor na maioria das estacoes (ex.: verao RMSE 561,6 e MAPE 2,476). Porem a propria Tabela 9 contradiz o 'best in all cases' do texto: no inverno o ridge tem RMSE 503,63 e MAPE 2,351, melhores que a LSTM (567,36 / 2,593). Nao ha baseline ingenuo/random-walk nem ablacao que isole a contribuicao do texto (news) versus a propria serie de preco.",
+  "needs": "Requer: LDA (gensim), POS-tagging de coreano (KoNLPy/Okt, especifico do idioma), TF-IDF e uma LSTM (Keras). O artigo usou GPU (RTX 2080) e CPU i9-9900K, mas os dados sao minusculos (2.466 precos diarios, 10.854 noticias) — nenhum modelo pre-treinado grande. Exige um alvo de serie temporal (o preco) e alinhamento texto-alvo. Lingua: pipeline montado para coreano, a tokenizacao nao transfere direto. Dados rotulados: precisa da serie-alvo, nao de rotulos de classe. Tempo de execucao: nao reportado.",
+  "cost_here": "Baixo a moderado em CPU. O LDA ja esta coberto pelo extra 'topics' (tomotopy); TF-IDF via scikit-learn; a LSTM pode rodar em torch (ja instalado com 'embeddings') em CPU. Com ~4.369 artigos e 965 semanas o volume e pequeno — treino em minutos, sem GPU. O custo real nao e computacional, e de desenho: precisamos de uma serie-alvo semanal (casos suspeitos) e de engenharia de alinhamento texto-alvo. Nao reportado: o artigo nao mede tempo de execucao nem custo de inferencia.",
+  "transferable": "Transfere o PADRAO, nao os numeros: (1) a ideia de extrair features de topicos de noticias e alimentar um modelo temporal supervisionado — nosso caso e noticia PT-BR -> casos suspeitos semanais, analogamente texto -> alvo; (2) a constatacao de que topicos de noticia carregam sinal sobre um alvo externo (doenca/preco). Nao transfere: a tecnica e LDA+TF-IDF (representacao esparsa por contagem), nao embeddings — nao responde nada sobre geometria de espaco vetorial denso; o pipeline e coreano (KoNLPy); a fonte e um site monotematico (PigTimes, so sobre porco), o que elimina o problema de relevancia que nos temos (Agencia Brasil e generica, filtrada por query dengue); granularidade diaria vs a nossa semanal; alvo de mercado vs incidencia de doenca; um unico mercado/pais. Distancia de dominio: grande.",
+  "red_flags": [
+    "Dominio, pais e fonte unicos (noticias coreanas de um site monotematico sobre porco; preco diario na Coreia do Sul) — generalizacao nao demonstrada.",
+    "Nenhuma comparacao com representacoes por embeddings (BERTopic, neural topic models) — LDA e a unica representacao de texto testada, entao o artigo nao diz se embeddings seriam melhores nem piores.",
+    "Sem baseline ingenuo/random-walk e sem ablacao so-preco: nao isola quanto do ganho vem do texto versus da propria serie de preco.",
+    "A alegacao de que a LSTM e 'best in all cases' e contradita pela propria Tabela 9: no inverno o ridge tem RMSE 503,63 e MAPE 2,351, melhores que a LSTM (567,36 / 2,593).",
+    "Ganhos reportados sao reducoes relativas de RMSE ('37% lower'), sem intervalo de confianca nem teste de significancia; split unico (treino 2010-2018, teste 2019).",
+    "Usa GPU (RTX 2080) sobre dados minusculos; resultados sensiveis a estacao (outono muito pior) e dependentes de hiperparametros escolhidos a mao.",
+    "Qualidade dos topicos do LDA nao e avaliada (sem coherence); os keywords exibidos sao parcialmente incoerentes ('Representation', 'Photography', 'Corpse').",
+    "Pipeline dependente de ferramenta especifica do idioma (KoNLPy/Okt) — reprodutibilidade limitada fora do coreano."
+  ]
+}

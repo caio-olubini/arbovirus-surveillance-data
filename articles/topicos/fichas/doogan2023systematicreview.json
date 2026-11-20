@@ -1,0 +1,49 @@
+{
+  "key": "doogan2023systematicreview",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/29_doogan_2023_systematic_review_use_topic.pdf",
+  "author": "Doogan et al.",
+  "year": 2023,
+  "read": "Li o PDF inteiro (33 páginas): capa, autoria e abstract (p. 1); introdução e motivações (pp. 2-5); Tabela 1 com os surveys anteriores (pp. 5-7); metodologia, critérios de inclusão/exclusão (Tabela 2) e fluxo PRISMA (Fig. 2) (pp. 6-9); resultados 3.1-3.6 com as Tabelas 2-5 (áreas de pesquisa, periódicos, fontes de dados, modelos usados, software) (pp. 9-18); discussão 4.1-4.3 com as três listas de recomendações (pp. 18-25); conclusão com a limitação declarada e as notas de Data/Code availability (p. 26); e o início das referências (p. 27+). Conferi a página de cada citação pela extração de texto do próprio PDF, página a página.",
+  "technique": "Não é uma técnica nova: é uma revisão sistemática da literatura (SLR). O objeto é COMO pesquisadores aplicados usam modelos de tópicos sobre texto curto de mídia social. Os autores triaram 738 títulos/abstracts, leram 346 artigos na íntegra, incluíram 189 e fizeram análise fina de 99. Mapeiam quais modelos usam (15 identificados), como escolhem K, como pré-processam e como avaliam, e fecham com recomendações para quem desenvolve modelos. Não há encoder, pooling nem geometria de embedding em jogo.",
+  "representation": "O artigo não propõe encoder, pooling nem geometria de embedding — ele próprio não transforma texto em vetor. A representação que descreve é a dos modelos de tópicos revisados: o texto vira uma matriz documento-termo (bag-of-words) após pré-processamento, e o modelo infere tópicos como distribuições de probabilidade sobre palavras. Os dois pontos de representação que ele critica são o stemming (conflação morfológica que junta palavras de mesmo radical, introduz ambiguidade lexical e degrada a interpretabilidade) e o uso de perplexidade como proxy de qualidade de tópico.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A revisão parte de 189 artigos que aplicam modelagem de tópicos a texto curto de mídia social, dos quais 99 foram analisados em profundidade.",
+      "citacao": "we have conducted a systematic literature review (SLR) of 189 recent articles that apply topic modelling to short text SMD, including a critical analysis of 99 of these articles.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "LDA foi o modelo usado na maioria dos estudos aplicados (79,79%), apesar de a literatura empírica já documentar que LDA é sub-ótimo para textos curtos como os de mídia social.",
+      "citacao": "A significant finding of this study was that LDA was used in the majority of studies (79.79%) even though it has been well documented in the empirical literature that LDA is sub-optimal for short texts such as social media",
+      "pagina": 20
+    },
+    {
+      "afirmacao": "A perplexidade (held-out likelihood) foi a medida de avaliação mais comum, usada em 22,04% dos estudos, ainda que a própria literatura registre que ela não mede interpretabilidade semântica.",
+      "citacao": "Our analysis revealed that held-out likelihood (Perplexity) (Griffiths and Steyvers 2004) was the most common measure used to evaluate the models (22.04%)",
+      "pagina": 24
+    },
+    {
+      "afirmacao": "Os autores identificaram uma tendência preocupante de escolher o número de tópicos K copiando o valor de estudos anteriores, sem testar valores alternativos.",
+      "citacao": "A troubling trend in the selection of K was identified. In some instances, authors selected K by using the same value for K as previous studies and did not conduct any assessment of different values for K",
+      "pagina": 21
+    },
+    {
+      "afirmacao": "O Twitter foi a fonte de dados mais comum, usada em 68,34% (n = 136) dos estudos, o que mostra que o domínio medido é majoritariamente mídia social.",
+      "citacao": "Micro-blogging platforms where users share posts, photos and other media using hashtags and mentions of other users.   68.34% (n = 136)",
+      "pagina": 14
+    }
+  ],
+  "ressalva_do_autor": "One limitation of this study is that it may not provide a comprehensive picture of topic modelling applications. Given the recent explosion of peer-reviewed articles, the research design required inclusion criteria, which reduced the volume of potentially relevant literature reviewed.",
+  "evidence": "Sem experimento próprio e sem baseline de modelo. A evidência são estatísticas descritivas codificadas dos 189 artigos (LDA em 79,79%; perplexidade como medida mais usada em 22,04%; Gensim em 31,30% e MALLET em 26,87%), confrontadas com literatura metodológica anterior (Chang et al. 2009; Lau et al. 2014; Schofield et al. 2017) que aponta perplexidade e stemming como problemáticos. O artigo não compara modelos entre si nem reporta ganho numérico sobre baseline algum: o 'baseline' é a recomendação da literatura, não um resultado remedido pelos autores. Os próprios autores declaram 'Code availability is not applicable to this work.'",
+  "needs": "Nada de computação: é uma revisão de literatura, não um modelo. Para usar as conclusões basta leitura humana e acesso aos artigos revisados; nenhum modelo, GPU, corpus rotulado ou idioma específico é exigido para rodar a revisão. O único artefato é o texto e o material suplementar; não há código.",
+  "cost_here": "Custo de computação: não se aplica / não reportado — não há modelo a rodar sobre o nosso corpus de 4.369 notícias em CPU. O único custo é humano (ler e aplicar as recomendações ao desenho do braço de tópicos). Nenhuma dependência nova em pyproject.toml é necessária.",
+  "transferable": "Transfere o alerta metodológico, que vale independente de idioma e de domínio: não tratar perplexidade como medida de qualidade de tópico (afeta a escolha de K no nosso braço 03 com tomotopy/DMR), não copiar K de outro corpus, e desconfiar de LDA para texto curto. Não transfere o domínio: a amostra é 68,34% Twitter, a busca foi restrita a artigos em inglês e o recorte é 2016-2021; portanto os números descrevem a prática em mídia social anglófona, não a notícia PT-BR da Agência Brasil. A distância de domínio é média: 'texto curto' é comum aos dois, mas comprimento, registro e língua diferem, e parte das recomendações de pré-processamento (hashtags, URLs, emojis) é específica de tweet.",
+  "red_flags": [
+    "Revisão sem experimento primário: todas as afirmações são descritivas; os autores não rodam nenhum modelo nem medem ganho.",
+    "Viés de fonte e idioma: 68,34% dos artigos usam Twitter e o critério de inclusão exige inglês, então o corpus não representa notícia PT-BR.",
+    "Recorte restrito: só artigos de 2016-2021 em periódicos de alto ranking (SJR/SNIP >= 1,5) ou conferências CORE A/A*, o que pode excluir práticas relevantes.",
+    "A sub-optimalidade do LDA para texto curto é afirmada por citação (Hong e Davison 2010 etc.), não remedida no estudo.",
+    "Saturação alegada após a análise fina de apenas 99 dos 189 artigos: pouco mais da metade do corpus foi lida em profundidade."
+  ]
+}

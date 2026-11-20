@@ -1,0 +1,51 @@
+{
+  "key": "syed2023geospatre",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/34_syed_2023_geospatre_spatial_relation_geocoding.pdf",
+  "author": "Syed et al.",
+  "year": 2023,
+  "read": "Li o texto completo das 18 páginas do PDF (capa HAL + capa do periódico + artigo). Seções lidas: abstract/introdução (p.3-4), Related work (p.4-5), Spatial relation entities com os níveis Level-1/2/3 e compound (p.5-7), Proposed methodology: Extraction phase e Geocoding phase (p.7-11), Datasets 5.1 e 5.2 (p.12-13), Results 6.1/6.2 (p.14-15), Discussion (p.16), Conclusion and future work (p.17), referências (p.17-18). Li as tabelas em texto: Table 1 (exemplo de DOC antes/depois), Table 2 (resultados da extração por doença + agregado), Table 3 (avaliação qualitativa por cidade), Tables 4 e 5 (avaliação por relação Level-1 e Level-2/3). Os pseudocódigos (Algorithm 1-8) aparecem como imagem no PDF e não são legíveis como texto — não os li.",
+  "technique": "Geoparsing por regras, em dois passos, sem aprendizado de embedding. Passo 1 (Extração): usa a biblioteca spaCy com modelos de inglês (en_core_web_sm/md/lg/trf) para NER, extraindo só entidades GPE e LOC (ex.: Paris, Lyon). Depois quebra a frase em orações por conjunções (',' ';' ':' e 'and','but','or'...) e descarta as orações sem entidade espacial. Nas orações candidatas, expressões regulares (re do Python + biblioteca quantities para unidades de distância) identificam relações espaciais em três níveis: Level-1 cardinal/centro (north, south, center...), Level-2 proximidade (border, near, close, proximity...) e Level-3 distância (ex.: '2 km from', 'radius of 3 miles'); relações compostas combinam níveis (ex.: '1 km from north Paris border'). O span 'relação + entidade' é injetado no DOC do spaCy sob o rótulo 'spatRE'. Passo 2 (Geocodificação): o topônimo é resolvido para geometria via API Nominatim (OpenStreetMap); as formas são obtidas fatiando o polígono do lugar (Level-1 gera 9 fatias: north/south/east/west/NE/NW/SE/SW/central) ou derivando por operações geográficas com GeoPandas e Shapely (buffers, uniões, interseções) para Level-2/Level-3; a saída é GeoJSON, visualizada com Folium/Leaflet. Nada disso é um encoder de texto: o texto não vira vetor, vira coordenada geográfica.",
+  "representation": "Não é representação vetorial de texto. O artigo não transforma texto em embedding: ele transforma texto em coordenadas geográficas e polígonos. O caminho é token/NER -> topônimo -> geometria OSM -> geometria modificada pela relação ('south of X' fatia o polígono de X). Os modelos spaCy md/lg/trf têm vetores de palavra internos, mas o método do artigo é baseado em regras/regex sobre tokens, não em similaridade vetorial; o vetor não é a representação usada. Ou seja, pertence à família de geoparsing/geocoding, não à de representação por embeddings.",
+  "afirmacoes": [
+    {
+      "afirmacao": "No agregado de 377 notícias de doenças, a fase de extração de spatRE atinge precisão 0,9, recall 0,88 e F-Score 0,88.",
+      "citacao": "The overall score for all the disease's dataset is calculated with precision of 0.9, recall of 0.88 and F-Score of 0.88.",
+      "pagina": 14
+    },
+    {
+      "afirmacao": "O corpus de validação são notícias de cinco doenças (AMR, COVID-19, gripe aviária, Lyme e TBE) extraídas do sistema de vigilância de eventos PADI-web.",
+      "citacao": "The dataset contains the news articles of different diseases i.e. 1) AMR 2) COVID-19, 3) Avian-Influenza, 4) Lyme and 5) Tick-borne Encephalitis (TBE).",
+      "pagina": 12
+    },
+    {
+      "afirmacao": "A metodologia tem dois passos: extração das relações espaciais por abordagem baseada em orações e geocodificação que fatia ou deriva as regiões poligonais a partir do topônimo.",
+      "citacao": "We propose a two-step methodology: (i) Extraction of geospatial relations associated with spatial entities, using a clause-based approach, and (ii) Geo-referencing of geospatial relations associated with spatial entities in order to identify the polygon regions, using a custom algorithm to slice or derive the geospatial relation regions from the place name and their geospatial relations.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A fase de geocodificação é avaliada apenas qualitativamente por usuários finais, com nota média 3,07 de 4, e falha justamente para Madri.",
+      "citacao": "The qualitative evaluation of the shapes dates with the average score of 3.07 out of 4. However, in particular, the shapes for Madrid were not well-defined with the applied methodology.",
+      "pagina": 17
+    },
+    {
+      "afirmacao": "Os próprios autores reportam falsos positivos da extração: topônimos como North America, South Africa, South Asia e South Korea foram reconhecidos como spatRE.",
+      "citacao": "For instance, in the extraction phase, North America, South Africa, South Asia, and South Korea are spatial entities. However, they were recognized as spatREs by our approach.",
+      "pagina": 16
+    }
+  ],
+  "ressalva_do_autor": "In the geocoding phase, we evaluated the proposed algorithm by generating geographical coordinates for geospatial relations specific to several European and UK cities. However, this approach was limited to few cities, and future work should be aimed at enriching the geocoding dataset. During the evaluation, we observed some irregularities in the shapes of geospatial relations for specific cities, including Madrid.",
+  "evidence": "Evidência quantitativa só na primeira fase, e a comparação NÃO é contra um método concorrente: é contra um gabarito anotado à mão do mesmo corpus. Table 2, por doença: AMR (25 artigos, 4 spatRE extraídos vs 5 reais) P=1, R=0,80, F=0,88; COVID-19 (100 artigos) P=0,87, R=0,94, F=0,90; Avian-Influenza (150) P=0,87, R=0,83, F=0,84; Lyme (29) P=0,83, R=1, F=0,90; TBE (73) P=0,93, R=0,83, F=0,87; agregado 377 artigos, 244 spatRE extraídos vs 256 reais, P=0,9, R=0,88, F=0,88. Não há baseline de sistema (nenhum outro geoparser/geocoder é rodado para comparar). A segunda fase não tem métrica automática: 9 cidades x 19 formas são pontuadas de 1 a 4 por avaliadores (2 por forma, na maioria; Florença por todos), média global 3,07/4; por cidade, 8 de 9 'definidas melhor', e Madri fraca (50,7%, 'Weak'). Não há comparação contra um geocoder alternativo.",
+  "needs": "Python. Para a extração: spaCy com modelos de INGLÊS (en_core_web_sm/md/lg/trf; os autores dizem que o trf é 'computationally expensive'), biblioteca quantities e regras regex escritas para inglês; um corpus anotado com spatRE como gabarito para medir precisão/recall. Para a geocodificação: API Nominatim (OpenStreetMap, exige rede) e dados OSM, mais GeoPandas, Shapely e Folium. Não exige GPU — o pipeline é baseado em regras e os modelos pequenos do spaCy rodam em CPU. Custo/tempo de execução sobre um corpus: não reportado. Para o nosso corpus PT-BR, os modelos e regras em inglês não servem: seria preciso reimplementar com pt_core_news + regras/lexico em português (não fornecidos). O custo de dependência nova é alto: spaCy + GeoPandas + Shapely + Folium + quantities é um conjunto grande além dos extras já fixados (embeddings, tomotopy).",
+  "cost_here": "Não reportado. O artigo não informa tempo, memória nem hardware. Não usa GPU. Rodar sobre os nossos 4.369 artigos PT-BR exigiria modelos spaCy de português e regras/lexico em PT (que o artigo não oferece) e chamadas ao Nominatim para locais brasileiros; tudo é factível em CPU em princípio, mas o artigo não dá nenhum tempo medido para basear orçamento. Não estimar como barato: a ausência de número é 'não reportado'.",
+  "transferable": "Transfere: a tese central — um topônimo sozinho aponta para a região errada quando o texto diz 'north of X', 'border of X', '30 km from X' — encaixa direto em notícia de dengue com 'norte do Pará', 'fronteira do Amazonas', 'interior de SP'; e a ideia de tratar a relação como modificação da geometria do lugar (fatiar/derivar) é reutilizável sobre as nossas 28 localidades. NÃO transfere: a implementação é só-inglês (modelos en_core_web e regras em inglês) e foi ajustada a cidades do Reino Unido e da Europa; a validação de qualidade foi feita por avaliadores humanos sobre 9 cidades, o que não reaproveitamos. A distância de domínio é grande no lado do texto (notícia inglesa de doença animal vs notícia PT-BR de dengue) e a técnica é um pipeline de geoparsing por regras, não um método de representação de texto — logo ela compete com o braço de léxico (01), não com os braços de embedding (02/03). Os próprios autores colocam América Latina e África como trabalho futuro.",
+  "red_flags": [
+    "Nenhum baseline concorrente: a extração só é comparada a um gabarito anotado, sem rodar outro geoparser/geocoder para comparar.",
+    "A segunda fase (geocodificação) é avaliada apenas qualitativamente, por 2 avaliadores na maioria das formas, sobre 9 cidades e 19 formas; sem métrica automática.",
+    "Madri falhou (50,7%, 'Weak') e os autores admitem polígonos irregulares — a robustez por cidade não está demonstrada.",
+    "Corpus pequeno e desbalanceado (AMR tem só 25 artigos e 4 spatRE); o agregado de 377 esconde a variação por doença.",
+    "Só inglês e só cidades europeias/britânicas; nada multilíngue nem em português.",
+    "Alvo subjetivo: 'east Paris border' é interpretado de formas diferentes por pessoas e não há procedimento padrão — a avaliação mede percepção, não correção objetiva.",
+    "Falsos positivos estruturais (North America, South Korea tratados como spatRE) reconhecidos pelos próprios autores."
+  ]
+}

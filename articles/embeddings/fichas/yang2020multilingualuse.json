@@ -1,0 +1,51 @@
+{
+  "key": "yang2020multilingualuse",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/14_yang_2020_multilingual_use.pdf",
+  "author": "Yang et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (8 páginas). Páginas 1-6 na íntegra: abstract, Introdução, Model Toolkit, Encoder Architecture (3.1 Multi-task Dual Encoder, 3.2 SentencePiece, 3.3 Shared Encoder), Training and Configuration (4.1 corpus, 4.2 config), Experiments on Retrieval Tasks (5.1 SR, 5.2 BR, 5.3 ReQA, 5.4 Cross-lingual), Experiments on Transfer Tasks, Resource Usage e Conclusion. Examinei as Tabelas 1-8 (línguas, tarefas de treino, exemplos de treino, MAP@100 SR, P@1 BR, P@1 ReQA, MAP cl-SR/cl-ReQA, SentEval) e a Figura 2 (uso de recursos CPU/GPU/memória). Li as notas de rodapé relevantes, em especial a 13 (limitação do vocabulário SentencePiece), a 17 (tamanho das tarefas de recuperação) e a 21/22 (hardware dos benchmarks). Páginas 7-8 são só referências, que passei os olhos.",
+  "technique": "É o Universal Sentence Encoder multilíngue (USE) do Google: modelos de sentence embedding treinados com um único encoder compartilhado em um framework multi-tarefa dual-encoder (ReQA, ranking de tradução e NLI) para colocar texto de 16 línguas (incluindo português) em um mesmo espaço semântico. Há duas arquiteturas: um Transformer (6 camadas, 8 cabeças de atenção, hidden 512, filtro 2048) e uma CNN (2 camadas, larguras de filtro 1/2/3/5, 256 filtros por largura). O texto vira número em três passos: tokenização SentencePiece com um vocabulário único de 128k compartilhado pelas 16 línguas; cada token vira um vetor de embedding fixo; o encoder produz representações de token sensíveis ao contexto e a média delas (average pooling) vira o embedding de frase. A busca é feita por produto escalar / vizinho mais próximo. Os modelos são publicados no TensorFlow Hub.",
+  "representation": "Texto -> tokens via SentencePiece (vocabulário único de 128k para as 16 línguas, cada token mapeado a um vetor fixo) -> encoder compartilhado (Transformer com self-attention bidirecional, ou CNN) -> as representações de token sensíveis ao contexto são somadas em média (average pooling) -> vetor de frase de comprimento fixo no espaço semântico compartilhado. A similaridade é o produto escalar (a STS usa -arccos do cosseno das representações normalizadas). Camadas ocultas específicas por tarefa são acrescentadas após o encoder compartilhado para QA e NLI. Ou seja, é um artigo de COMO transformar texto em número: encoder, pooling por média, vocabulário subword e geometria de um espaço compartilhado entre línguas.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Os modelos vêm em duas arquiteturas com trade-off explícito de custo e precisão: Transformer (mais preciso, mais caro em recursos) e CNN (inferência eficiente, precisão reduzida); ambas usam média das representações de token como embedding de frase.",
+      "citacao": "Two distinct architectures for the sentence encoding models are provided: (i) transformer (Vaswani et al., 2017), targeted at higher accuracy at the cost of resource consumption; (ii) convolutional neural network (CNN) (Kim, 2014), designed for efficient inference but obtaining reduced accuracy.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Um único vocabulário SentencePiece de 128k tokens, treinado em 8 milhões de frases, cobre as 16 línguas; a cobertura de caracteres passa de 99% com menos de 1% de tokens fora do vocabulário.",
+      "citacao": "A single 128k SentencePiece vocabulary is trained from 8 million sentences sampled from our training corpus and balanced across the 16 languages.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Custo de inferência medido: em GPU é 2 a 3 vezes mais rápido que em CPU; os modelos CNN têm o menor footprint de memória e são os mais rápidos em CPU e GPU, e o Transformer cresce mais que o dobro em memória conforme o texto alonga.",
+      "citacao": "Inference times on GPU are 2 to 3 times faster than CPU. Our CNN models have the smallest memory footprint and are the fastest on both CPU and GPU.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Na recuperação semântica cross-lingual (cl-SR, MAP médio na Tabela 7), o USETrans supera o USECNN e o LASER (médias ~62.5 vs ~58.3 vs ~54), com a única exceção do Quora em polonês onde o LASER fica levemente à frente.",
+      "citacao": "On both the Quora and AskUbuntu cl-SR tasks, USETrans outperforms USECNN and LASER on all datasets, except the Polish (pl) Quora data where LASER achieves slightly better performance.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Nos testes de transferência em inglês (SentEval, Tabela 8), o modelo multilíngue USETrans chega perto e em alguns casos supera os sentence embeddings só em inglês: por exemplo STS Bench 0.837/0.825 vs 0.802/0.766 do USE em inglês.",
+      "citacao": "Monolingual transfer task performance approaches, and in some cases exceeds, English only sentence embedding models.",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que o vocabulário SentencePiece único para 16 línguas degrada o desempenho (nota de rodapé 13, p. 4): \"Performance is degraded from Yang et al. (2019) due to using a single sentencepiece vocabulary to cover 16 languages.\" A continuação explica que línguas como chinês, coreano e japonês têm muito mais caracteres, então o sentencepiece tende a quebrar o texto em caracteres isolados, o que aumenta a dificuldade da tarefa.",
+  "evidence": "Os autores comparam contra baselines nomeados. SR em inglês (Quora/AskUbuntu, MAP@100, Tabela 4): USETrans 89.1/42.3 (média 65.7) e USECNN 89.2/39.9 (média 64.6) vs baseline Gillick et al. (2018) 87.5/37.3 (média 62.4). cl-SR (queries traduzidas por máquina, candidatos em inglês, Tabela 7): USETrans média 62.5, USECNN 58.3 vs LASER ~54. cl-ReQA SQuAD (Tabela 7): USEQA Trans+Cxt média 43.3. BR no UN Parallel Corpus (P@1, Tabela 5): USETrans 86.1/83.3/88.9/78.8 - aqui PERDE do SOTA Yang et al. (2019) 89.0/86.1/89.2/87.9. ReQA SQuAD (P@1, Tabela 6): recuperação por parágrafo USEQA Trans+Cxt 63.5 dev vs BM25 61.6; por sentença USEQA 53.2 vs USETrans 47.1. Transferência SentEval (Tabela 8): STS Bench 0.837/0.825 (USETrans) vs 0.802/0.766 (USE inglês), mas em várias tarefas de classificação (ex. MR 78.1 vs 82.2) fica abaixo do USE em inglês. Há baselines para todas as tarefas (Gillick, LASER, BM25, Yang 2019, USE inglês, InferSent, Quick-Thought).",
+  "needs": "Exige o modelo pré-treinado do TensorFlow Hub (universal-sentence-encoder-multilingual e a variante -qa), entregue como SavedModel do TensorFlow 1 (hub.Module), ou seja, roda sobre TensorFlow/tensorflow_hub - não PyTorch. Cobre 16 línguas incluindo português; não precisa de dados rotulados próprios (é pré-treinado). Entrada truncada a 100 tokens (Transformer) e 256 tokens (CNN). Tamanho do modelo em MB: não reportado. Latência absoluta de CPU: não reportada (a Figura 2 dá só comparações relativas). Os benchmarks usaram Intel Xeon Platinum 8173M em CPU e NVidia v100 em GPU.",
+  "cost_here": "Rodaria em CPU, mas o custo de dependência é alto para nós: o artefato é TF Hub/TensorFlow 1, e nosso stack instalado é torch+transformers (extra embeddings) - TensorFlow seria uma dependência nova e pesada, fora do que já está fixado em pyproject.toml. O artigo não reporta latência absoluta em CPU nem tamanho de download (a Figura 2 é só relativa), então o custo real sobre as 4.369 notícias em CPU é não reportado, não 'barato'. A entrada é truncada a 100 tokens, então artigos longos exigiriam chunking. O pooling e o vocabulário SentencePiece podem ser replicados com um encoder multilíngue equivalente já disponível em transformers (não é o que o artigo mede).",
+  "transferable": "O que transfere: português é uma das 16 línguas suportadas, então o modelo se aplica diretamente a texto PT-BR; as decisões de representação (vocabulário subword único, encoder compartilhado, average pooling, trade-off Transformer/CNN) valem independente de domínio; o resultado de que o multilíngue se aproxima do monolíngue em inglês sugere que não se perde muito ao usar um modelo multilíngue. O que NÃO transfere: todas as avaliações são em inglês (Quora, AskUbuntu, SQuAD, SentEval, SNLI) e as métricas multilíngues usam queries traduzidas por máquina com candidatos em inglês - não há avaliação de recuperação com texto nativo em português. O domínio é QA de fóruns e compreensão de leitura em inglês, longe de notícia de vigilância de arbovirose em PT-BR; a unidade é frase (<=100 tokens), não artigo. A distância de domínio é grande e o ganho cross-lingual é medido contra um único baseline (LASER).",
+  "red_flags": [
+    "Avaliação centrada em inglês (Quora, AskUbuntu, SQuAD, SentEval, SNLI); a qualidade multilíngue é testada só via queries traduzidas por máquina com candidatos em inglês, nunca com texto nativo em português.",
+    "Baseline cross-lingual é só o LASER, e o LASER não tem resultado para japonês e chinês (erros de unicode) - baseline parcial.",
+    "O próprio artigo mostra que no bitext retrieval (Tabela 5) seus modelos ficam abaixo do SOTA Yang et al. (2019); o 'state-of-the-art' vale só para SR.",
+    "Treino usa dados traduzidos por máquina (SNLI traduzido para 15 línguas) e o Google Tradutor - a qualidade em português depende dessa MT, não de dados nativos.",
+    "Resultados são só extrínsecos (tarefas de recuperação/transferência); não há avaliação intrínseca da geometria do espaço de embeddings.",
+    "Uso de recursos só em termos relativos (Figura 2); sem número absoluto de latência de CPU ou tamanho do modelo.",
+    "Artefato é TensorFlow Hub 1.x (hub.Module), acoplado a uma stack que não é a nossa (torch/transformers)."
+  ]
+}

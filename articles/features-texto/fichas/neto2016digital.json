@@ -1,0 +1,50 @@
+{
+  "key": "neto2016digital",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/26_neto_2016_digital_disease_detection_brazil.pdf",
+  "author": "Leal-Neto et al.",
+  "year": 2016,
+  "read": "Li as 5 páginas do PDF inteiro — é uma Brief Communication da Revista de Saúde Pública, sem seção formal de limitações. Capa, abstract, palavras-chave e metadados (p.1); Introduction e Methods (p.2); Results com a Table que descreve os 11 sistemas/plataformas, lida linha a linha (ProMED, GPHIN, InfluenzaNet, HealthMap, MedISys, Salud Boricua, Flu Near You, Dengue na Web, Observatório da Dengue, Saúde na Copa, Guardiões da Saúde) (p.3); Discussion com os parágrafos sobre ética, Marco Civil da Internet e validação de informação (p.4); e o fim das referências com Authors' Contribution e Conflict of Interest (p.5).",
+  "technique": "Artigo de aplicação, não de técnica. É uma comunicação descritiva (revisão narrativa) que cataloga 11 sistemas/plataformas de detecção digital de doenças e vigilância participativa desenvolvidos entre 1996 e 2016. Os autores classificam cada sistema em três estratégias: (A) mineração de dados epidemiologicamente relevantes na web; (B) vigilância participativa por crowdsourcing ativo; e (C) mineração de dados no Twitter por crowdsourcing passivo. Para cada plataforma descrevem o tipo de fonte de dados (primária, coletada direto do usuário, ou secundária, coletada no ciberespaço), o objetivo principal e o canal de interação (site, aplicativo móvel). Não há modelo, encoder nem processamento de linguagem: o 'método' é a categorização conceitual dentro dos enquadramentos de epidemiologia digital, infodemiologia e infoveillance.",
+  "representation": "Não há representação vetorial de texto. O texto nunca vira número: a análise é categórica e qualitativa, feita por rótulos (estratégia A/B/C, fonte primária/secundária, canal web/mobile). É o oposto de um artigo de representação — nada de encoder, pooling, normalização, geometria de espaço ou dimensionalidade.",
+  "afirmacoes": [
+    {
+      "afirmacao": "A análise cobre 11 sistemas/plataformas de detecção digital de doenças desenvolvidos entre 1996 e 2016, com maior frequência de mineração de dados na web e de crowdsourcing ativo.",
+      "citacao": "Eleven systems or platforms, developed from 1996 to 2016, were analyzed. There was a higher frequency of data mining on the web and active crowdsourcing",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O método é uma análise descritiva conduzida de outubro de 2013 a março de 2016, com os objetos de estudo divididos em três categorias: detecção digital na web, vigilância participativa (crowdsourcing ativo) e Twitter (crowdsourcing passivo).",
+      "citacao": "From October 2013 to March 2016, a descriptive analysis was performed using categories based on the objects of study, divided into:",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Apesar de reconhecido como centro de desenvolvimento de computação em saúde, o Brasil tem produção científica ainda tímida em detecção digital de doenças.",
+      "citacao": "Despite being recognized as a center of computer development in health, Brazil presents shy results in scientific production related to digital detection of diseases.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Na caracterização dos sistemas, houve predominância de países norte-americanos, maior frequência de mineração de dados epidemiologicamente relevantes na web e de crowdsourcing ativo, uso de fontes primárias e secundárias e tendência ao uso de aplicativos móveis.",
+      "citacao": "Regarding the characterization of systems, we observed a predominance of North American countries, higher frequency of epidemiologically relevant data mining on the web and active crowdsourcing, use of primary and secondary data sources, and a trend in the use of mobile applications to collect, record, and search information.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Sete das plataformas analisadas mostraram uso potencial no Brasil, algumas já incorporadas à rotina dos Centros de Informações Estratégicas de Vigilância em Saúde (CIEVS).",
+      "citacao": "Seven of those platforms showed a potential use in Brazil, where some of them are already part of the routines of the Centros de Informações Estratégicas de Vigilância em Saúde (CIEVS",
+      "pagina": 4
+    }
+  ],
+  "ressalva_do_autor": "Os autores não têm seção de limitações, mas declaram que a comunicação não esgota o tema e serve para provocar debate: \"the role of this communication is not to exhaust the subject, but to instigate debate in academic and health services\". Admitem que a abordagem é nova no Brasil: \"This approach is still new in Brazil, but there are already dozens of successful experiences abroad\". E apontam como limitação de domínio a validação da informação dessas fontes: \"Another important aspect is the current limitations to validate information, with aspects of cultural changes in the collaborative thinking of society to build sources of information with popular participation and social control\", acrescentando que os riscos só podem ser mitigados com equipes locais de investigação epidemiológica.",
+  "evidence": "Nenhuma avaliação quantitativa, nenhuma métrica, nenhum baseline e nenhuma comparação de desempenho. A evidência é uma tabela descritiva (Table, p.3) que lista 11 sistemas com país/ano-base, tipo de estratégia (A/B/C), fonte de dados, objetivo principal e canal de interação. Os autores não medem se algum sistema funciona melhor ou pior que outro; apenas afirmam que são reconhecidos cientificamente ('consolidated recognition in the scientific world, measured by citations'). É uma revisão narrativa, não um estudo experimental.",
+  "needs": "Nada computacional. Não exige modelo, GPU, corpus, dados rotulados nem código. O insumo é literatura científica e a descrição de plataformas já publicadas. Não reporta custo de execução porque não executa nada.",
+  "cost_here": "Não aplicável / não reportado: não há técnica para rodar sobre o nosso corpus. É um artigo conceitual de vigilância em saúde, sem componente de representação de texto que possa ser reexecutado nos nossos braços em CPU.",
+  "transferable": "Transfere o enquadramento de domínio: o artigo trata exatamente do nosso cenário — vigilância de doenças com a dengue como caso brasileiro, uso de fontes não oficiais (notícia e redes sociais) para detecção precoce, e a distinção entre crowdsourcing ativo (participativo) e passivo (mineração de web/Twitter). A menção a projetos brasileiros de dengue (Observatório da Dengue, Dengue na Web) é contexto diretamente relevante. NÃO transfere nada de técnica: não há encoder, pooling, normalização nem qualquer método de representação reaproveitável nos braços de embedding ou de tópicos. A distância é grande no que importa para a pipeline (zero método reaproveitável) e pequena no que importa para o enquadramento (mesmo domínio, país e doença).",
+  "red_flags": [
+    "É uma Brief Communication / revisão narrativa: não tem experimento, baseline nem métrica.",
+    "Nenhuma avaliação quantitativa de desempenho dos sistemas catalogados.",
+    "Amostra pequena e heterogênea (11 sistemas), escolhida por reconhecimento científico medido em citações.",
+    "Descrição categórica feita por leitura dos autores, sem protocolo de extração reprodutível.",
+    "Nenhum código, dado ou material suplementar disponibilizado.",
+    "Cobertura de plataformas termina em 2016, antes de boa parte da literatura posterior de NLP e de embeddings multilíngues."
+  ]
+}

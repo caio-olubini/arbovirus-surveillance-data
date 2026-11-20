@@ -1,0 +1,51 @@
+{
+  "key": "zheng2023adaptivelda",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/14_zheng_2023_adaptive_lda_optimal_topic.pdf",
+  "author": "Zheng et al.",
+  "year": 2023,
+  "read": "Li o artigo inteiro (12 páginas). Em detalhe: capa/autores e abstract (p.1); Introdução (p.1-2); Trabalhos Relacionados (p.2-4); Metodologia — extração de word embedding BERT e do vetor temporal, Tabela 1 (WWM) e Tabela 2 (escolha de λ1/λ2) (p.4-7); Experimentos — descrição dos datasets (p.6) com Tabela 3 (p.7) e Tabela 4 (modelos BERT, p.8); Análise de Resultados — Figs. 4-5 e Tabela 5 (p.8-10); Conclusão e limitações (p.10-11); referências (p.11-12). Conferi os números na Tabela 5 (p.10) e os valores de K descritos no corpo (p.9).",
+  "technique": "MVFDC (multi-view fusion density clustering): um método para ESCOLHER o número de tópicos K do LDA por clusterização, não um encoder novo. Cada documento gera duas 'views': (1) semântica, a partir de word embeddings de um BERT pré-treinado com Whole Word Masking (chinês do HIT/Xunfei, inglês do Google); (2) temporal, em que cada palavra vira um sinal de T dias S_w = [s_w(1), ..., s_w(T)] cujo valor diário é um DF-IDF suavizado (construção no estilo do algoritmo EDCoW, suavização Add-Delta com λ1 e λ2). Um modelo de aprendizado de features multi-nível com aprendizado contrastivo (autoencoder -> MLP de features e label-MLP, com refinamento de rótulos de cluster) funde as duas views; os vetores fundidos são concatenados, reduzidos com t-SNE e clusterizados por picos de densidade (Rodriguez & Laio). O número de clusters lido do 'mapa de decisão' vira o K do LDA.",
+  "representation": "O texto vira número em dois canais paralelos que depois são concatenados: (1) semântico — embeddings contextuais BERT por palavra (modelo pronto, sem treino próprio); (2) temporal — para cada palavra w um vetor de T dimensões S_w = [s_w(1), ..., s_w(T)], em que s_w(t) é um DF-IDF suavizado ao longo dos dias (fração de notícias do dia que contêm w, em escala log, com suavização Add-Delta λ1/λ2). Os dois vetores passam por um modelo de fusão treinado (multi-nível + contrastivo) e são concatenados; a clusterização nesse espaço fundido devolve um escalar — o número de clusters — usado como número de tópicos. A 'representação' que importa aqui é a geometria do espaço fundido, e o alvo é a dimensionalidade do modelo de tópicos (K).",
+  "afirmacoes": [
+    {
+      "afirmacao": "O método proposto (MVFDC) supera os quatro baselines clássicos de escolha de K em F-value nos dois datasets: no Guardian F = 47,06% (contra 33,33% da perplexity, 40,00% do MPI, 42,82% do C_UCI e 40,00% do UMass) e no Sogou Lab F = 71,43% (contra 50,00%, 59,99%, 63,16% e 50,00%).",
+      "citacao": "The experimental results show that the clustering method based on the fusion of semantic and temporal information to determine the optimal number of topics is significantly better than other traditional methods in terms of F-value, PMI scores MI scores",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "Os quatro métodos clássicos discordam sobre o número ótimo de tópicos: no Sogou Lab, a perplexity indica 35 e o MPI indica 45 (o texto cita ainda C_UCI = 36 e UMass = 45).",
+      "citacao": "the method based on the perplexity can be considered 35, the method based on the MPI Score can be considered 45",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "O K final é lido do mapa de decisão do density peak clustering: 15 clusters para o Guardian e 12 para o Sogou Lab.",
+      "citacao": "there are 15 points with large horizontal and vertical coordinates in the Guardian dataset, which means that the data can be clustered into 15 classes",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O texto descreve o Guardian como 51.283 artigos em cinco categorias e o Sogou Lab como 700 artigos em sete categorias — o inverso da Tabela 3 (p.7), que lista Guardian com 700 amostras e 7 classes e Sogou Lab com 51.283 e 5.",
+      "citacao": "The Guardian dataset has five categories: business, culture, politics, sports and technology, with a total of 51,283 articles",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O encoder semântico é BERT pré-treinado com Whole Word Masking: o modelo inglês tem 24 camadas, 16 cabeças de atenção e 340 M de parâmetros (o chinês, 110 M).",
+      "citacao": "The English language model has 24 layers of transformer blocks, 16 self-attention heads, 340 M parameters",
+      "pagina": 4
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram duas limitações na conclusão (p.11). Primeira: o método depende de dados com informação temporal — \"the method requires textual datasets with temporal information, so the algorithm has some limitations on more general datasets\". Segunda: o desempenho pode cair com desbalanceamento de tipos de texto — \"modeling using this method may impact the results if an imbalance in the type of text data is encountered\". Eles também apontam como trabalho futuro incorporar imagens e vídeos ao modelo.",
+  "evidence": "Evidência comparativa contra quatro baselines de escolha de K (Perplexity, MPI, C_UCI, UMass), em dois datasets de notícia (Guardian, inglês; Sogou Lab, chinês), com métricas Precision, Recall, F-value, AVGPMI (PMI) e AVGMI (MI), varrendo K em [2:100]. Tabela 5 (p.10): Guardian — MVFDC F = 47,06%, PMI = 11,0212, MI = 0,0457; baselines F = 33,33% (Perplexity), 40,00% (MPI), 42,82% (C_UCI), 40,00% (UMass). Sogou Lab — MVFDC F = 71,43%, PMI = 12,3795, MI = 0,0409; baselines F = 50,00%, 59,99%, 63,16%, 50,00%. O baseline é só heurísticas clássicas de K, não outro método neural de escolha de K nem outro espaço de representação; não há teste estatístico para o 'significantly better'.",
+  "needs": "Requer: texto com timestamps (data de publicação) para construir a view temporal; modelos BERT pré-treinados (chinês 110 M / inglês 340 M de parâmetros); implementação própria do pipeline MVFDC (autoencoder + MLPs + aprendizado contrastivo + density peak clustering + t-SNE), nada disso disponível no tomotopy; e o número de categorias de especialista por dataset como ground truth para calcular Precision/Recall/F. Línguas testadas: chinês e inglês. GPU e tempo de execução: não reportados.",
+  "cost_here": "Não reportado. O artigo não informa tempo de execução nem se usou GPU. Para o nosso corpus (4.369 artigos PT-BR, 965 semanas, 28 locations), o custo principal seria a inferência BERT em CPU (modelo inglês de 340 M de parâmetros) somada à implementação nova do pipeline MVFDC (autoencoder + aprendizado contrastivo + density peak clustering + t-SNE), que não existe no tomotopy — dependência nova de código, não só de um pacote. O artigo também não cobre português.",
+  "transferable": "Transfere: a ideia de escolher K por clusterização de um espaço de representação em vez de curvas de perplexity/coerência, e a construção de uma view temporal (DF-IDF por dia) — aproveitável porque temos 965 semanas de timestamps. A distância de domínio notícia->notícia é pequena (favorável). Não transfere: o idioma (BERT chinês/inglês, sem PT-BR, então a distância de língua é grande) e a validação P/R/F, que exige o número de categorias de especialista como ground truth, que não temos de forma limpa. O mecanismo de fusão multi-view é genérico, mas exige implementação própria que não temos.",
+  "red_flags": [
+    "Texto e Tabela 3 se contradizem: o texto (p.6) diz Guardian com 51.283 artigos e 5 categorias e Sogou Lab com 700 artigos e 7 categorias, enquanto a Tabela 3 (p.7) lista Guardian com 700 amostras e 7 classes e Sogou Lab com 51.283 e 5 — os números estão trocados entre texto e tabela.",
+    "A Tabela 4 (p.8) também troca as configurações: atribui ao Guardian o BERT de 12 camadas / 110 M (marcado 'large') e ao Sogou Lab o de 24 camadas / 340 M (marcado 'base'), o inverso do que o corpo do texto (p.4) descreve para inglês e chinês — e a coluna 'Type' contradiz a coluna 'Parameters'.",
+    "Os clusters do mapa de decisão (Guardian 15, Sogou 12) não batem com a coluna do MVFDC na Tabela 5 (12 e 7).",
+    "Só dois datasets e ground truth grosseiro: o 'correto' é simplesmente o número de categorias originais; o próprio artigo diz que as curvas do Sogou são voláteis por haver pouco dado.",
+    "Baselines são apenas heurísticas clássicas de K (perplexity/coerência); não há comparação com outro método neural de escolha de K nem com outro espaço de representação, e não há teste estatístico para o 'significantly better'.",
+    "O MI do MVFDC é o menor da tabela (0,0457 no Guardian e 0,0409 no Sogou) e ainda assim é contado como melhor; a direção de 'melhor' para MI é ambígua (os autores definem MI menor como melhor), o que fragiliza a alegação de ganho em MI.",
+    "Avaliação só em chinês e inglês; nada em português, então a transferência de idioma é uma incógnita."
+  ]
+}

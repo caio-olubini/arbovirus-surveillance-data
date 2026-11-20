@@ -1,0 +1,50 @@
+{
+  "key": "arora2017sif",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/11_arora_2017_sif_sentence_embeddings.pdf",
+  "author": "Arora et al.",
+  "year": 2017,
+  "read": "Li o PDF completo (9 paginas). Capa/titulo e abstract (p.1); Introducao com a descricao do metodo e a formula do peso (p.1); Related Work (p.2-3); secao 3 com o modelo generativo, a derivacao do MLE e o Algorithm 1 (p.3-4); secao 3.1 sobre a conexao com o subsampling do word2vec e a Figura 1 (p.5); secao 4 Experiments, Table 1 com resultados STS (p.6); secao 4.1 com a analise do parametro a (Figura 2), a ablacao e as ressalvas (p.7); secao 4.2 tarefas supervisionadas e Table 2 (p.8); secao 4.3 ordem das palavras, Table 3, Conclusoes e Acknowledgements (p.9).",
+  "technique": "Embedding de sentenca nao supervisionado, sem treinar rede neural. Dois passos sobre word embeddings pre-treinados: (1) a sentenca vira a media dos vetores de palavra ponderada por smooth inverse frequency (SIF), peso a/(a + p(w)), que da menos peso a palavras frequentes; (2) remove-se o 'componente comum' subtraindo de cada vetor de sentenca a projecao sobre o primeiro componente principal (primeiro vetor singular) estimado sobre o conjunto de sentencas. Nenhum rotulo e usado.",
+  "representation": "Como transformar texto em numero: cada palavra ja vem de um word embedding pre-treinado; a frase/sentenca inteira colapsa em um unico vetor da mesma dimensionalidade (ex.: 300d para GloVe). O que o artigo define e exatamente o pooling (media), a ponderacao (SIF) e a geometria do espaco (remover a direcao de maior variancia, o 'componente comum'). Vale independente do dominio.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O peso de cada palavra na media e a/(a + p(w)), com parametro a e frequencia estimada p(w); essa ponderacao e o smooth inverse frequency (SIF) e reduz o peso das palavras frequentes.",
+      "citacao": "Here the weight of a word w is a/(a + p(w)) with a being a parameter and p(w) the (estimated) word frequency",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O embedding de sentenca e a media ponderada dos vetores de palavra menos a projecao desses vetores no primeiro vetor singular (remocao do componente comum).",
+      "citacao": "weighted average of the word vectors in the sentence and then remove the projections of the average vectors on their first singular vector",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O metodo nao supervisionado GloVe+WR melhora 10% a 30% sobre a media nao ponderada (avg-GloVe) nos conjuntos STS e vence os baselines por margens grandes, superando LSTM e RNN supervisionados.",
+      "citacao": "The unsupervised method GloVe+WR improves upon avg-GloVe significantly by 10% to 30%, and beats the baselines by large margins.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "A ablacao isola a contribuicao de cada componente: so o SIF melhora ~5%, so a remocao do componente comum ~10%, e os dois juntos ~13% sobre a media nao ponderada.",
+      "citacao": "using smooth inverse frequency weighting alone improves over unweighted average by about 5%, using common component removal alone improves by 10%, and using both improves by 13%.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Em tarefas supervisionadas downstream o ganho e menor: o metodo so obtem o melhor resultado em duas das tarefas, sendo apenas comparavel aos competidores no restante.",
+      "citacao": "Our method gets better or comparable performance compared to the competitors. It gets the best results for two of the tasks.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram duas limitacoes: o metodo ignora a ordem das palavras (\"A interesting feature of our method is that it ignores the word order\") e nao supera RNN/LSTM em sentimento: \"our method doesn't outperform RNN's and LSTM's for sentiment tasks because (a) the word vectors...has known limitations for capturing sentiment due to the 'antonym problem', (b) also in our weighted average scheme, words like 'not' that may be important for sentiment analysis are downweighted a lot.\" (p.8).",
+  "evidence": "Comparacao direta na Table 1 (22 datasets STS/SemEval/Twitter em ingles): o nao supervisionado GloVe+WR supera avg-GloVe em 10-30% e vence PP, DAN, RNN, iRNN, LSTM (supervisionados); ex.: STS12 59.5 vs avg-GloVe 52.5, STSbench 72.9 vs 66.4. Baselines concretos: unweighted average de word vectors (avg-GloVe) e tf-idf-GloVe. A ablacao quantifica cada componente (SIF ~5%, remocao do componente comum ~10%, ambos ~13%). No semi-supervisionado, PSL+WR e melhor em 4 de 6 tarefas. Nas tarefas supervisionadas downstream (Table 2), o ganho cai: melhor em so 2 tarefas e sem vantagem em sentimento. Nao ha teste de significancia nem intervalo de confianca reportado.",
+  "needs": "Apenas word embeddings pre-treinados (o artigo usa GloVe 300d, treinado em 840B tokens do Common Crawl) mais um conjunto de sentencas para estimar p(w) e o primeiro componente principal. Sem GPU, sem rotulos, sem treinar rede neural. O parametro a e fixado em 1e-3. A remocao do componente comum exige um SVD sobre a matriz de vetores de sentenca. O artigo nao reporta tempo de execucao nem custo computacional.",
+  "cost_here": "Nao reportado no artigo (sem medida de tempo/CPU/memoria). Para o nosso corpus o custo do metodo em si e baixo: media ponderada + um SVD sobre 4.369 vetores de 300-768 dims roda em CPU em minutos, sem GPU e sem novo modelo alem dos word vectors ja existentes. Porem o artigo so usa GloVe em ingles; para PT-BR seria preciso word vectors em portugues (ex.: fastText PT ou os embeddings ja construidos no braco 02), o que nao e coberto pelo artigo.",
+  "transferable": "Transfere a tecnica: SIF + remocao do componente comum e um pos-processamento barato que pode ser aplicado sobre os embeddings que ja construimos no braco 02, sem GPU nem novo modelo. Nao transfere a evidencia: todos os 22 datasets sao em ingles e majoritariamente de sentencas curtas (STS/Twitter), enquanto nosso alvo e noticia longa em PT-BR. A distancia de dominio e grande (lingua + genero textual). O proprio artigo mostra que o ganho encolhe em tarefas supervisionadas e some em sentimento, e que o metodo ignora ordem das palavras.",
+  "red_flags": [
+    "Avaliacao so em ingles (22 datasets STS/SemEval/Twitter), sem nenhum teste em portugues ou lingua nao inglesa.",
+    "Metodo ignora a ordem das palavras; o ganho e medido em similaridade textual por cosine, nao em tarefas que dependem de sintaxe ou de palavras de negacao.",
+    "Ganho menor e sem vantagem em tarefas supervisionadas downstream e em sentimento (melhor em so 2 tarefas; nao supera RNN/LSTM em sentimento).",
+    "Ablacao (5/10/13%) reportada na appendix, sem intervalo de confianca nem teste de significancia.",
+    "O primeiro componente principal e estimado por conjunto/dominio; a transferencia para um dominio diferente (noticia PT-BR) nao e testada.",
+    "Baselines de comparacao sao simples (media nao ponderada, tf-idf); os RNN/LSTM supervisionados usam word embeddings congelados, nao representacoes contextuais tipo BERT."
+  ]
+}

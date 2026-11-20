@@ -1,0 +1,50 @@
+{
+  "key": "meng2022biocaster",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/04_meng_2022_biocaster_2021_news_outbreaks.pdf",
+  "author": "Meng et al.",
+  "year": 2022,
+  "read": "Li as 3 páginas completas do PDF (Applications Note em Bioinformatics, 38(18), 2022, pp. 4446-4448): página 1 (capa, lista de autores, abstract e Introduction); página 2 (Seção 2 Biocaster — 2.1 Architecture e 2.2 Key features, além da Seção 3 Conclusion com a lista de Limitations); página 3 (References). O artigo não tem seção de Resultados nem tabelas de avaliação — é uma nota de sistema.",
+  "technique": "BioCaster 2021 é um sistema de vigilância digital que monitora notícias globais e detecta surtos de doenças automaticamente, em tempo real. O pipeline tem 4 etapas: (1) Input — coleta de Google News e feeds RSS; (2) Translate — tradução neural de 10 idiomas para inglês (motor Language Weaver Edge) mais classificação neural de relevância; (3) Understand — conversão dos documentos em semântica de eventos estruturada, por métodos baseados em regras + reconhecimento de entidades nomeadas + normalização de entidades; (4) Alert — alertas e contagens plotados num dashboard Kibana. Como técnica de embedding, usa encoders transformadores biomédicos pré-treinados: PubMedBERT para classificação de relevância e SapBERT para entity linking, fundindo texto com a ontologia UMLS.",
+  "representation": "O texto vira número por embeddings contextuais de modelos transformadores pré-treinados no domínio biomédico: PubMedBERT (representações de texto para relevância) e SapBERT (representações de entidades alinhadas à ontologia UMLS via self-alignment pretraining). A nota NÃO especifica pooling, dimensão do vetor nem normalização — esses detalhes são apenas delegados a um trabalho citado (Meng et al., 2021) e não são reportados aqui. Não há análise de geometria do espaço nem comparação entre encoders ou métodos de pooling.",
+  "afirmacoes": [
+    {
+      "afirmacao": "BioCaster foi lançado em 2008 como sistema de mineração de texto baseado em ontologia para detecção precoce de surtos a partir de fontes de notícias abertas, e foi relançado em 2021.",
+      "citacao": "BioCaster was launched in 2008 to provide an ontology-based text mining system for early disease",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O objetivo do sistema é monitoramento de mídia totalmente automatizado e em tempo real sobre dados de notícias em streaming.",
+      "citacao": "The goal of our BioCaster is to achieve fully automated real-time media",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "O módulo de tradução converte notícias de 10 idiomas para o inglês e identifica, por modelos neurais, os documentos relacionados à biomedicina.",
+      "citacao": "documents from 10 languages into English and identifying the",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "As novas técnicas neurais foram desenvolvidas para fundir texto e grafos de conhecimento (com PubMedBERT e SapBERT).",
+      "citacao": "developed to fuse text and knowledge graphs. In particular, we",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Os autores admitem que as métricas de alerta baseadas em contagem não lidam com negações, como relatos de queda acentuada de casos.",
+      "citacao": "such as those reports showing a sharp decrease of cases.",
+      "pagina": 2
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram três limitações (Seção 3, Conclusão): (i) o sistema usa \"count-based alert\" metrics para avaliação de risco, o que o limita a lidar com negações — por exemplo, \"such as those reports showing a sharp decrease of cases\"; (ii) aplica \"a rule-based event\" extraction com granularidade fixa, \"lacking in capturing the evaluating aspects of events\"; (iii) \"focuses on only the traditional media\", deixando mídias não tradicionais (como memes de internet) como trabalho futuro.",
+  "evidence": "O artigo não oferece nenhuma evidência quantitativa. Não há F1, precisão, recall, corpus anotado medido nem comparação com baseline — não existe seção de Resultados nem tabela de avaliação. A única evidência é operacional/qualitativa: a afirmação de que o sistema \"currently processes thousand news reports per day\" (ordem de grandeza aproximada, sem medição reportada) e que as técnicas neurais \"have improved its usability and capability to process large amount of news data\". Contra baseline: nada — o artigo não compara o sistema com nenhum método.",
+  "needs": "Exige: os modelos pré-treinados PubMedBERT e SapBERT (encoders biomédicos em inglês), o motor de tradução neural comercial Language Weaver Edge (RWS) para traduzir de 10 idiomas para inglês, a ontologia UMLS para entity linking, feeds de notícias em streaming (Google News, RSS) e um servidor Kibana/Elasticsearch para o dashboard. Menciona aprender a partir de \"small labeled data\", mas não informa o tamanho. Tamanho dos modelos, GPU e tempo de inferência: não reportados.",
+  "cost_here": "Não reportado. O artigo não informa tamanho dos modelos, hardware, latência nem tempo de inferência. Para o nosso corpus (4.369 notícias PT-BR, CPU-only), o pipeline exigiria traduzir para o inglês antes de qualquer embedding — os encoders são biomédicos em inglês — e depende de um motor de tradução comercial (RWS Language Weaver) e do Kibana, que não estão no nosso stack. O custo em CPU não é estimável a partir do texto.",
+  "transferable": "Transfere a ideia de usar encoders pré-treinados de domínio (PubMedBERT para relevância, SapBERT para entity linking) dentro de um pipeline de vigilância de notícias, e o padrão de traduzir a notícia para o inglês antes de processar quando o corpus é multilíngue. Não transfere o resultado: o artigo é biomédico em inglês, enquanto o nosso corpus é notícia geral em PT-BR sobre dengue; SapBERT alinha entidades ao vocabulário biomédico UMLS, não à vigilância de arbovírus em português. A distância de domínio é grande, e como o artigo não mede nada em nível de representação (pooling, dimensão, normalização), não há resultado de geometria de embedding a aproveitar.",
+  "red_flags": [
+    "Sem qualquer avaliação quantitativa: nenhum F1, precisão/recall, baseline ou benchmark.",
+    "A alegação de melhoria ('improved its usability and capability') não é sustentada por nenhum número medido.",
+    "'thousand news reports per day' é ordem de grandeza aproximada, não uma medição reportada.",
+    "Depende de um motor de tradução comercial (RWS Language Weaver) e do Kibana, fora do nosso stack.",
+    "A 'extensive analysis of contextualized representation learning methods' é apenas citada (Meng et al., 2021), não mostrada neste artigo.",
+    "Applications Note de 3 páginas: detalhe metodológico mínimo, sem seção de resultados e sem dados de avaliação."
+  ]
+}

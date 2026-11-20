@@ -1,0 +1,49 @@
+{
+  "key": "valentin2020padi",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/05_valentin_2020_padi_web_multilingual_ebs.pdf",
+  "author": "Valentin et al.",
+  "year": 2020,
+  "read": "Li as 14 páginas do PDF: capa HAL (p.1); folha de rosto com título, 8 autores e abstract (p.2); introdução (p.3); related work e a Tabela 1 comparando sistemas EBS (p.4-6); o pipeline PADI-web completo (p.6-7: coleta por RSS do Google News, detecção de idioma, tradução e os ganhos do multilíngue); a subseção de treino/validação do classificador com as acurácias (p.8); a Tabela 2 com taxas de relevância por tipo de feed (p.9); a extração de informação e a interface do usuário (p.9-11); e a conclusão com as limitações declaradas (p.12). Não li a lista de referências (p.12-14) além da linha de publicação citada na capa.",
+  "technique": "PADI-web é um pipeline automatizado de vigilância baseada em eventos (EBS) para doenças animais infecciosas. Ele coleta notícias do Google News por feeds RSS montados com combinações de termos (doenças, sinais clínicos, hospedeiros), remove duplicatas por URL, limpa o texto com a biblioteca BeautifulSoup, detecta o idioma com langdetect e traduz o que não é inglês pela API Translator da Microsoft Azure. Em seguida um classificador supervisionado decide se a notícia é relevante, e por fim a extração de entidades epidemiológicas (doença, hospedeiro, sintoma, local, data, número de casos) combina regras e mineração de dados. A técnica central é classificação supervisionada clássica, não embeddings.",
+  "representation": "Como artigo de aplicação, a técnica é a classificação supervisionada de relevância de notícia. O texto vira número por vetorização: dados textuais (corpo e título) e dados categóricos (fonte e tipo de feed RSS) são convertidos em vetores de atributos, seguidos de seleção de atributos por teste F de ANOVA de uma via; esse vetor alimenta o classificador (Random Forest de 50 árvores e profundidade máxima 12). Não há embedding denso nem encoder neural — a representação é a vetorização esparsa clássica do scikit-learn. O alvo medido é o rótulo binário relevante/irrelevante.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O módulo de classificação de relevância é um Random Forest (50 árvores, profundidade máxima 12) escolhido como o melhor entre várias famílias de modelos, com 97,2% de acurácia média na validação cruzada de 5 folds.",
+      "citacao": "composed of 50 trees with a maximum depth of 12), which obtains an average accuracy score of 97.2% through the 5-fold cross-validation process",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Na validação externa, sobre 100 artigos preanotados por dois epidemiologistas como padrão-ouro, o classificador obteve 92% de acurácia — uma queda de cerca de 5 pontos frente aos 97,2% da validação cruzada.",
+      "citacao": "We evaluated the classifier performance in a new set of 100 articles (external validation) that was preannotated by two epidemiologists (gold standard). The classifier obtained a 92% accuracy score.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "A inclusão de feeds RSS multilíngues (desde fev/2019) aumentou o número de notícias relevantes em 131% para peste suína africana, 47% para influenza aviária e 67% para febre aftosa, medindo quanto veio em inglês e quanto traduzido.",
+      "citacao": "Since February 2019, the implementation of multilingual RSS feeds led to a 131% increase in relevant news articles for ASF (207 in English, 272 translated), 47% for avian influenza (212 in English, 99 translated) and 67% for foot-and-mouth disease (104 in English, 174 translated).",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "O classificador marca como relevantes 65,2% dos artigos vindos de feeds baseados em doença, contra apenas 11,3% dos artigos vindos de feeds baseados em sintoma — mostrando que o tipo de feed muda muito o volume de ruído filtrado.",
+      "citacao": "65.2% are classified as relevant by the classifier (Table 2). By comparison, only 11.3% of the news articles retrieved with symptom-based RSS feeds are classified as relevant.",
+      "pagina": 9
+    },
+    {
+      "afirmacao": "O classificador foi treinado num corpus pequeno e desbalanceado: 600 notícias rotuladas por um único especialista em epidemiologia, sendo 200 relevantes e 400 irrelevantes.",
+      "citacao": "The training dataset is a corpus of 600 news items randomly retrieved from the PADI-web database and manually labelled by an epidemiology expert (200 relevant news articles and 400 irrelevant news articles).",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os próprios autores admitem que o ganho do multilíngue ainda é expectativa não quantificada: \"We expect that encompassing a broader range of multilingual web sources will enhance the detection of early signals in non-English speaking countries (Schwind et al., 2014). We aim to quantify those enhancements with more in-depth retrospective analysis.\" (p.12). A Tabela 2, que mede as taxas de relevância, também exclui os feeds multilíngues: \"As the multilingual RSS feeds were recently added and cover a shorter period, they are not included in this table.\" (p.9).",
+  "evidence": "Compara famílias de modelos clássicos entre si (random forests com vários parâmetros, SVC linear, redes neurais, modelos gaussianos, K-vizinhos mais próximos) com validação cruzada de 5 folds, escolhendo a de maior acurácia média; o Random Forest vence com 97,2% (p.8). Validação externa: 92% de acurácia em 100 artigos com padrão-ouro de dois epidemiologistas (p.8). Também mede taxas de relevância (65,2% nos feeds por doença vs 11,3% nos feeds por sintoma, p.9) e o ganho do multilíngue (131%/47%/67%, p.7). Não há comparação com embeddings nem com representações neurais densas; o baseline é o conjunto de famílias de modelos clássicos comparadas entre si.",
+  "needs": "scikit-learn (Random Forest e seleção por teste F de ANOVA), BeautifulSoup (limpeza de HTML), langdetect (detecção de idioma), API Translator do Microsoft Azure (tradução — dependência externa, paga e online), gazetteer GeoNames (locais) e HeidelTime (datas). Dados rotulados: 600 notícias anotadas por um epidemiologista (200 relevantes, 400 irrelevantes) para treino, mais 100 artigos em padrão-ouro para validação externa. Línguas: 6 (inglês mais não-inglesas). Sem GPU — roda em CPU. Tempo de execução não reportado.",
+  "cost_here": "O classificador em si é barato em CPU: Random Forest sobre vetores esparsos de ~4,4 mil artigos treina e prediz em segundos a poucos minutos com scikit-learn, sem GPU. O custo real não é compute: (a) a tradução depende da API Translator da Microsoft Azure, serviço externo pago e online — no nosso corpus PT-BR ela não é necessária, mas replicar a cobertura multilíngue exigiria essa dependência; (b) exige dados de relevância rotulados por especialista, que é o gargalo caro. O artigo não reporta tempo de execução nem custo financeiro (não reportado). Instalar scikit-learn/BeautifulSoup/langdetect é leve, mas o pipeline inteiro não cabe no nosso transform CPU-only em minutos sem a etapa de rotulagem e sem a API externa.",
+  "transferable": "Transfere: a arquitetura geral (coletar notícia → filtrar relevância com classificador supervisionado → extrair entidades) e, principalmente, o achado de que um classificador clássico barato (Random Forest sobre texto vetorizado) atinge 92-97% de acurácia para relevância de notícia — baseline forte e barato para comparar com os nossos braços 02 (embeddings) e 03 (DMR). Transfere também a distinção entre feed por termo de doença e feed por sintoma. Não transfere direto: o módulo de tradução (nosso corpus já é PT-BR, monolíngue) e a extração de entidades, que depende de um vocabulário de doenças animais validado por especialistas — precisaria ser reconstruído para dengue/arbovírus. Distância de domínio: notícia de doença animal (inglês + multilíngue, global) vs notícia de dengue em PT-BR; o conceito de relevância transfere, o alvo não — eles classificam relevância de notícia, não preveem série de casos.",
+  "red_flags": [
+    "Acurácia como única métrica em base desbalanceada (200 relevantes vs 400 irrelevantes no treino; 65,2% relevantes nos feeds por doença): não reporta precisão, recall nem F1, então 97,2% pode esconder desempenho ruim na classe minoritária.",
+    "Queda de 97,2% (validação cruzada) para 92% (validação externa), com o conjunto externo tendo apenas 100 artigos.",
+    "Sem comparação com embeddings ou representações neurais densas; o baseline são apenas famílias de modelos clássicos comparadas entre si.",
+    "O ganho do multilíngue é declarado como expectativa ainda não quantificada pelos próprios autores, e a Tabela 2 de relevância exclui os feeds multilíngues.",
+    "Resultado atado a um único classificador (Random Forest) e a um setup específico (feeds RSS do Google News + tradutor da Microsoft)."
+  ]
+}

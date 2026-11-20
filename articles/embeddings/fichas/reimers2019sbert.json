@@ -1,0 +1,51 @@
+{
+  "key": "reimers2019sbert",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/01_reimers_2019_sentence_bert.pdf",
+  "author": "Reimers & Gurevych",
+  "year": 2019,
+  "read": "Li o PDF inteiro (11 paginas): capa/abstract e Introducao (p.1-2), Related Work (p.2), secao 3 Model (p.3) com as estrategias de pooling e as tres funcoes objetivo, secao 4 Evaluation - Semantic Textual Similarity (p.4-5) com as Tabelas 1, 2 e 3, secao 5 Evaluation - SentEval (p.6-7) com a Tabela 5 e a lista de tarefas de transferencia, secao 6 Ablation Study (p.7-8) com a Tabela 6, secao 7 Computational Efficiency (p.8) com a Tabela 7 (throughput em CPU/GPU), secao 8 Conclusion (p.8), Acknowledgments e References (p.9-11). Nao li apenas o abstract: os numeros de custo (Tabela 7) e as ressalvas estao nas secoes 4.3, 5 e 7.",
+  "technique": "SBERT (Sentence-BERT) pega um BERT/RoBERTa ja pre-treinado, acrescenta uma camada de pooling para transformar a saida do encoder num vetor de tamanho fixo (por padrao a media MEAN de todos os tokens; alternativas CLS e MAX) e faz fine-tuning com uma arquitetura siamesa/gemea (mesmos pesos nos dois ramos) e tripla (anchor/positivo/negativo) sobre SNLI + Multi-Genre NLI. O objetivo e que a similaridade de cosseno entre dois vetores de frase passe a refletir similaridade semantica. Tres funcoes objetivo: classificacao (softmax sobre a concatenacao [u, v, |u-v|]), regressao (MSE sobre o cosseno) e triplet loss. Na inferencia cada frase passa uma unica vez pelo encoder e a similaridade sai de um cosseno entre vetores.",
+  "representation": "Texto vira UM vetor denso de tamanho fixo (768 dimensoes no BERT-base): o encoder transformer devolve um vetor por token e o pooling (media por padrao) colapsa isso num unico vetor de frase. A geometria e euclidiana/cosseno: frases semanticamente parecidas ficam proximas no espaco, e a comparacao e feita por cosseno (ou distancia Manhattan/Euclidiana). E a mesma ideia de sentence-transformers: encoder + pooling + normalizacao implicita via cosseno, sem precisar passar o par de frases junto pelo modelo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Fazer fine-tuning do BERT numa rede siamesa/tripla (SBERT) produz embeddings de frase comparaveis por cosseno que superam o InferSent em 11,7 pontos e o Universal Sentence Encoder em 5,5 pontos nas sete tarefas de STS em ingles.",
+      "citacao": "SBERT achieves an improvement of 11.7 points compared to InferSent and 5.5 points compared to Universal Sentence Encoder.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Usar o BERT pre-treinado cru como encoder de frase (media dos tokens ou token CLS) da embeddings ruins, piores que a media de vetores GloVe; o ganho vem do fine-tuning siames, nao do BERT por si.",
+      "citacao": "The results shows that directly using the output of BERT leads to rather poor performances.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "No benchmark de transferencia SentEval o SBERT vence 5 das 7 tarefas, mas o ganho medio e modesto (cerca de 2 pontos) sobre InferSent e Universal Sentence Encoder.",
+      "citacao": "SBERT is able to achieve the best performance in 5 out of 7 tasks.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Em CPU o SBERT e MAIS LENTO que o encoder mais antigo InferSent (que roda cerca de 65% mais rapido), porque o BERT empilha 12 camadas transformer contra uma unica camada BiLSTM do InferSent.",
+      "citacao": "On CPU, InferSent is about 65% faster than SBERT.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Smart batching (agrupar frases de comprimento parecido e padronizar pelo maior elemento do mini-lote) quase dobra o throughput em CPU, reduzindo o custo de padding.",
+      "citacao": "Smart batching achieves a speed-up of 89% on CPU and 48% on GPU.",
+      "pagina": 8
+    }
+  ],
+  "ressalva_do_autor": "Os autores reconhecem que o ganho desaparece quando treino e teste vem de topicos diferentes: \"However, in the cross-topic evaluation, we observe a performance drop of SBERT by about 7 points Spearman correlation.\" (p.5). Tambem admitem que ha datasets onde ele perde para o Universal Sentence Encoder (SICK-R e TREC, p.4-7) e que o metodo nao foi feito para servir de extrator de features generico em transfer learning: \"The purpose of SBERT sentence embeddings are not to be used for transfer learning for other tasks.\" (p.6).",
+  "evidence": "Baselines explicitos: InferSent (Conneau 2017), Universal Sentence Encoder (Cer 2018), media de embeddings GloVe e o proprio BERT sem fine-tuning (media de tokens e token CLS). Numeros: +11,7 pontos de correlacao Spearman sobre InferSent e +5,5 sobre USE nas 7 tarefas STS (p.2); no SentEval, +2,1 e +2,6 pontos respectivamente, vencendo 5 de 7 tarefas e ~+2 pontos na media (p.2, p.6); no AFS, 10-fold cross-validation ~0,78 de acuracia contra ~0,77 do BERT cross-encoder (Tabela 3, p.6); na distincao de secoes da Wikipedia, 0,8078 de acuracia contra 0,65 de mean-vectors e 0,74 do BiLSTM de Dor et al. (Tabela 4, p.6); na Tabela 1, o BERT cru tira 54,81 (media) e 29,19 (CLS) contra 61,32 do GloVe. Contra-baseline honesto: no SICK-R o SBERT perde para o USE, e no AFS cross-topic cai ~7 pontos (fica abaixo do BERT cross-encoder). Nao ha teste de significancia alem do desvio entre seeds.",
+  "needs": "Modelo: BERT-base / RoBERTa (110M parametros, ~440 MB em fp32) ja pre-treinado em ingles; a lib sentence-transformers. Dados rotulados: SNLI (570 mil pares) + Multi-Genre NLI (430 mil pares), ambos em INGLES. Treino: fine-tuning leve, o artigo diz que \"SBERT can be tuned in less than 20 minutes\" (em GPU). Inferencia: funciona em CPU, mas sem GPU e mais lento que um BiLSTM simples. O artigo nao reporta uso de RAM/memoria nem tempo de treino exato por configuracao.",
+  "cost_here": "O artigo reporta throughput medido em CPU (Intel i7-5820K, sem GPU): SBERT-base 44 frases/s e 83 frases/s com smart batching; InferSent 137 frases/s; USE 67 frases/s; GloVe 6469 frases/s (Tabela 7, p.8). Para os nossos 4.369 artigos isso daria, na ordem de grandeza, ~100 s (44/s) a ~53 s (83/s) de encoder puro por artigo — mas isso e EXTRAPOLACAO minha, e vale para o BERT-base INGLES do artigo. Custo para portugues/PT-BR e para um modelo nosso (ex.: BERTimbau) e 'nao reportado': o artigo nao mede PT-BR, nao mede memoria e nao mede fine-tuning em CPU. Nao ha, no artigo, numero de custo para um corpus deste tamanho em CPU com modelo PT-BR.",
+  "transferable": "Transfere: a receita (encoder transformer + pooling por media + fine-tuning siames + comparacao por cosseno) e exatamente a base do sentence-transformers que ja usamos no braco 02; o achado de que BERT cru (media/CLS) fica pior que GloVe vale como alerta direto para as nossas escolhas de pooling; e as taxas de frases/s em CPU (Tabela 7) dao ordem de grandeza para a nossa restricao de CPU-only, incluindo o truque de smart batching. NAO transfere: toda a avaliacao e em ingles (STS, SentEval, AFS, Wikipedia) e o modelo e um BERT ingles; o ganho de 11,7 pontos nao foi medido em PT-BR nem em noticia. Distancia de dominio e grande: o corpus do artigo e de frases curtas (pares STS, dialogos do Reddit, artigos da Wikipedia), enquanto o nosso e noticia PT-BR mais longa, sem dados rotulados de similaridade — o passo de fine-tuning em NLI nao tem equivalente PT-BR dentro do artigo. Nosso corpus (4.369 artigos) e pequeno demais para reproduzir o treino siames do artigo.",
+  "red_flags": [
+    "Benchmark 100% em ingles (STS 2012-2016, STSb, SICK-R, SentEval, AFS, Wikipedia); nenhuma avaliacao multilingue ou PT-BR, e o modelo base e um BERT ingles.",
+    "O ganho de cabecalho (11,7 pontos) nao vem com teste de significancia; o SentEval, que e transferencia real, ganha so ~2 pontos de media e perde 2 das 7 tarefas.",
+    "Existem datasets onde o SBERT perde para o Universal Sentence Encoder (SICK-R) e o AFS cross-topic cai ~7 pontos, ou seja, o ganho nao e universal.",
+    "Baselines incluem GloVe (muito mais fraco), o que infla a impressao de ganho; o baseline forte (BERT cross-encoder) ainda ganha no AFS cross-topic.",
+    "Throughput medido em hardware de 2019 (Intel i7-5820K e Nvidia V100); nao ha numero de memoria nem custo de fine-tuning em CPU.",
+    "Distancia de dominio: frases curtas e dialogos versus noticia PT-BR longa; a suposicao de uma frase = um vetor pode nao valer para o nosso texto.",
+    "Avaliacao majoritariamente intrinseca (correlacao de similaridade) mais uma sonda logistica no SentEval, nao uma tarefa final de vigilancia."
+  ]
+}

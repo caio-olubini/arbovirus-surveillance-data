@@ -1,0 +1,51 @@
+{
+  "key": "bahk2015timeliness",
+  "grupo": "aplicacao",
+  "pdf": "articles/features-texto/14_bahk_2015_timeliness_formal_informal_reporting.pdf",
+  "author": "Bahk et al.",
+  "year": 2015,
+  "read": "Li as 6 páginas inteiras do PDF por extração de texto: capa/abstract (p.1), Background e início de Methods (p.2), Methods com Table 1 dos feeds informais do HealthMap e início de Results (p.3), Results (p.4), Discussion com a lista de limitações e Conclusion (p.5), e a página final com implicação de saúde pública e References (p.6). Li o corpo (Results e Discussion), não só o abstract. As Figuras 1 e 2 são citadas no texto mas não têm dados tabulados extraíveis; a Table 1 (feeds informais) foi lida.",
+  "technique": "Não é um artigo de método de NLP nem usa embeddings. É um estudo epidemiológico observacional que compara a rapidez e o conteúdo de dois canais de notificação de surtos: fontes formais (o feed MoH+ do HealthMap, que coleta comunicação de ministérios da saúde e órgãos governamentais) e fontes informais (feeds de notícias como Google News, ProMED, Baidu, RSS árabe, relatos de comunidade). Para 111 surtos de junho a dezembro de 2012, casou manualmente o primeiro relato formal e o primeiro relato informal de cada surto e mediu a diferença de tempo (time lag), comparou o conteúdo por revisão humana em três categorias (menos, mesma, mais informação) e cruzou com uma escala interna de gravidade de doença de 1 a 5. Testes usados: Wilcoxon sign rank (timeliness), Kruskal-Wallis (lag por categoria), Fisher's exact (informação x gravidade).",
+  "representation": "Não há transformação de texto em número — nada de encoder, pooling ou vetor. O texto dos relatos é lido por curadores humanos e reduzido a rótulos categóricos: o conteúdo de cada par de relatos vira uma de três categorias (menos / mesma / mais informação no relato formal), a gravidade vira um inteiro de 1 a 5 numa escala interna do HealthMap, e o tempo vira uma diferença em horas/dias. O casamento dos surtos é feito buscando doença e país nos feeds informais. É um desenho de medição e comparação, não uma técnica de representação vetorial.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Relatos de fontes formais atrasaram em mediana 1,26 dia (30,28 horas) em relação às fontes informais, com significância estatística (p = 0,002).",
+      "citacao": "Outbreak reports by formal sources lagged a median of 1.26 days (30.28 hours, p = 0.002).",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A maioria dos surtos foi notificada primeiro por fonte informal: 70% contra 30% por fonte formal.",
+      "citacao": "Of all outbreaks, 70% were reported first by informal sources and 30% first by formal sources.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Em 61% dos surtos (68 de 111), o primeiro relato formal e o primeiro informal continham a mesma informação.",
+      "citacao": "For 68 outbreaks (61%), there was “same information” in the first formal and informal reports.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A gravidade da doença não teve efeito significativo sobre a rapidez relativa dos relatos, sugerindo transparência mesmo em doenças com impacto político ou econômico.",
+      "citacao": "Disease severity did not significantly impact relative timeliness of reporting, suggesting transparency in reporting diseases that may have political or economic impacts.",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "Os autores concluem que fontes informais fornecem informação de surto precoce e acurada, mas que as fontes formais melhoraram em rapidez e transparência frente a estudos anteriores.",
+      "citacao": "These findings suggest that informal sources provide early and accurate outbreak information, but also that formal sources have improved in speed and transparency compared to previous studies.",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram várias limitações. Sobre a seleção das fontes formais: \"Another possibility and a limitation of this study is that a system like MoH+ captures a distinct subset of formal sources that are more timely than formal sources overall, by being limited to formal sources that report online, are in a HealthMap-supported language, and have RSS feeds.\" Sobre as análises: \"Limitations in the content and disease severity analyses, respectively, were the use of the three content categories (less, same, and more information) making the study unable to capture more granular differences in information, and lack of a robustly validated disease severity scale.\" E sobre os desfechos escolhidos: \"Another limitation is the selected study outcomes – timeliness and content as often measured by case count – in that they may overlook other complexities in outbreak reporting, especially when looking only at the initial reports.\" Também registram que a escala de gravidade é \"subjective and yet to be robustly validated\".",
+  "evidence": "A evidência é uma comparação estatística entre fontes formais e informais sobre 111 surtos (jun-dez 2012): Wilcoxon sign rank dá mediana de atraso formal de 1,26 dia (30,28 h, p = 0,002); o atraso foi mais longo quando o relato formal trazia mais informação (mediana 6,78 dias, p < 0,0001) e menor quando trazia menos ou a mesma informação (−0,21 e 0,85 dia); 61% (68 surtos) com mesma informação, com atraso formal significativo nesse subconjunto (p = 0,003); gravidade sem efeito significativo (p = 0,15). O 'baseline' não é um modelo de ML, é histórico: os próprios autores contrastam seu 1,26 dia com lags relatados em estudos anteriores — 16 dias (Chan et al., 1996-2006), 10 dias (Mondor et al., 1996-2009) e 4,09 dias (Tsai et al., 2003-2009) — argumentando tendência de encolhimento. Não há comparação com nenhum método computacional.",
+  "needs": "Para reproduzir exige a infraestrutura do HealthMap e o feed MoH+ (mais de 700 feeds RSS e APIs, consulta de hora em hora em quinze idiomas), além de curadoria e casamento manual dos relatos e revisão humana do conteúdo. Não exige modelo, GPU nem dados rotulados de treino. O artigo não reporta custo computacional nem tamanho de armazenamento.",
+  "cost_here": "Custo computacional aqui é nulo: não há modelo a rodar nem extra a instalar, nada de torch/tomotopy. O custo real é humano — curadoria e casamento manual relato a relato. Para o nosso corpus de 4.369 notícias da Agência Brasil (fonte informal), o estudo não é portável como método: falta a contraparte formal (um feed tipo MoH+ de notificações oficiais) para parear. Não reportado qualquer número de compute.",
+  "transferable": "Transfere a ideia e o desenho, não o código. O achado de que a fonte informal (notícia) costuma chegar antes da fonte oficial, com a mesma informação na maioria dos casos, é diretamente relevante a um corpus de notícias de dengue — reforça que a imprensa funciona como sinal precoce. Também transfere a métrica de timeliness (lag em dias entre primeiro relato informal e primeiro relato oficial) e a categoria formal/informal. Não transfere: a infraestrutura HealthMap/MoH+, a escala de gravidade interna, e o fato de o estudo ser multilíngue e não-PT-BR. A distância de domínio é pequena no tema (vigilância de doença) e no tipo de fonte (notícia como fonte informal), mas o artigo é de 2012, com um surto por vez e curadoria humana — não dá para transplantar para 965 semanas de texto sem redefinir o que seria a 'fonte formal' equivalente no nosso caso.",
+  "red_flags": [
+    "Nenhum componente de NLP ou embedding: é estudo observacional com casamento e categorização manuais, então não serve como evidência sobre representação de texto.",
+    "n pequeno: 111 surtos, seis meses (jun-dez 2012), e os 34,7% de surtos sem relato informal foram excluídos da amostra.",
+    "Escala de gravidade interna, não validada externamente — os próprios autores admitem que é subjetiva.",
+    "Conteúdo reduzido a três categorias grosseiras, sem granularidade.",
+    "Seleção de fontes formais restrita a quem publica online, em idioma suportado pelo HealthMap e tem RSS — viés declarado pelos autores, que reconhecem ser um subconjunto 'mais rápido que a média'.",
+    "Ganho de timeliness medido em um único sistema/feed (HealthMap MoH+), sem replicação independente.",
+    "A comparação histórica (16/10/4 dias) é entre estudos de desenho e janelas temporais diferentes, não um baseline controlado."
+  ]
+}

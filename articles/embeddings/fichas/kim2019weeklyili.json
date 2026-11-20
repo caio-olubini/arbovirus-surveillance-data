@@ -1,0 +1,51 @@
+{
+  "key": "kim2019weeklyili",
+  "grupo": "aplicacao",
+  "pdf": "articles/embeddings/15_kim_2019_weekly_ili_news.pdf",
+  "author": "Kim & Ahn",
+  "year": 2019,
+  "read": "Li o texto completo extraído das 16 páginas do PDF. Capa/cabeçalho (p. 1, autores e afiliação), abstract (p. 1), Background (p. 1-3), Methods com Data, News data, Epidemiological surveillance data, Word2Vec, Support vector machine, Analysis e Process summary (p. 2-7), Results com Tabelas 3 e 4 e Figuras 8-12 (p. 8-13), Discussion com as limitações declaradas (p. 14-15), Conclusion e referências (p. 15-16). Reconferi cada trecho citado com pdftotext -layout -f/-l por página para garantir que a citação é literal e que a página está correta.",
+  "technique": "É um artigo de aplicação, não de representação. Usa word2vec (CBOW) só para selecionar palavras-chave e SVM (kernel RBF) para classificar. Fluxo: (1) coletam notícias de doenças infecciosas do CHP de Hong Kong; (2) treinam word2vec no próprio corpus e extraem as 15 palavras mais similares a 'influenza', das quais ficam 7 palavras-chave após descartar termos de gripe aviária e termos genéricos; (3) contam, por semana, quantos artigos contêm cada palavra-chave, gerando 8 séries temporais (influenza + 7); (4) aplicam 6 indicadores técnicos financeiros (médias móveis, BIAS, ROC, K, D, RSI) para reduzir ruído; (5) um SVM/RBF prevê se a razão de ILI da semana seguinte sobe (+1) ou cai (-1); (6) um 'weighting index' heurístico (média histórica de variação por faixa de 0,5% da razão de ILI) converte o sinal binário em um valor estimado da razão de ILI. O que ele mediu no domínio: acurácia da direção (sobe/desce) e RMSE da razão de ILI.",
+  "representation": "O texto NÃO vira embedding por documento. O word2vec serve apenas para escolher 8 palavras-chave (influenza + 7 similares). A representação de cada semana é contagem: quantos artigos daquela semana contêm cada palavra-chave, mais 6 indicadores técnicos calculados sobre essas contagens. É representação por contagem de palavras-chave em série temporal, não por vetor denso de documento.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O corpus é de 7.791 artigos de notícias de doenças infecciosas do CHP (Hong Kong), somando 93.326 palavras e 3.733 palavras distintas, coletados de 2004.08 a 2018.02.",
+      "citacao": "In total, 7791 news articles, which are composed of 93,326 words (3733 different words) and were generated from 2004.08 to 2018.02, were obtained from the CHP web page",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "O texto entra no modelo como contagem semanal de artigos que contêm cada palavra-chave — o texto vira série temporal de contagens, não embedding de documento.",
+      "citacao": "we used the weekly counts of the articles that include influenza related keywords as input variables",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "O word2vec é usado apenas para extrair as 15 palavras mais similares a 'influenza' (que depois viram 7 palavras-chave), não para representar documentos.",
+      "citacao": "After vectorizing the words in articles using word2vec, the top 15 words most similar to influenza were extracted",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Acurácia média de 0,867 (todos os dados) e 0,871 (só Hemisfério Norte) na previsão binária de aumento/queda, com mínimo 0,75 e máximo 1,0.",
+      "citacao": "The average accuracy for 12 different sections was 0.867 when using all data and 0.871 when using data from Northern Hemisphere countries only",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "RMSE médio de 0,611 (todos os dados) e 0,396 (só Hemisfério Norte) na estimativa do valor da razão de ILI, via weighting index.",
+      "citacao": "The average RMSE for 20 sections was 0.611 with a minimum of 0.056 and maximum of 2.574 when all data was used",
+      "pagina": 10
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram quatro limitações na Discussão (p. 14-15). (1) Sensibilidade aos hiperparâmetros do SVM: 'As wrong parameter settings can lead to poor model performance, the results may vary dramatically.' (2) O weighting index estima mal em certas seções: 'large gaps exist between the real value and estimated value in certain sections', e ele 'is very basic and uses only an average value based on past data'. (3) O modelo só prevê 1 semana à frente dos dados de treino (na prática 2 a 3 semanas), e 'a method that can predict more than two to 3 weeks ahead needs to be studied'. (4) Pedem mais estudos para verificar a vantagem de usar países correlacionados e para outras doenças, como 'dengue or Middle East respiratory syndrome'.",
+  "evidence": "Não há baseline externo. A evidência é um backtest em 240 semanas (32ª semana de 2013 a 10ª de 2018), divididas em 20 seções de 12 semanas, com o conjunto de treino crescendo ao longo do tempo. A única comparação é interna (ablação): usar todos os artigos vs. usar só artigos do Hemisfério Norte. Reporta acurácia média 0,867 vs. 0,871 (min 0,75, max 1,0) e RMSE 0,611 vs. 0,396, além da matriz de confusão (209/240 e 210/240 corretos). Não compara com ARIMA, Google Flu Trends nem com um baseline trivial de classe majoritária.",
+  "needs": "Exige: word2vec (CBOW) treinado no corpus; SVM com kernel RBF e grid search de C e γ (13×13 combinações por seção); texto em inglês (notícias do CHP/Hong Kong); e, sobretudo, ground truth rotulado de vigilância de ILI (razão semanal de visitas por ILI, do CDC/FluView). O corpus é minúsculo (93k palavras), então roda em CPU. Não reportado: tempo de execução, implementação/versão e custo de compute.",
+  "cost_here": "Baixo em compute: o corpus do artigo (93k palavras, 8 séries semanais) é ordens de magnitude menor que o nosso (4.369 artigos, 965 semanas, 28 locations), e word2vec + SVM treinam em CPU em minutos. O artigo não reporta custo/tempo — 'não reportado'. O gargalo não é compute, é o rótulo: precisa de ground truth semanal de ILI (aqui teríamos os casos suspeitos do SINAN). Dependências seriam gensim + scikit-learn, não citadas no artigo e diferentes dos nossos extras fixados.",
+  "transferable": "Transfere a ideia geral: notícia como sinal antecedente de vigilância, e construção de série temporal semanal a partir de contagens de artigos por palavra-chave. NÃO transfere como método de embedding: a representação é contagem de palavras-chave, não vetor denso de documento — não substitui nem alimenta o braço 02 (embeddings). Distância de domínio grande: inglês, notícias de Hong Kong, influenza, ground truth do CDC; o nosso é PT-BR, Agência Brasil, dengue, ground truth do SINAN. As palavras-chave (H1N1, H3N2, swine, PDM09, H1, H3...) são específicas de influenza e não têm análogo direto em dengue.",
+  "red_flags": [
+    "Inconsistência interna: o abstract diz 7769 artigos; o corpo (p. 3 e p. 5) diz 7791.",
+    "Inconsistência interna: a p. 10 fala em '12 different sections', mas Tabelas 3 e 4, a Fig. 9 e a conclusão falam em 20 seções de 12 semanas.",
+    "Sem baseline: acurácia de 0,867 num problema binário não é comparada com a classe majoritária nem com nenhum modelo de referência.",
+    "Grid search de C e γ (13×13) por seção sobre a mesma janela de 240 semanas usada para avaliar — risco de ajuste ao conjunto de avaliação.",
+    "Corpus minúsculo para word2vec: 93.326 palavras com só 3.733 tipos; embeddings treinados nisso são frágeis.",
+    "Avaliação com um único modelo (SVM/RBF), um único corpus (CHP Hong Kong) e uma única doença (influenza).",
+    "O 'weighting index' é heurístico (médias históricas por faixa de 0,5%), não aprendido, e os próprios autores dizem que é 'very basic'."
+  ]
+}

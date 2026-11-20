@@ -1,0 +1,51 @@
+{
+  "key": "pires2019mbert",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/13_pires_2019_how_multilingual_mbert.pdf",
+  "author": "Pires et al.",
+  "year": 2019,
+  "read": "Li o artigo inteiro (6 paginas). Capa/autoria e abstract+introducao (p.1): Telmo Pires, Eva Schlinger, Dan Garrette (Google Research) — 3 autores, logo 'Pires et al.'. Secao 2 Models and Data, Tabelas 1 (NER F1 zero-shot no CoNLL) e 2 (acuracia POS no UD) (p.2). Secao 3 Vocabulary Memorization com a Figura 1 e a secao 3.2 Generalization across scripts, Tabelas 3 e 4 (p.3). Secao 4 Encoding Linguistic Structure (4.1 similaridade de lingua, 4.2 ordem SVO/SOV com a Tabela 5, 4.3 code-switching e transliteracao com a Tabela 6) (p.4). Secao 5 Multilingual characterization of the feature space (Figura 3, nearest neighbor accuracy) e secao 6 Conclusion (p.5). Referencias e apendices A (hiperparametros), B e C com as Tabelas 7 e 8 do EN-BERT (p.6). Nao li so o abstract: a limitacao declarada esta na conclusao (p.5), o custo de computacao nao e reportado em lugar nenhum, e as tabelas do apendice (p.6) sao a unica fonte do contraste zero-shot contra o EN-BERT.",
+  "technique": "Nao propoe tecnica nova: e um estudo de sondagem (probing) sobre o Multilingual BERT (mBERT) ja existente — um Transformer de 12 camadas pre-treinado nos wikis de 104 linguas com um vocabulario word-piece compartilhado, sem marcador de lingua e sem objetivo explicito de alinhar traducoes. O texto vira numero por duas vias. (a) Tarefas supervisionadas de sequencia (NER e POS): tokeniza-se a frase, passa-se pelo mBERT, pegam-se as ativacoes da ultima camada e ajusta-se uma camada final por entropia cruzada; quando a tokenizacao quebra uma palavra, vale a predicao do primeiro pedaco. (b) Analise do espaco de features: a frase vira um vetor pela media dos estados ocultos dos tokens (excluindo [CLS] e [SEP]) em cada camada. O objeto do artigo e a geometria desse espaco entre linguas, nao um encoder novo.",
+  "representation": "Para as tarefas de sequencia (NER/POS) usa as ativacoes da ultima camada do mBERT passadas por uma camada final, com fine-tuning de todo o modelo. Para estudar a geometria, a sentenca vira a media dos hidden states dos tokens (menos [CLS] e [SEP]) em cada camada, gerando um vetor por sentenca por camada. A partir dai mede a 'nearest neighbor accuracy': calcula o vetor de diferenca media entre pares de sentencas de duas linguas (ex.: EN->DE), usa-o para transladar a sentenca de origem e verifica se o vizinho mais proximo (distancia L2) e a traducao correta. A tese geometrica: se o espaco for multilingue, essa transformacao deve depender so do par de linguas, nao da sentenca.",
+  "afirmacoes": [
+    {
+      "afirmacao": "No POS, o mBERT faz transferencia cross-lingual zero-shot acima de 80% de acuracia em todos os pares europeus testados (Tabela 2).",
+      "citacao": "We see that M-B ERT generalizes well across languages, achieving over 80% accuracy for all pairs.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "Contra o EN-BERT (BERT so em ingles), a transferencia do mBERT nao depende da sobreposicao de word pieces: enquanto o EN-BERT despenca e chega perto de zero entre escritas diferentes, o mBERT fica plano e mantem F1 entre 40% e 70% mesmo sem sobreposicao lexical.",
+      "citacao": "the ability to transfer deteriorates as word piece overlap diminishes, and F1 scores are near zero for languages written in different scripts.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A transferencia cruza escritas sem nenhuma sobreposicao lexical: um modelo ajustado so com POS em urdu (escrita arabe) atinge 91% de acuracia em hindi (escrita devanagari), sem nunca ter visto uma palavra POS em devanagari.",
+      "citacao": "achieves 91% accuracy on Hindi (written in Devanagari script), even though it has never seen a",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A transferencia e melhor entre linguas que compartilham a ordem de palavras (Tabela 5: SVO->SVO 81.55 contra SVO->SOV 66.52): o mBERT mapeia estruturas aprendidas para novos vocabularios, mas nao aprende transformacoes sistematicas dessas estruturas para acomodar uma lingua-alvo com ordem diferente.",
+      "citacao": "performance is best when transferring between languages that share word order features, suggesting that while M-B ERT’s multilingual representation is able to map learned structures onto new vocabularies, it does not seem to learn systematic transformations of those structures to accommodate a target language with different word order.",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "O espaco de features do mBERT compartilha um subespaco comum e agnostico de lingua: a traducao por vizinho mais proximo (distancia L2) passa de 50% de acerto em todas as camadas exceto as de baixo (Figura 3).",
+      "citacao": "It achieves over 50% accuracy for all but the bottom layers",
+      "pagina": 5
+    }
+  ],
+  "ressalva_do_autor": "Os autores fecham a conclusao admitindo o limite do modelo: \"The model handles transfer across scripts and to code-switching fairly well, but effective transfer to typologically divergent and transliterated targets will likely require the model to incorporate an explicit multilingual training objective\" (p.5). No abstract declaram a mesma deficiencia como \"these representations exhibit systematic deficiencies affecting certain language pairs\" (p.1), e em 3.2 reconhecem que \"cross-script transfer is less accurate for other pairs, such as English and Japanese\" (p.3).",
+  "evidence": "O baseline principal e o EN-BERT (BERT so em ingles, vocabulario ingles) sob o mesmo protocolo zero-shot. Na Tabela 1 (p.2) o mBERT ajustado em EN e avaliado em DE faz 73.83 de F1 de NER, contra 24.38 do EN-BERT na Tabela 7 (p.6) — gap de cerca de 50 pontos. Na Figura 1 (p.2) o F1 do EN-BERT cai junto com a sobreposicao de word pieces e chega perto de zero para linguas em escrita diferente, enquanto o do mBERT fica plano entre 40% e 70% (p.3). Em POS (Tabela 2, p.2) o mBERT passa de 80% em todos os pares europeus. Ha comparacao com estado da arte anterior em NER nao-cross-lingual (Lample et al. 2016, Tabela 3, p.3), em que o EN-BERT e comparavel, e com trabalhos de code-switch (Ball e Garrette 2018, Bhat et al. 2018, Tabela 6, p.4), nos quais o mBERT e SUPERADO no alvo transliterado: 50.41 contra 77.40. A analise do espaco (Figura 3, p.5) e avaliacao intrinseca via nearest neighbor accuracy, nao uma metrica de tarefa a jusante.",
+  "needs": "Checkpoint BERT-Base Multilingual Cased (12 camadas, cerca de 110M parametros, cerca de 700MB), as 104 linguas do pre-treinamento (portugues incluido) e dados rotulados de tarefa em PELO MENOS uma lingua para o fine-tuning. Hiperparametros no Apendice A (p.6): batch 32, comprimento maximo 128, 3 epocas, learning rate 3e-5 com warmup nos primeiros 10% dos passos e decay linear depois, dropout de 10% na ultima camada, sem tuning de parametros. O artigo NAO reporta hardware nem custo de treino/inferencia — e 'nao reportado'. O passo caro e o fine-tuning de sequencia (NER/POS).",
+  "cost_here": "Nao reportado pelo artigo (nenhuma figura de tempo, FLOPs ou GPU). Aqui o custo seria em CPU: gerar embeddings do mBERT-base para os 4.369 artigos e factivel mas e o gargalo (encoder de 12 camadas, cerca de 110M parametros, sem GPU), e qualquer fine-tuning supervisionado de NER/POS em cima disso em CPU e substancialmente mais lento que o braco 02 ja existente. O artigo rodou em infraestrutura do Google Research e nao mede esse custo, entao tratar como 'nao reportado', nao como barato.",
+  "transferable": "A tecnica transfere parcialmente: o portugues e uma das 104 linguas do mBERT e o fluxo 'mBERT como encoder -> vetor de sentenca por media dos hidden states -> distancia L2 / vizinho mais proximo' e o mesmo que o braco 02 ja usa com outros encoders, e roda em CPU. Mas a distancia de dominio e grande em tres eixos: (1) o mBERT foi pre-treinado em Wikipedia, nao em noticia; (2) o artigo mede NER, POS e recuperacao de pares de traducao — sinais sintaticos e lexicais —, nao o sinal de epidemia que nos interessa; (3) nao ha nenhum resultado especifico de portugues: PT so aparece em listas de linguas. As conclusoes sobre escrita e tipologia (transferencia entre scripts, ordem SVO/SOV) nao se aplicam ao nosso caso, que e monilingue e de escrita unica (PT-BR).",
+  "red_flags": [
+    "Nenhum resultado especifico de portugues; PT aparece apenas em listas de idiomas, nunca como lingua de avaliacao.",
+    "Avaliacao intrinseca/probing (F1 de NER, acuracia de POS, nearest neighbor) sobre dados tipo Wikipedia, nao em tarefa de dominio a jusante.",
+    "O baseline forte e o EN-BERT, que e fraco por construcao (so ingles); o ganho enorme de cerca de 50 pontos infla o valor aparente do pre-treinamento multilingue.",
+    "So avaliacao zero-shot; nao mede o que acontece ao ajustar em cada lingua-alvo.",
+    "Conjuntos de avaliacao pequenos para alguns pares (o dataset in-house de NER tem 16 linguas; o de POS entre escritas tem 3).",
+    "Custo de computacao nao reportado: nao da para estimar o preco real de reproduzir em CPU.",
+    "A analise do espaco de features (nearest neighbor) e uma sonda, nao uma metrica de tarefa — nao mostra ganho de utilidade pratica."
+  ]
+}

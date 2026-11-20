@@ -1,0 +1,52 @@
+{
+  "key": "shamsabadi2024scinfoextraction",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/07_shamsabadi_2024_llm_scientific_information_extraction_virology.pdf",
+  "author": "Shamsabadi et al.",
+  "year": 2024,
+  "read": "Li o PDF completo (19 páginas) via extração de texto (pdftotext -layout), conferindo cada trecho citado no texto extraído página a página. Capa/cabeçalho (p.1): título, autores (Mahsa Shamsabadi, Jennifer D'Souza, Sören Auer), filiação (TIB Leibniz, Hannover), abstract e rodapé da EACL 2024 Findings (p.374-392). Introdução, definição da tarefa ORKG-R0, contribuições e questão de pesquisa (p.1-3). Background sobre publicação científica semântica (p.3-4). Corpus, filtragem (de >800k para 4590, 3967, 3024 e 1500 abstracts), anotação e definição do modelo ORKG-R0 (p.4-5). Abordagem, escolha do FLAN-T5-Large 780M e as 18 instruções FLAN (p.5-6). Setup experimental, split 70/10/20 e métricas (p.6-7). Resultados zero-shot com Tabela 1 e single-task com Tabelas 2 e 3 (p.7-8). Análise de erros com tipos 1-5 (p.8-9). Conclusões e Future Directions (p.9). Seção Limitations em dois parágrafos, I (publicação semântica) e II (escala) (p.9-10). Apêndices A-E (p.14-19: instruções SQuAD_v2/DROP, hyperparâmetros, ROUGE, Tabelas 4-7).",
+  "technique": "Artigo de aplicação: ajuste fino por instrução em tarefa única (single-task instruction-finetuning) de um LLM encoder-decoder, o FLAN-T5-Large de 780M parâmetros, para extração de informação científica estruturada. A entrada é o título + abstract de um artigo; a saída é uma 'contribuição' no formato ORKG-R0 com seis propriedades (disease name, location, date, R0 value, %CI values, method), gerada como texto (campos separados por pipe) ou como objeto JSON. Os autores selecionam 18 instruções prontas da coleção FLAN (9 do SQuAD_v2 e 9 do DROP) e ajustam o FLAN-T5 nelas, explorando três estratégias (single-instruction, all-instruction e best-instruction). É uma abordagem generativa seq2seq; não usa embeddings como features nem um passo prévio de NER. O que o artigo mede no domínio é a qualidade da extração de R0 a partir de abstracts de virologia/epidemiologia em inglês.",
+  "representation": "Não é um artigo de representação vetorial. Não há encoder de embeddings, pooling, normalização nem geometria de espaço: o texto (título + abstract + instrução) é tokenizado e alimentado a um encoder-decoder T5, que decodifica a saída estruturada (texto ou JSON) token a token. A avaliação é de extração (F1 exato/parcial por propriedade e geral; ROUGE e 'general accuracy' no zero-shot), não de propriedades do espaço de representação. Sendo artigo de aplicação, seu valor está no que ele mediu no domínio (abstracts de virologia, alvo R0 estimate, inglês), não numa técnica de vetorização.",
+  "afirmacoes": [
+    {
+      "afirmacao": "Um FLAN-T5 de 780M ajustado por instrução supera o T5 e o FLAN-T5 de mesmo tamanho e também o GPT3.5-davinci de 175B (≈1000x mais parâmetros), este último avaliado apenas zero-shot.",
+      "citacao": "surpasses its incremental predecessors T5 and FLAN-T5 with the same parameter size of 780M, as well as GPT3.5 (with 1000x more parameters at 175B)",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O melhor modelo atinge 55,89% de F1 parcial geral no formato texto e 55,28% no formato JSON — desempenho absoluto modesto.",
+      "citacao": "The best partial overall F1 scores were 55.89% for text answer and 55.28% for JSON answer.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O custo é de GPU: todos os experimentos numa NVIDIA 3090, com treino de 12-15h (datasets menores) a 30h (maiores) e inferência de 15-30 min para 300 instâncias de teste.",
+      "citacao": "all experiments were run on an NVIDIA 3090 GPU. Training took 12-15 hours on smaller datasets and 30 hours on larger datasets, while inference lasted 15-30 minutes for 300 test instances.",
+      "pagina": 7
+    },
+    {
+      "afirmacao": "Na análise de erros do melhor modelo, os erros mais frequentes no formato texto são respostas a itens não-respondíveis (Type 1.1) e predições incompletas (Type 4.2), sendo 'method' a propriedade mais afetada.",
+      "citacao": "the most frequent errors in the text-based settings are unanswerable labels (Type 1.1) and incomplete predictions (Type 4.2).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O corpus gold de 1.500 abstracts foi dividido em 1.082 treino, 120 dev e 300 teste, com o alvo binário answerable/unanswerable (ans/unans) em cada split.",
+      "citacao": "The dataset comprised 1,082 train (464 ans, 618 unans), 120 dev (53 ans, 67 unans), and 300 test (135 ans, 165 unans) instances.",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Seção Limitations (p.9-10). Sobre a escala do modelo, os autores admitem: 'potentially, a single-task finetuned model performance could be boosted if larger scale models were used. This aspect while not analyzed in this work is relegated to future work.' Também relegam o cenário few-shot ao futuro: 'We relegate few-shot in-context model learning to future work.' E, sobre o escopo, escrevem que 'models developed for ORKG -R0 IE are unlikely to be directly applicable to conventional biomedical IE tasks' (p.5). Na parte I da seção, apontam a baixa adoção/padronização da publicação científica semântica e a complexidade técnica de implementar e manter a infraestrutura do ORKG.",
+  "evidence": "Baselines zero-shot (Tabela 1, p.7): T5 780M, FLAN-T5 780M e GPT3.5-davinci 175B, avaliados out-of-the-box com ROUGE-1/2/L/Lsum e 'general accuracy'. O ORKG-FLAN-T5R0 ajustado atinge ROUGE-1 80,77 e general accuracy 88,67% no formato JSON (contra 68,44 e 79,00 do GPT3.5) e ROUGE-1 78,64 com accuracy 86,33 no texto. Na avaliação com F1 exato/parcial (Tabelas 2-3, p.7), o melhor modelo chega a 55,89% de F1 parcial geral (texto) e 55,28% (JSON), com 43,59%/44,80% no match exato. Por propriedade, R0 value e %CI values são relativamente mais fáceis (F1 parcial ~58-63%) e method e date as mais difíceis (~33-45%). Foram treinados 40 modelos em três estratégias (single-instruction, all-instruction, best-instruction) e dois formatos. Ressalva importante: os baselines grandes só aparecem zero-shot; não há GPT3.5 ajustado, então a comparação '780M vence 175B' não é pareada.",
+  "needs": "Modelo FLAN-T5-Large 780M (aberto, disponível no HuggingFace/Transformers), ajuste fino supervisionado. Corpus gold de 1.500 abstracts em inglês (652 com valor de R0 reportado), split 1.082/120/300. Compute: GPU NVIDIA 3090 (o artigo não reporta CPU). Língua: apenas inglês, sem variante multilíngue. Dados rotulados: obrigatórios — dois anotadores, exercício de anotação de ~3 meses. Instruções: 18 prontas da coleção FLAN (SQuAD_v2 + DROP). Não exige API paga (modelo aberto).",
+  "cost_here": "Custo em CPU: não reportado — o artigo só mede GPU (12-30h de treino e 15-30 min de inferência/300 instâncias numa NVIDIA 3090). Rodar sobre o nosso corpus (4.369 notícias PT-BR, 965 semanas, 28 locations, CPU only) exigiria: (a) inferência generativa de um seq2seq de 780M em CPU, sem número no artigo — não há base para afirmar que cabe no nosso orçamento de 'minutos em CPU'; (b) ajuste fino supervisionado sobre dados rotulados que não temos; (c) tokenizer/checkpoint em inglês, incompatível com PT-BR. A regra do projeto é 'transform em minutos em CPU', e o artigo não dá evidência de que isso seja atingível. Custo de nova dependência: alto (novo modelo seq2seq de 780M + etapa de treino).",
+  "transferable": "Transfere: (1) a evidência de que um LLM moderado ajustado por instrução (780M) pode bater um modelo ~1000x maior avaliado zero-shot numa tarefa estreita — argumento a favor de modelos pequenos, relevante à restrição CPU-only; (2) o desenho de avaliação por propriedade (F1 exato/parcial) e a análise de erros por tipo, como checklist para os nossos braços; (3) a ideia de avaliar também a distinção answerable/unanswerable (a 'general accuracy'). NÃO transfere: o domínio é abstract científico em inglês sobre R0 (virologia/epidemiologia), não notícia PT-BR; a técnica é generativa seq2seq ajustada, não embeddings-como-features, então não informa diretamente os braços 01-03; a língua (EN) e o gênero (abstract estruturado vs. notícia curta) estão distantes; e os próprios autores declaram que seus modelos são 'unlikely to be directly applicable to conventional biomedical IE tasks'.",
+  "red_flags": [
+    "Comparação não pareada: T5, FLAN-T5 e GPT3.5 são avaliados apenas zero-shot, enquanto o ORKG-FLAN-T5R0 é ajustado; não há GPT3.5 ajustado como baseline, então '780M vence 175B' não é um teste controlado.",
+    "Desempenho absoluto modesto: melhor F1 parcial geral 55,89% (texto) / 55,28% (JSON); F1 exato ~44%.",
+    "Só inglês; nenhum teste em outra língua, em notícia ou em texto curto de vigilância.",
+    "Uma única família de modelos (T5/FLAN-T5); a 'correção' é medida essencialmente num modelo.",
+    "Teste pequeno: 300 instâncias (135 ans, 165 unans); por propriedade, algumas têm poucos valores.",
+    "Zero-shot avaliado por ROUGE (proxy de sumarização), não por F1 de extração.",
+    "Sem teste de significância estatística e sem avaliação humana da qualidade das extrações.",
+    "Exige 1.500 abstracts com anotação gold humana (~3 meses) — caro de replicar."
+  ]
+}

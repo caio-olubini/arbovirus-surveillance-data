@@ -1,0 +1,51 @@
+{
+  "key": "su2021whitening",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/10_su_2021_whitening_sentence_representations.pdf",
+  "author": "Su et al.",
+  "year": 2021,
+  "read": "Li as 9 paginas do PDF (pdftotext -layout, pagina a pagina) e validei cada citacao contra o proprio arquivo com scripts/conferir_fichas.py (casamento de 5-gramas por pagina, via pypdf). Capa e autoria (p.1): Jianlin Su, Jiarun Cao, Weijie Liu, Yangyiwen Ou — 4 autores, Shenzhen Zhuiyi Technology e Tencent Research; arXiv:2103.15316v1 [cs.CL], 29 mar 2021. Abstract, introducao e trabalhos relacionados (p.1-2). Metodo: 3.1 hipotese e geometria do cosseno (p.2-3), 3.2 transformacao de whitening via SVD e Algoritmo 1 (p.3-4), 3.3 reducao de dimensionalidade e 3.4 analise de complexidade (p.4). Experimentos: 4.1 datasets, 4.2 configuracoes e baselines (p.4-5), 4.3 resultados — Tabela 1 (p.5) e Tabela 2 (p.6), 4.4 efeito de k — Figura 1 (p.6-7). Conclusao (p.7). Referencias (p.7-9). Nao ha secao de limitacoes. Cada citacao abaixo foi conferida e cai na pagina declarada com cobertura de 5-gramas acima de 0,80.",
+  "technique": "Whitening (branqueamento) aplicado como POS-PROCESSAMENTO sobre embeddings de frase ja existentes, sem treinar rede nenhuma. Dado o conjunto de N vetores de frase {x_i}, calcula-se a media mu e a matriz de covariancia Sigma; pela SVD Sigma = U Lambda U^T define-se a matriz de transformacao W = U sqrt(Lambda^-1) (equacao 9). Cada vetor vira x~ = (x - mu)W (equacao 2), de modo que a nova media e 0 e a nova covariancia e a identidade — o conjunto fica isotropico e a base vira ortonormal. Opcionalmente retem-se so as primeiras k colunas de W (Whitening-k, Algoritmo 1), o que equivale a PCA e reduz a dimensao. E uma transformacao LINEAR pura, ajustada de forma NAO supervisionada sobre o proprio corpus (configuracao 'target') ou sobre o corpus NLI em ingles (SNLI+MNLI). mu e Sigma podem ser estimados de forma recursiva (equacoes 10 e 11), permitindo corpora grandes com memoria constante.",
+  "representation": "O texto vira numero em duas etapas. Primeiro um encoder pre-treinado (BERT-base/BERT-large, ou SBERT-NLI) produz um vetor por frase com pooling first-last-avg (media das duas ultimas camadas de BERT). Depois o whitening recentra (subtrai a media) e descorrelaciona (covariancia -> identidade) esse vetor, colocando-o numa base ortonormal padrao; opcionalmente reduz de 768 para 256/384 dimensoes. A tese geometrica: a formula do cosseno (equacao 1) so tem o significado usual quando a base e ortonormal, e embeddings de BERT sao anisotropicos — ocupam um cone estreito, com cosseno medio de 0.99 entre palavras quaisquer (citando Ethayarajh, 2019) — o que quebra o pressuposto e faz o cosseno entre frases discriminar mal.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O nucleo do metodo e o whitening: transformar os embeddings de frase de modo que a media vire 0 e a matriz de covariancia vire a identidade.",
+      "citacao": "our goal is to transform the mean value of the sentence vector into 0 and the covariance matrix into the identity matrix",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "A complexidade do whitening e O(N) em tempo e O(1) em espaco, porque media e covariancia sao calculadas de forma recursiva — o que o torna viavel em corpora grandes.",
+      "citacao": "we can conclude that the space complexities of µ and Σ are all O(1) and the time complexities are O(N )",
+      "pagina": 4
+    },
+    {
+      "afirmacao": "Sob BERT-base, o metodo supera o baseline BERT-flow e atinge resultado estado-da-arte com apenas 256 dimensoes em STS-B, STS-12, STS-13, STS-14 e STS-15.",
+      "citacao": "our approach consistently outperforms the BERT-flow and achieves state-of-the-art results with 256 sentence embedding dimensionality on STS-B, STS-12, STS-13, STS-14, STS-15 datasets respectively",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Reduzir a dimensao do vetor de frase para cerca de um terco costuma ser a solucao quase otima para a maioria das tarefas, com o desempenho no limite de ainda crescer.",
+      "citacao": "For most tasks, reducing the dimension of the sentence vector to its one of third is an relatively optimal solution, in which its performance is at the edge of increasing point.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "No SICK-R, o BERT-base com whitening atinge correlacao 66.52 usando somente 109 dimensoes, superando o baseline BERT-flow (NLI) em 1.08 ponto.",
+      "citacao": "of our BERTbase -whitening (NLI) raises to 66.52 when the embedding size is set to 109, which outperforms the BERTbase -flow (NLI) by 1.08 point",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "O artigo NAO tem secao de limitacoes. A unica fraqueza que os autores admitem explicitamente e no SICK-R, onde o metodo nao supera o BERT-flow: \"although our BERTbase-whitening-256 (NLI) is not as effective as BERTbase-flow (NLI), our model has a competitive advantage, i.e., the smaller embedding size (256 vs. 768)\" (p.6). Tambem tratam k como escolha empirica por tarefa (\"Here, k is an empirical hyperparameter\", p.3). Os autores NAO declaram limitacao sobre idioma (os 7 benchmarks sao em ingles), sobre a avaliacao ser apenas intrinseca (correlacao de similaridade entre pares de frases), nem sobre a configuracao 'target' usar o proprio conjunto-alvo (train+dev+test, sem rotulos) para ajustar W e mu.",
+  "evidence": "Tabelas 1 (p.5) e 2 (p.6): 7 datasets de similaridade textual semantica (STS 2012-2016, STS benchmark, SICK-R), metrica Spearman rho x 100 entre cosseno e rotulo humano. Baselines: Avg. GloVe, Avg. BERT, BERT CLS-vector, first-last-avg, BERT-flow (NLI e target), USE, SBERT-NLI e SRoBERTa-NLI. Ganhos concretos sobre BERT-flow(target): BERTbase-whitening-256(target) faz STS-B 71.43 vs 70.72, STS-12 63.89 vs 63.48, STS-13 73.76 vs 72.14, STS-14 69.08 vs 68.42 e STS-15 74.59 vs 73.77. Contudo, em varias configuracoes 'target' o whitening fica ABAIXO do BERT-flow (setas de piora na tabela): SICK-R 62.2 vs 63.11 e STS-16 74.40 vs 75.37 (BERTbase), e quase toda a linha BERTlarge-whitening(target) piora. Com supervisao NLI (Tabela 2) o ganho e misto, com muitas celulas de piora. Nao ha comparacao com pos-processamentos mais simples da mesma familia (all-but-the-top de Mu & Viswanath, 2018; SIF de Arora et al., 2017), citados nos trabalhos relacionados mas ausentes das tabelas de resultado.",
+  "needs": "Embeddings de frase de um encoder BERT/SBERT (o paper usa BERTbase/BERTlarge e SBERT-NLI treinado no corpus NLI em ingles = SNLI+MNLI). A etapa de whitening NAO treina nada: precisa apenas de mu e Sigma das frases, estimaveis SEM rotulos sobre o proprio corpus. Nao exige GPU para o whitening em si (e um SVD de matriz d x d, d=768). Tamanho de modelo, uso de GPU e tempo de execucao: nao reportado no artigo. Idioma: o metodo e agnostico, mas toda a avaliacao e em ingles.",
+  "cost_here": "Custo marginal baixo: o braco 02 ja tem os embeddings do corpus (6 configuracoes). O whitening reusa esses vetores — calcular mu, Sigma e um SVD 768x768 leva segundos em CPU, sem GPU e sem rotulos, e nao acrescenta dependencia nova (numpy/torch ja estao no projeto). O gargalo pesado (gerar os embeddings em CPU) ja esta pago. Nao reportado: o artigo nao mede tempo de execucao nem uso de GPU; o 'faster retrieval' e afirmado pelo ganho de dimensionalidade, nao cronometrado. Efeito colateral util: reduzir para 256/384 dimensoes diminui o armazenamento e acelera a busca vetorial.",
+  "transferable": "Transfere bem: e pos-processamento puramente geometrico, agnostico a dominio e idioma, reusa embeddings ja construidos, roda em CPU e nao exige rotulos — encaixa no nosso cenario CPU-only e no custo fixo de dependencias. Transfere tambem a reducao de dimensao (768 -> 256/384) para economizar storage e acelerar recuperacao. NAO transfere / distancia grande: toda a evidencia e em ingles e sobre similaridade entre PARES de frases (STS, escala 0-5), nao sobre noticia PT-BR nem sobre serie semanal agregada por UF. Nosso uso e representacao de documento/tema para previsao temporal, nao ranquear pares por similaridade semantica — o ganho medido (correlacao de cosseno entre pares) nao garante ganho no nosso alvo. Nossas noticias da Agencia Brasil sao bem mais longas que as frases do STS. A configuracao 'target' ajusta W sobre o proprio conjunto-alvo (transdutivo); num desenho de vigilancia isso equivale a ajustar sobre o corpus inteiro, o que so e defensavel com avaliacao em janela held-out. O paper nao testa portugues nem texto curto de noticia.",
+  "red_flags": [
+    "Benchmark so em ingles: os 7 datasets STS sao todos em ingles.",
+    "Avaliacao apenas intrinseca (correlacao de similaridade entre pares de frases); sem tarefa downstream/extrinseca que mostre ganho de utilidade.",
+    "Ganhos pequenos em varios casos e, em varias configuracoes 'target', o whitening fica ABAIXO do BERT-flow (muitas celulas com seta de piora, inclusive SICK-R e STS-16, e quase toda a linha BERTlarge-target).",
+    "Baseline fraco na familia de pos-processamento: nao compara com all-but-the-top (Mu & Viswanath, 2018) nem SIF (Arora et al., 2017), metodos mais simples e diretamente comparaveis.",
+    "Correcao medida apenas em encoders da familia BERT/SBERT (base e large).",
+    "Configuracao 'target' ajusta W e mu usando train+dev+test do proprio conjunto-alvo (transdutivo), o que pode inflar o ganho em relacao a um ajuste so no treino.",
+    "Sem tempo de execucao nem uso de GPU reportados; 'faster retrieval' e afirmado, nao medido."
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "key": "kim2020onlineclassification",
+  "grupo": "aplicacao",
+  "pdf": "articles/llm-extracao/11_kim_2020_classification_online_sources_infectious_disease.pdf",
+  "author": "Kim et al.",
+  "year": 2020,
+  "read": "Li o PDF inteiro (13 páginas): capa/cabeçalho (autores, afiliações, data), Abstract, Introdução (1.1-1.3), Métodos (2.1 Fontes de dados, 2.2 Pré-processamento, 2.3 Gold standard, 2.4 Modelos de deep learning, 2.5 Setup e avaliação), Resultados (3.1 Revisão manual, Tabelas 2/3/4/5/6, Figuras 4/5, curva de aprendizado 3.3), Discussão (4.1 Achados principais, 4.2 Limitações e direções futuras) e Conclusões. Extraí o texto com pdftotext -layout e conferi cada citação contra o texto extraído. As páginas citadas seguem a numeração do PDF (N de 13).",
+  "technique": "Classificação binária supervisionada de páginas web: o documento reporta ou não uma ocorrência de doença infecciosa. Dois modelos neurais são comparados — ConvNet (CNN em nível de caractere) e BiLSTM (LSTM bidirecional em nível de palavra, com embeddings pré-treinados fastText 300D) — cruzados com duas granularidades de classificação: DocClass (classifica o documento inteiro de uma vez) e SenClass (classifica sentença a sentença e depois agrega para decidir o documento). Mede precisão, recall, F1, acurácia e AUC. Corpus de 2.864 documentos rotulados coletados por crawler de 10 sites (WHO-DON, WHO-IHR, ProMED, WHO-News, NCDC, SAMOH etc.), 80% treino / 10% validação / 10% teste.",
+  "representation": "ConvNet: cada documento vira uma sequência de caracteres (truncada/ preenchida em 10.000 caracteres no nível de documento e 3.200 no de sentença); não usa embeddings pré-treinados — a rede aprende a representação do zero. BiLSTM: cada documento vira uma sequência de palavras (limite de 800 palavras no nível de documento e 128 no de sentença), cada palavra mapeada para um vetor fastText de 300 dimensões, passada por duas camadas LSTM bidirecionais com dropout 0.5. Ou seja, a representação é sequencial (caractere ou palavra), não um pooling de encoder tipo BERT — não há mean-pooling nem normalização de vetor em jogo.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O melhor modelo (BiLSTM com classificação por sentença) atingiu 92,9% de acurácia global ao decidir se um documento reporta uma ocorrência de doença infecciosa.",
+      "citacao": "The performance of BiLSTM with SenClass yielded an overall accuracy of 92.9% when classifying infectious disease occurrences.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O baseline trivial (classificar todo documento como positivo) acerta 73%, e ambos os modelos ficaram significativamente acima disso.",
+      "citacao": "The baseline accuracy of the test data was 73% when all the documents were classified as positive, i.e., they included an infectious disease occurrence.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Qual modelo vence depende da granularidade: com DocClass o ConvNet supera o BiLSTM; com SenClass o BiLSTM supera o ConvNet.",
+      "citacao": "the ConvNet yielded a higher average, minimum, and maximum accuracies (88%, 85%, and 91%, respectively) than BiLSTM (84%, 83%, and 85%, respectively), while BiLSTM was a little more stable due to its smaller standard deviation.",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Nas fontes mais difíceis (ProMED e WHO-News), onde o baseline é de ~50%, o ganho dos modelos é grande: 71-72% no DocClass e 83-88% no SenClass.",
+      "citacao": "The baseline accuracy of the data derived from ProMED and WHO-News was about 50%, whereas the deep learning models resulted in an accuracy of 71–72% (DocClass) and 83–88% (SenClass) on average, which was much higher than the baseline.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O corpus rotulado tem 2.864 documentos, dos quais 2.083 (72,7%) são relevantes (reportam ocorrência) e 781 (27,3%) irrelevantes — o desbalanceamento que define o baseline de 73%.",
+      "citacao": "Of the 2864 reports reviewed, 2083 (72.7%) were classified as relevant (disease occurrence) and 781 (27.3%) as irrelevant.",
+      "pagina": 6
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram três limitações explícitas na seção 4.2. (1) Idioma: \"We only focused on English document sources in this study. However, due to the globalization and mobility of infectious diseases, some important and timely news, especially related to disease outbreaks, may be reported in other languages. Future studies should incorporate a multilingual processing component to deal with important news sources in other languages.\" (2) Extração de texto: em PDF, \"the original order of words was distorted and the sentence boundary was unclear. There is a risk of generating a relatively large number of errors in constructing a training dataset.\" (3) Não usaram features de entidades: \"In the current deep learning experiments, we did not use additional features (entities), such as disease, person, place, and time, which are essential elements to determine whether a report mentions an infectious disease outbreak.\"",
+  "evidence": "Três níveis de comparação. (1) Baseline trivial de 73% (todos positivos) e ~50% nas fontes difíceis: o BiLSTM+SenClass chega a 92,9% e 88,2% respectivamente, ambos acima. (2) Contra três classificadores tradicionais com features TF-IDF (Tabela 6): BiLSTM-SenClass 0,9292 de acurácia / F1 0,9289 / AUC 0,9706, contra Gaussian Naïve Bayes 0,8556 / 0,9031 / 0,8476, linear SVM 0,8662 / 0,9136 / 0,9391 e Random Forest 0,8345 / 0,8733 / 0,9605. O SenClass vence os três em acurácia, F1 e AUC (mas o Random Forest tem precisão maior, 0,9878). (3) Tabela 5 dá o detalhe: ConvNet-DocClass 0,8760 de acurácia / AUC 0,9506; BiLSTM-SenClass 0,9289 / 0,9706. Cada configuração rodada 5 vezes com desvio-padrão reportado.",
+  "needs": "Dados rotulados: 2.864 documentos anotados por dois revisores cegos entre si, com conflitos resolvidos por um médico (gold standard). Idioma: somente inglês. Modelos: ConvNet (CNN de caractere, 6 camadas conv+pool e 3 densas) e BiLSTM de 2 camadas com embeddings fastText 300D pré-treinados. Split 80/10/10. Treino de até 100 épocas com early stopping. Hardware: o artigo só menciona \"constraint of hardware memory\" como razão para fixar comprimentos — não reporta GPU nem tempo de treino. Nenhum modelo pré-treinado tipo BERT.",
+  "cost_here": "Não reportado o custo computacional (nem GPU, nem tempo, nem FLOPs). Sobre o NOSSO corpus em CPU: os modelos em si são pequenos (CNN de caractere e BiLSTM de 2 camadas), treináveis em CPU, mas o gargalo não é o modelo — é a dependência de rótulos. Nós não temos gold standard de \"reporta ocorrência\" para os 4.369 artigos PT-BR, e o artigo exige dois anotadores humanos. Somado a isso, o fastText 300D usado é de inglês e o artigo não cobre português. Estimativa de custo: não reportado pelo artigo; a barreira real é anotação, não compute.",
+  "transferable": "Transfere: a ideia de que classificação por sentença (SenClass) supera classificação do documento inteiro (DocClass) em textos longos, porque a pista (a entidade de ocorrência) costuma estar em uma ou duas frases — diretamente relevante para as nossas notícias da Agência Brasil, que também são longas. Também transfere a constatação de que fontes mistas e desbalanceadas precisam de baseline explícito e de avaliação por subconjunto difícil. NÃO transfere: o resultado numérico (92,9%) é de páginas web em inglês sobre surtos; a distância de domínio e idioma é grande para notícia PT-BR. O artigo só usa fontes em inglês e os autores pedem componente multilíngue como trabalho futuro. Além disso, o problema deles é binário (ocorrência sim/não) e supervisionado; o nosso braço de notícias é PT-BR, sem esse rótulo, e a técnica aqui não é uma representação reusável (não produz embeddings transferíveis) — é um pipeline de classificação treinado no corpus deles.",
+  "red_flags": [
+    "Somente fontes em inglês — os próprios autores admitem; nada de multilíngue, distância grande para PT-BR.",
+    "Conjunto de teste pequeno: 284 documentos no total (Tabela 3), o que deixa as métricas sensíveis a poucos exemplos.",
+    "A comparação com 'humano especialista' é afirmada (\"compatible with the performance of a human expert\") sem nenhuma acurácia humana medida — alegação sem número.",
+    "Não é uma representação reusável: treina um classificador fim-a-fim, não gera embeddings que se possam aplicar a outro corpus.",
+    "Alta variância em algumas configurações (ex.: ConvNet-DocClass nas fontes difíceis tem desvio-padrão de ~0,05), e o vencedor muda conforme a granularidade — o resultado depende de escolhas de setup.",
+    "Não usaram features de entidades (doença, pessoa, lugar, tempo), que os próprios autores dizem ser os elementos essenciais da tarefa.",
+    "Gold standard por dois revisores (com um médico desempatando) num único corpus; sem validação externa nem replicação em outro conjunto."
+  ]
+}

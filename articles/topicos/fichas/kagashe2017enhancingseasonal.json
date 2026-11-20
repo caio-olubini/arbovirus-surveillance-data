@@ -1,0 +1,52 @@
+{
+  "key": "kagashe2017enhancingseasonal",
+  "grupo": "aplicacao",
+  "pdf": "articles/topicos/45_kagashe_2017_enhancing_seasonal_influenza_surveillance.pdf",
+  "author": "Kagashe et al.",
+  "year": 2017,
+  "read": "Li o PDF inteiro via pdftotext -layout (14 paginas). Capa/abstract com autores e afiliacoes (p.1); Introducao, Background e Related Work (pp.2-4), incluindo a tabela de custos de surveys (US$23,51 clinico vs US$14,63 em rede social; US$3,98 telefonico vs US$0,71 web); Methods (pp.4-6): coleta (459.043 tweets, 30 cidades), anotacao manual (5000 tweets, kappa .91), features de 'dependency words', SVM/LIBSVM e LDA/MALLET; Results (pp.6-7): Tabela 2 (desempenho dos 3 classificadores), Tabela 3 (drogas mais usadas), Tabela 4 (topicos das vacinas) e numero otimo de topicos por droga; Discussion (pp.8-9) com interpretacao dos topicos; Limitations and Future Work (p.10); Conclusions (p.10); References (pp.10-13). As limitacoes declaradas estao na secao 'Limitations and Future Work' (p.10).",
+  "technique": "Aplicacao de classificacao supervisionada + topic modeling classico a tweets para vigilancia de gripe. NAO usa embeddings. Duas etapas: (1) um classificador SVM de kernel linear (LIBSVM) cujas features sao as 'dependency words' — apenas as palavras que tem relacao de dependencia gramatical com a droga mencionada no tweet (ex.: 'Just got my Nyquil, ready for bed' -> features 'my, got, ready'); o texto vira um vetor de frequencia (1-gram TF) dessas palavras, nao de todas; (2) para cada droga amplamente consumida, um LDA (via MALLET) extrai topicos das tweets relevantes daquela droga. Tambem usa UMLS-MetaMap para achar mencoes de droga (tipos semanticos immunological factor, clinical drug, pharmacological substance). O que ele mediu no dominio: quantos tweets indicam consumo real de droga, quais drogas sao mais consumidas e que temas (topicos) aparecem nas tweets de cada droga.",
+  "representation": "O texto vira numero sem encoder neural, por contagem. (1) Classificacao: o tweet e parseado (Stanford parser) para achar a estrutura de dependencia; mantem-se so as palavras ligadas por dependencia gramatical a droga citada; essas palavras viram um vetor 1-gram de term frequency (TF), alimentando o SVM. E representacao esparsa, por contagem de palavras, e nao um espaco denso de embeddings; a novidade e QUAIS palavras entram no vetor (so as dependentes da droga), nao como o vetor e construido. (2) Topicos: as tweets relevantes de cada droga viram bag-of-words e alimentam o LDA, que devolve K topicos como distribuicoes de palavras. Nada aqui e embedding — e TF + LDA, o padrao classico bag-of-words.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O classificador proposto (SVM linear com 'dependency words' como features) atingiu F1 de 0,82 e a diferenca frente aos dois baselines foi estatisticamente significativa.",
+      "citacao": "The results showed that the differences in the F1 score between our classifier and the two benchmarks were statistically significant (ie, P<.001 with the lexicon-based model and P=.048 with the 1-gram TF model).",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O corpus analisado tinha 459.043 tweets em ingles da temporada de gripe 2012-2013, coletados em 30 cidades dos EUA.",
+      "citacao": "in total there were 459,043 tweets included in the analysis",
+      "pagina": 5
+    },
+    {
+      "afirmacao": "De 50.828 tweets com mencao a drogas, o classificador identificou 40.428 (79,54%) como tweets relevantes, isto e, de consumo real da droga.",
+      "citacao": "Out of 50,828 tweets that mentioned drugs, 40,428 (79.54%) were relevant tweets.",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "As vacinas contra influenza dominaram o consumo, com 76,95% (31.111/40.428) dos tweets relevantes.",
+      "citacao": "The results showed that widely used drugs included influenza virus vaccines 76.95% (31,111/40,428).",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "Os topicos foram extraidos por droga com LDA (MALLET), com numero otimo de topicos variando por droga: 10 para as vacinas e 3 a 5 para as demais.",
+      "citacao": "The optimum number of topics retrieved for each relevant drug was as follows: Influenza virus vaccines (10), Theraflu (5), DayQuil and NyQuil (5), vitamins (5), acetaminophen (3), and oseltamivir (3).",
+      "pagina": 7
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram limitacoes na secao 'Limitations and Future Work' (p.10). Sobre ruido de texto: 'the study was limited by challenges such as misspellings, abbreviations, and slang language, which are common issues facing researchers attempting to analyze social media text.' Sobre a ferramenta de extracao: 'MetaMap software, which recognized only standard medical names and left out some tweets with drug mentions. This might have caused the number of tweets with a specific drug to be reduced and made it hard to find all of the meaningful topics.' E sobre validacao externa: 'we did not explore correlations of the uptake of the drugs between tweets and official statistics. We also did not conduct analyses in smaller, more specific geographical locations (such as cities).'",
+  "evidence": "Comparacao contra dois baselines sobre 1600 tweets de teste (treino de 3400), medidos em precisao/recall/F1 (Tabela 2, p.7): lexicon-based 0,52/0,91/0,66; 1-gram TF 0,73/0,88/0,79; dependency words (o proposto) 0,77/0,90/0,82. Significancia estatistica testada dividindo o teste em 30 partes: P<.001 vs lexicon e P=.048 vs 1-gram TF (p.6). A avaliacao do LDA e qualitativa: os topicos sao interpretados a mao (Tabela 5) e comparados com achados de surveys anteriores; nao ha metrica de qualidade de topico (coherence) nem correlacao com dados oficiais de vigilancia.",
+  "needs": "Requer: UMLS-MetaMap (dicionario biomedico em ingles, US National Library of Medicine), Stanford parser + CoreNLP (dependencia e lematizacao), LIBSVM (SVM) e MALLET (LDA) — todos CPU. Exige dados rotulados (5000 tweets anotados por 2 anotadores + desempate; treino 3400/teste 1600). Lingua: pipeline inteiro montado para INGLES (MetaMap e um dicionario biomedico de ingles; parser do Stanford para ingles). Nao reportado: tempo de execucao, custo computacional e custo de inferencia. A fonte e a API do Twitter sobre tweets historicos — nao reproduzivel hoje sem acesso a API.",
+  "cost_here": "Computacionalmente barato em CPU: SVM linear e LDA/MALLET nao pedem GPU, e o volume (459 mil tweets curtos) e modesto. O custo real nao e de compute e sim de dependencia e de idioma: MetaMap (dicionario biomedico de INGLES) nao transfere para PT-BR, e o Stanford parser/CoreNLP teria que ser trocado por um parser de dependencia em portugues (ex.: spaCy PT). Alem disso, a abordagem precisa de dados rotulados (aqui, 5000 tweets anotados) e de uma lista/deteccao de drogas — nenhum dos dois existe no nosso corpus de noticias. Custo de uma nova dependencia: alto, porque MetaMap/Stanford nao estao nos extras fixados (torch+transformers, tomotopy) e adicionariam Java/MALLET e um parser novo ao pyproject.toml. Nao reportado: tempo de execucao em CPU.",
+  "transferable": "Transfere parcialmente. O padrao geral — filtrar mencoes, classificar o que e experiencia real, e extrair topicos por subgrupo — e conceitualmente proximo do nosso braco 01 (lexico) e do 03 (DMR/tomotopy), mas a instancia tecnica (TF de dependency words + SVM, LDA/MALLET) nao responde nada sobre geometria de embeddings. NAO transfere: MetaMap (dicionario biomedico de ingles) e o Stanford parser (ingles) — a extracao de entidades e de dependencia precisa ser refeita para PT-BR; a fonte sao tweets curtos e informais em ingles, enquanto nosso corpus sao noticias jornalisticas em PT-BR (registro, tamanho de documento e ruido totalmente diferentes); a entidade-alvo sao DROGAS de gripe, nao doenca/casos de dengue; o rotulo (consumo real de droga) nao tem analogo no nosso problema; e a escala geografica (30 cidades dos EUA) nao corresponde aos nossos 28 locations. Distancia de dominio: grande (idioma, genero textual, entidade-alvo e rotulo todos diferentes).",
+  "red_flags": [
+    "So ingles e so EUA: MetaMap, Stanford parser e todo o pipeline sao especificos do ingles — nenhuma validacao cruzada de idioma.",
+    "Nenhuma comparacao com representacoes por embeddings (BERTopic, neural topic models, sentence embeddings): a unica representacao testada e TF + LDA, entao o artigo nao diz se embeddings seriam melhores ou piores.",
+    "A qualidade dos topicos do LDA e avaliada apenas por interpretacao manual (Tabela 5); sem coherence nem metrica objetiva de topico.",
+    "Os proprios autores admitem que nao correlacionaram o consumo de drogas nos tweets com estatisticas oficiais de vigilancia (p.10) — nao ha validacao externa de que os numeros refletem a realidade.",
+    "Extracao de drogas dependente do MetaMap, que perde mencoes (misspellings/slang); os autores admitem que isso reduziu contagens e escondeu topicos.",
+    "Uma unica temporada (2012-13) e um unico pais/regiao (30 cidades dos EUA); sem replicacao em outro periodo ou local.",
+    "Ganho sobre o baseline de 1-gram TF e marginal (F1 0,82 vs 0,79) e no limite da significancia (P=.048) — o baseline forte ja e quase tao bom.",
+    "A fonte (API historica do Twitter) nao e reprodutivel hoje; nao ha release publico dos dados anotados."
+  ]
+}

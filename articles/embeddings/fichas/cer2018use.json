@@ -1,0 +1,51 @@
+{
+  "key": "cer2018use",
+  "grupo": "representacao",
+  "pdf": "articles/embeddings/04_cer_2018_universal_sentence_encoder.pdf",
+  "author": "Cer et al.",
+  "year": 2018,
+  "read": "Li o PDF inteiro, as 6 páginas (paginação impressa 169-174). Capa, abstract e Introdução (p.1); seções 3 Encoders, 3.1 Transformer, 3.2 Deep Averaging Network e 3.3 Encoder Training Data (p.1-2); seções 4 Transfer Tasks e 5 Transfer Learning Models com 5.1 Baselines (p.2); seção 6 Experiments e 7 Results com a Tabela 2 de classificação e a Tabela 3 de STS Benchmark (p.3); Tabela 4 (SST por volume de dados), seção 8 Resource Usage com a Figure 1 e a Tabela 5 de WEAT, e seção 9 Conclusion (p.4); Figure 1 e início das referências (p.5-6). Não li só o abstract — as limitações (nota de rodapé 11 sobre viés) e os resultados numéricos estão no corpo.",
+  "technique": "O Universal Sentence Encoder: dois modelos pré-treinados que transformam uma frase inteira num único vetor de tamanho fixo, distribuídos no TensorFlow Hub. Variante Transformer — usa o subgrafo codificador do Transformer, com atenção para construir representações de palavra sensíveis ao contexto, depois promedia essas representações para obter o vetor de frase; treinada multi-tarefa (Skip-Thought, predição de resposta conversacional, classificação supervisionada). Variante DAN (Deep Averaging Network) — começa promediando embeddings de palavra e de bi-grama e passa a média por uma DNN feedforward; treinada do mesmo jeito multi-tarefa. Ambas foram treinadas primeiro de forma não supervisionada em texto da web e depois ajustadas com o corpus supervisionado SNLI (inferência de linguagem natural). O embedding resultante é usado direto ou concatenado com features de palavra para uma tarefa a jusante.",
+  "representation": "Como texto vira número: a entrada é uma string crua, não tokenizada. O modelo faz o pré-processamento interno — minusculiza, remove pontuação e tokeniza por espaço em branco; palavras fora do vocabulário são tratadas por string hashing em 400.000 buckets de embeddings OOV. O encoder devolve UM vetor de frase de dimensão fixa. No Transformer, a atenção produz vetores de token dependentes do contexto e o vetor de frase é a média deles (mean pooling). No DAN, o vetor de frase é a média de embeddings de palavra e de bi-grama passada por uma rede feedforward. Para similaridade semântica entre duas frases, a similaridade dos vetores u e v é medida pela distância angular −arccos(uv/(||u||||v||)), que os autores usam no lugar da similaridade de cosseno.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O artigo oferece dois encoders de frase — um Transformer, mais preciso e mais caro em recursos, e um DAN, com inferência eficiente e acurácia menor — deixando o trade-off acurácia-versus-recursos explícito.",
+      "citacao": "Two sentence encoding models are provided: (i) transformer (Vaswani et al., 2017), which achieves high accuracy at the cost of greater resource consumption; (ii) deep averaging network (DAN) (Iyyer et al., 2015), which performs efficient inference but with reduced accuracy.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "No encoder Transformer, as representações de palavra sensíveis ao contexto são promediadas para formar um único vetor de frase (mean pooling das ativações do encoder).",
+      "citacao": "The context aware word representations are averaged together to obtain a sentence-level embedding.",
+      "pagina": 1
+    },
+    {
+      "afirmacao": "O DAN tem custo de computação linear no comprimento da frase, o que o torna a variante barata em CPU frente ao Transformer, cujo custo cresce de forma quadrática.",
+      "citacao": "An advantage of the DAN encoder is that compute time is linear in the length of the input sequence.",
+      "pagina": 2
+    },
+    {
+      "afirmacao": "A transferência usando apenas os embeddings de frase do Transformer supera o InferSent nos conjuntos MR, SUBJ e TREC (mas não em CR, MPQA nem SST).",
+      "citacao": "Using transformer sentence-level embeddings alone outperforms InferSent on MR, SUBJ, and TREC.",
+      "pagina": 3
+    },
+    {
+      "afirmacao": "Com apenas 1.000 exemplos rotulados, a transferência com embeddings de frase do Transformer já supera o InferSent treinado no conjunto completo de 67.300 exemplos (medido no SST).",
+      "citacao": "Using only 1k labeled examples and the transformer embeddings for sentence-level transfer surpasses the performance of transfer learning using InferSent on the full training set of 67.3k examples.",
+      "pagina": 4
+    }
+  ],
+  "ressalva_do_autor": "Os autores declaram que o modelo não foi desenhado para reduzir viés e recomendam que quem for usar verifique o viés por conta própria (nota de rodapé 11, p.4): \"The development of our models did not target reducing bias. Researchers and developers are strongly encouraged to independently verify whether biases in their overall model or model components impacts their use case.\" Além disso, os próprios resultados mostram que os embeddings reproduzem associações humanas (flores vs. insetos, prazer vs. desprazer), apenas mais fracas que o GloVe. Também admitem (nota 7) que avaliações a jusante podem sobrepor-se aos dados de treino do encoder, e (nota 9) que usam distância angular porque ela funciona melhor no STS que a similaridade de cosseno.",
+  "evidence": "Evidência com baseline nomeado. Tarefas de classificação (Tabela 2, acurácia): só o embedding de frase do Transformer (U_T) dá MR 82,2 / SUBJ 95,5 / TREC 93,2 contra InferSent 81,1 / 92,4 / 88,2 — ganha nesses três, mas perde em CR (84,2 vs 86,3), MPQA (88,1 vs 90,2) e SST (83,7 vs 84,6). Baselines incluem transferência só de palavra (CNN_w2v, DAN_w2v), sem transferência (CNN_rnd, DAN_rnd) e Skip-Thought. STS Benchmark (Tabela 3, Pearson r, test): Transformer 0,766 e DAN 0,717 contra InferSent 0,758, mas ABAIXO de gConv 0,808 e CNN (HCTI) 0,784. SST por volume de dados (Tabela 4): U_T com 1k exemplos = 84,8, à frente do InferSent com os 67,3k completos (84,6) e do CNN_w2v com 67,3k (84,1). WEAT (Tabela 5): os encoders reproduzem associações humanas com efeito menor (Cohen's d) que o GloVe. Ou seja: o ganho é real mas seletivo por tarefa, não universal.",
+  "needs": "Dois modelos pré-treinados no TensorFlow Hub: universal-sentence-encoder/2 (DAN) e universal-sentence-encoder-large/3 (Transformer), implementados em TensorFlow e distribuídos como grafos salvos (Apache 2.0). Inglês apenas. Dados de treino do encoder: texto não supervisionado da web (Wikipedia, web news, páginas de perguntas-respostas, fóruns) mais o corpus supervisionado SNLI. Não exige dado rotulado para gerar embeddings; a tarefa a jusante exige rótulos, e o artigo mostra que 1k exemplos já bastam no SST. Benchmarks de recurso (nota 12): CPU Intel Xeon Platinum P-8136 @ 2.00GHz; GPU NVIDIA Tesla P100, médias de 25 execuções após 5 de aquecimento. Tamanho de parâmetros e tempo total de treino: não reportado.",
+  "cost_here": "CPU only, sem GPU. Rodar os modelos do artigo exige TensorFlow/TF Hub — uma dependência nova e pesada, além dos extras já fixados (torch + transformers, ~800 MB) — e os modelos são só em inglês, então não se aplicam ao nosso corpus PT-BR como estão; seria preciso um encoder multilíngue ou em português. O artigo reporta curvas de tempo de CPU/GPU e memória por comprimento de frase (Figure 1), mas nenhum tempo de parede total para um corpus; para as nossas 4.369 notícias o custo é NÃO REPORTADO. Qualitativamente, a variante DAN é a barata (tempo de CPU quase constante com o comprimento), e o Transformer é a cara (cresce com o comprimento).",
+  "transferable": "Transfere: o padrão de projeto — encoder de frase pré-treinado, mean pooling, transferência com pouco dado rotulado, e uma variante barata (DAN) para inferência em CPU. Não transfere: os modelos em si são só em inglês, treinados em web em inglês + SNLI, e todos os benchmarks (MR, CR, SUBJ, MPQA, TREC, SST, STS) são em inglês. A distância de domínio é grande: notícia em inglês sobre sentimentos/classificação não é notícia em português sobre dengue, e os números reportados não predizem desempenho no nosso caso. Nenhum resultado é medido em português nem em texto de vigilância de doença.",
+  "red_flags": [
+    "Todos os benchmarks são em inglês; nenhuma avaliação em português ou no domínio de saúde.",
+    "O ganho é seletivo por tarefa: o Transformer perde para o InferSent em CR, MPQA e SST e fica abaixo de gConv/CNN-HCTI no STS, apesar de o abstract dizer que 'often' supera.",
+    "A afirmação forte (1k exemplos supera o treino completo de 67,3k) é medida só no SST.",
+    "Baseline principal é o InferSent (2017); comparações mais recentes são escassas.",
+    "Recursos medidos em hardware específico (Xeon P-8136; Tesla P100), não generalizáveis.",
+    "Modelos são empacotados só para TensorFlow/TF Hub; nenhum caminho PyTorch nativo no artigo.",
+    "Nota de rodapé admite que viés não foi mitigado — e o próprio WEAT mostra associações enviesadas."
+  ]
+}

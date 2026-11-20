@@ -1,0 +1,51 @@
+{
+  "key": "vangara2021findingnumber",
+  "grupo": "representacao",
+  "pdf": "articles/topicos/12_vangara_2021_finding_number_latent_topics.pdf",
+  "author": "Vangara et al.",
+  "year": 2021,
+  "read": "Li o PDF inteiro (15 páginas de conteúdo, pp.1-15 = artigo 117217-117231), por extração de texto em ordem de leitura (pdftotext sem -layout, página a página) e conferi trechos-chave relendo as pp.6 e 8 na ferramenta Read. Cobri: capa/abstract com as contribuições (p.1); introdução (pp.2-3); related work — topic modeling e model determination (pp.3-4); método SeNMFk completo: IV-A custom resampling, IV-B SeNMF minimization com o problema de otimização de KL e o Algorithm 1, IV-C L-statistics, IV-D H-clustering (pp.4-6); avaliação: V-A data, V-B preprocessing, V-C experimental setup, V-D model selection, V-E H-clustering, V-F results, V-G NMI, V-H Cv coherence (pp.6-11); seção VI Software (pp.11-12); conclusão VII (p.13); referências (pp.13-15); apêndice de top-ten words. Ressalva de leitura: as Tabelas 1-13 são imagens (não texto extraível), então os números exatos de NMI e Cv coherence por corpus não são legíveis — só as afirmações qualitativas ao redor delas; a Tabela 2 (acerto de k) também é imagem, então só pude ler a descrição no corpo.",
+  "technique": "SeNMFk é uma NMF (fatoração de matriz não-negativa) com divergência de Kullback-Leibler assistida por semântica, voltada a ACHAR o número de tópicos. Monta duas matrizes: X (TF-IDF, palavras x documentos) e M (SPPMI, palavras x palavras, coocorrência numa janela de tamanho de documento, que carrega o contexto). Concatena [X|alpha*M] e fatora em W (palavras x tópicos), H (tópicos x documentos) e G (tópicos x palavras) minimizando a KL conjuntamente (o termo alpha*DKL(M||WG) injeta contexto nas colunas de W). Para achar k: gera um ensemble de r versões de [X|alpha*M] perturbadas com ruído uniforme, fatora cada uma para cada k em [kmin,kmax], agrupa os vetores de tópico das r soluções (clustering customizado tipo k-means com similaridade de cosseno, com a restrição de um elemento de cada solução por cluster) e mede estabilidade (Silhouette) e erro de reconstrução. Escolhe o maior k com Silhouette média perto de 1 (mínimo > 0,55); quando há platô, usa L-statistics (teste de Wilcoxon rank-sum bilateral entre as distribuições de erro por coluna de k e k-1). Por fim, H-clustering: k-means sobre as colunas de H para obter as classes de documentos. Software: pyDNMFk, distribuído via MPI4PY, com back-end de CPU e GPU.",
+  "representation": "O texto vira número em duas matrizes esparsas: (1) bag-of-words -> TF-IDF logarítmico com normalização L2 por documento (remove stopwords, descarta palavras com menos de 20 ocorrências); (2) SPPMI, matriz palavra x palavra que codifica o contexto por coocorrência, motivada pela equivalência entre word embeddings e fatoração implícita da matriz de coocorrência. Não há encoder neural nem pooling: a representação latente são os fatores não-negativos W (tópicos = vetores de palavras) e H (documento = coordenadas no espaço de tópicos). O objeto central do artigo é justamente a DIMENSIONALIDADE desse espaço — o número de tópicos — escolhida por estabilidade, não fixada a priori. É um caminho clássico de álgebra linear sobre contagem, alternativo a embeddings.",
+  "afirmacoes": [
+    {
+      "afirmacao": "O critério de escolha do número de tópicos é o maior k cujo cluster ainda atinge Silhouette mínimo acima de 0,55, limiar que os próprios autores assumem ser empírico.",
+      "citacao": "The L-statistics used in conjunction with the requirement that the minimum Silhouette statistics is greater than 0.55 is the criterion we use to determine the latent dimension, k",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "O método foi aplicado a nove corpora de texto com número de tópicos e de classes conhecidos, curados por especialistas de domínio.",
+      "citacao": "We apply our method, SeNMFk, to nine text corpora with known numbers of latent topics and document classes, curated by domain experts",
+      "pagina": 6
+    },
+    {
+      "afirmacao": "Contra os métodos estado-da-arte de Greene et al. e o consensus clustering, SeNMFk (e NMFk) acertam o número de tópicos em bbc, guardian-2013 e todos os corpora ng20, enquanto os concorrentes só acertam bbc.",
+      "citacao": "The existing methods fail to find k in most of the benchmarks except bbc, while NMFk and our SeNMFk methods find the correct k in bbc, guardian-13, and all ng20 corpora",
+      "pagina": 10
+    },
+    {
+      "afirmacao": "A evidência estatística do teste L-statistics (Wilcoxon rank-sum bilateral) rejeita a hipótese nula com p = 1,01e-18 (bbc, k=5) e p = 1,89e-17 (Reuters-4, k=5).",
+      "citacao": "The p-values of the L-statistics test for bbc at k = 5 and Reuters-4 at k = 5 are 1.01e − 18 and 1.89e − 17, respectively",
+      "pagina": 8
+    },
+    {
+      "afirmacao": "O número de tópicos latentes extraídos não coincide necessariamente com o número de classes de documentos do corpus, o que motivou o passo de H-clustering.",
+      "citacao": "The number of topics does not always coincide with the number of classes in the input text corpus",
+      "pagina": 13
+    }
+  ],
+  "ressalva_do_autor": "Os autores admitem que o limiar de decisão é empírico: \"This is an empirical value which still indicates a stable cluster.\" Declaram também uma lacuna de cobertura — a coerência não foi calculada para um dos corpora: \"the coherence is not shown as the original corpus is unavailable at this time\" (guardian-2013) — e reconhecem avaliação fraca num benchmark: \"the NMI values for Reuters-4,5 are much smaller in comparison to the other text corpora, which indicates that the document classes (extracted by all presented methods) are not ideal.\"",
+  "evidence": "Comparação com estado-da-arte em 9 corpora. Para achar k, os baselines são Greene et al. (2014) e consensus clustering (Brunet et al. 2004): SeNMFk/NMFk acertam k em bbc, guardian-13 e todos os ng20, e os concorrentes só acertam bbc; com H-clustering, SeNMFk também chega ao ground-truth em Reuters-4, Reuters-5 e bbc-sport. Para qualidade do clustering usam NMI contra LDA, Skmeans e Belford et al.: afirmam que LDA é o pior e que seus métodos têm NMI melhor 'na maioria' dos benchmarks (sem número no texto). Para qualidade dos tópicos usam Cv coherence contra LDA, Skmeans e NMFk, novamente melhor 'na maioria' (sem número). O único número de resultado explícito no texto é o p-valor do L-statistics (1,01e-18 para bbc e 1,89e-17 para Reuters-4). Escala do software: identificaram 7 e 10 features latentes em datasets densos de 50TB e 65TB em 2 horas, testado com 52k+ cores. As tabelas com NMI/coerência (Tabelas 2-4) são imagens, então a magnitude dos ganhos não é conferível no texto.",
+  "needs": "Não usa modelo pré-treinado nem exige GPU (a GPU é back-end opcional de aceleração). Exige montar a matriz TF-IDF e a matriz SPPMI (coocorrência) do corpus e rodar MUITAS fatorações NMF. O custo cresce com (kmax-kmin) x tamanho do ensemble (de 20 a 640) x passos de NMF (aprox. 10.000 passos por run, inicialização NNDSVD, alpha=1). O pré-processamento do artigo remove stopwords do INGLÊS e descarta palavras com menos de 20 ocorrências. A escolha de k é não supervisionada; só a avaliação (NMI) usa rótulos ground-truth. Wall-clock para corpus do nosso tamanho: não reportado — os únicos números medidos são 50TB/65TB em cluster de 52k+ cores.",
+  "cost_here": "Sobre nosso corpus (4.369 notícias PT-BR, 965 semanas, 28 locations) em CPU: não reportado. O algoritmo é CPU-capaz (GPU é só aceleração opcional) e fatorar ~4,4 mil documentos é pequeno frente aos 50TB testados, mas o custo real vem do produto ensemble x grade de k (dezenas a centenas de fatorações NMF, ~10 mil passos cada) e o artigo não mede tempo nessa escala, então não dá para prometer minutos. Além disso, exigiria dependência nova: pyDNMFk é distribuído via MPI4PY e não está entre os extras fixados (embeddings, topics); reimplementar a camada de estabilidade sobre uma NMF local evitaria a dependência, mas isso é trabalho nosso, não custo medido pelo artigo.",
+  "transferable": "O que mais transfere é a IDEIA de determinação de k por estabilidade — reamostragem + Silhouette + o critério de que o próximo k falha no teste de Wilcoxon — que é independente de língua e domínio e serve para escolher o número de tópicos do nosso braço 03 (DMR/tomotopy) sem rótulos. A representação TF-IDF+SPPMI também é agnóstica de língua (só a lista de stopwords é inglesa) e é uma alternativa não-neural a embeddings. O que NÃO transfere bem: toda a avaliação é em inglês e em corpora de notícia/newswire majoritariamente longos (bbc, guardian-2013, 20newsgroups, Reuters); não há nenhum teste em português nem em texto curto. O corte de palavras <20 ocorrências e as stopwords inglesas são calibrados para corpora grandes em inglês e podem ser agressivos nos nossos 4.369 documentos PT-BR. Os números de NMI/Cv não são comparáveis entre línguas. A distância de domínio é grande: benchmark limpo e bem separado (ground-truth curado) contra nossa série de vigilância com classes sobrepostas e ruidosas.",
+  "red_flags": [
+    "Avaliação só em inglês; nenhum corpus em português nem teste cross-lingual.",
+    "As Tabelas 2, 3 e 4 (acerto de k, NMI e Cv coherence por corpus) são imagens — os números exatos não são conferíveis no texto; os ganhos aparecem só como 'melhor na maioria', sem magnitude.",
+    "Ganhos de NMI e de coerência sem teste de significância nem intervalo de confiança; só o L-statistics tem p-valor.",
+    "O limiar de Silhouette 0,55 é admitido como empírico — o critério de decisão depende de um parâmetro escolhido à mão.",
+    "O método é uma extensão do NMFk dos próprios autores; compara-se consigo mesmo e contra baselines de k (Greene, Brunet) que o artigo diz falharem em quase todos os benchmarks — afirmação forte sustentada só por tabela-imagem.",
+    "Cobertura incompleta: coerência não reportada para guardian-2013 (corpus indisponível) e NMI baixo para Reuters-4 e Reuters-5, admitido pelos autores.",
+    "Baselines (LDA, Skmeans) não parecem ter sido afinados por corpus; LDA é rotulado como 'pior' no NMI sem detalhe de tuning."
+  ]
+}
