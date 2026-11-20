@@ -29,19 +29,27 @@ md(
     """
 # Previsão de dengue como problema de medição
 
-Este notebook constrói a régua da dissertação: a série-alvo, a divisão temporal que
+Este notebook constrói o avaliador da dissertação: a série-alvo, a divisão temporal que
 nenhum modelo pode furar, os dois palpites ingênuos e as métricas. Ele não treina
-modelo nenhum. Ele produz o número que todo modelo precisa superar.
+modelo nenhum. Ele produz a barra que todo modelo precisa superar.
 
-A ordem não é preferência de estilo. Quem compara três representações de notícia
-precisa saber quanto se erra **sem notícia nenhuma**, porque ganhar do nada é fácil
-e não se publica. A pergunta do trabalho — a notícia acrescenta informação à série
-de casos? — só tem resposta contra um erro já medido.
+A ordem não é preferência de estilo. O artigo pergunta **quais features multimodais
+carregam sinal e quais vale a pena incluir**, contra abordagens mais simples. O desenho
+acumula quatro conjuntos de features — `histórico` → `+ clima` → `+ busca` → `+ texto`
+— sobre **dois tipos de modelo**, um simples (gradient boosting ou regressão sobre
+tabela) e um sequencial (rede neural). São oito células, e o artigo reporta **três
+ganhos**, cada conjunto contra o imediatamente anterior, sem número único de manchete.
+A notícia é uma **instância** de feature multimodal — o mecanismo pelo qual a pergunta
+é respondida, não o assunto do artigo.
 
-- **o alvo** é um só, definido em um lugar só, e nenhum braço pode prever outra curva;
+Quem mede o ganho de uma feature precisa saber quanto se erra **sem feature nenhuma**,
+porque ganhar do nada é fácil e não se publica. Este notebook mede esse erro em duas
+janelas: o painel inteiro até 2026 e a janela curta que o artigo reporta.
+
+- **o alvo** é um só, definido em um lugar só, e nenhum modelo pode prever outra curva;
 - **a divisão** é por origem móvel, e o modelo lê o passado até a origem, nunca depois dela;
 - **os ingênuos** são dois, e o que decide é o mais forte deles;
-- **o resultado** são 557 semanas previstas entre 2014 e 2026, e a distância entre os dois ingênuos, que é o que dá sentido à pergunta.
+- **o resultado** são as barras em cada janela, com o número do artigo na janela curta.
 
 ## As quatro decisões que este notebook executa
 
@@ -81,9 +89,10 @@ md(
 3. Que a divisão por origem móvel não deixa nenhum modelo ler uma semana depois da
    sua origem — e que isso é verificável, não declarado.
 4. Que o ingênuo sazonal, o palpite óbvio para uma doença sazonal, é **7,6 vezes
-   pior** que repetir a última semana observada, e por que isso acontece.
+   pior** que repetir a última semana observada no painel até 2026 — e **4,4 vezes
+   pior** na janela curta do artigo —, e por que isso acontece.
 5. Que o erro tem um lugar no calendário: os ingênuos quebram na subida da epidemia,
-   que é exatamente onde a notícia teria que ajudar.
+   que é exatamente onde uma feature de texto teria que ajudar.
 
 O que este notebook **não** prova está na antepenúltima seção, e é longo de
 propósito.
@@ -147,7 +156,7 @@ from src.forecast.spec import (
     CASES, DEFAULT_HORIZON, DEFAULT_MIN_TRAIN, EW, FIRST_COMPLETE_YEAR, SEASONAL_LAG,
 )
 from src.forecast.splits import rolling_origin
-from src.pipeline.sinan.spec import EW_SYMPTOM_ONSET
+from src.pipeline.sinan.spec import EW_SYMPTOM_ONSET, STATE_ABBREV
 
 pl.Config.set_tbl_rows(20)
 pl.Config.set_fmt_str_lengths(60)
@@ -225,9 +234,9 @@ md(
     """
 ## 1. Por que os ingênuos vêm primeiro
 
-Uma representação de notícia que não vence uma reta traçada sobre a própria série de
-casos não é um achado sobre a notícia: é um achado sobre o modelo que a consumiu. Por
-isso a comparação começa por dois palpites que não usam texto nenhum, e por isso os
+Um conjunto de features que não vence dois palpites traçados sobre a própria série de
+casos não é um achado sobre as features: é um achado sobre o modelo que as consumiu. Por
+isso a comparação começa por dois palpites que não usam feature nenhuma, e por isso os
 dois são medidos antes de existir um só modelo treinado.
 
 A literatura levantada sustenta essa ordem de dois jeitos incômodos. Gautam et al.
@@ -235,14 +244,15 @@ A literatura levantada sustenta essa ordem de dois jeitos incômodos. Gautam et 
 [17_gautam_2025_attention_news_outbreak.pdf](../articles/embeddings/17_gautam_2025_attention_news_outbreak.pdf),
 montam um preditor de surto a partir de notícia e registram que **não existe benchmark
 público** para essa tarefa, de modo que os números deles servem como linha de base
-preliminar. Sem régua externa, a régua tem que ser construída aqui. McGough et al.
+preliminar. Sem referência publicada para comparar, o avaliador tem que ser construído
+aqui. McGough et al.
 (2017) medem o caso mais próximo deste trabalho e encontram o efeito quase nulo: em
 cinco países, somar alertas de notícia a um modelo que já usava busca do Google não
 reduziu o erro de previsão em nenhum horizonte, e a redução que apareceu em El Salvador
 ficou abaixo de 2%.
 
 Nenhum dos dois é razão para não fazer a comparação. Os dois são razão para medir a
-régua antes de usá-la.
+barra antes de confiar nela.
 
 **Aterramento.** O ponto 1 é a lacuna que Gautam et al. (2025) declaram na discussão
 do próprio artigo, e é a justificativa prática do baseline local. Os dois ingênuos
@@ -300,6 +310,35 @@ if REAL:
     print(f"janela:  {panel[EW].min()} → {panel[EW].max()}")
     print(f"casos:   {panel[CASES].sum():,}")
     print(f"mínimo semanal: {panel[CASES].min():,} casos — a série nunca chega a zero")
+"""
+)
+
+md(
+    """
+### O mesmo alvo por unidade da federação
+
+O pacote também entrega o alvo por UF, com `load_target(..., by_state=True)`. A leitura
+por UF é robustez declarada no protocolo 00, não o número principal, mas o painel já a
+suporta e vale conhecer a forma dele. A regra de buraco se inverte entre as duas formas:
+no nacional, semana ausente é buraco e o painel recusa a série; por UF, semana ausente é
+**zero caso**, porque o SINAN só escreve uma linha (estado, semana) quando aquele estado
+notificou algo. Tratar a semana quieta de um estado como buraco recusaria toda série real.
+"""
+)
+
+code(
+    """
+if REAL:
+    por_uf = load_target(str(SINAN_PATH), from_year=FIRST_COMPLETE_YEAR, by_state=True)
+    n_uf = por_uf[STATE_ABBREV].n_unique()
+    print(f"unidades da federação: {n_uf}")
+    print(f"semanas por unidade:   {por_uf.height // n_uf}")
+    print(f"linhas totais:         {por_uf.height:,}")
+    print()
+    print("a soma das UFs reconstrói a série nacional:")
+    print(f"  nacional, 1ª semana: {panel[CASES][0]:,}")
+    print(f"  soma das UFs:        "
+          f"{por_uf.filter(pl.col(EW) == por_uf[EW].min())[CASES].sum():,}")
 """
 )
 
@@ -611,7 +650,8 @@ Três métricas pontuais, todas em casos por semana.
 
 **Erro absoluto médio (MAE)** é o número principal. É a média da distância entre o
 previsto e o observado, na unidade da série, e é o único dos três que se lê sem
-tradução: "errou 4.047 casos por semana" quer dizer o que diz.
+tradução: "errou 4.047 casos por semana" quer dizer o que diz. A mesma leitura vale para
+qualquer janela: na janela do artigo o mesmo palpite erra 9.022 casos por semana.
 
 **Raiz do erro quadrático médio (RMSE)** acompanha o MAE e nunca o substitui. A
 distância entre os dois descreve a forma do erro: RMSE muito acima do MAE significa que
@@ -657,8 +697,8 @@ Duas defesas, e as duas estão no código em vez de no texto.
 
 A primeira é o denominador. O MAPE é indefinido onde o observado é zero, e o código
 descarta essas semanas **e informa quantas descartou**, porque um MAPE citado sem essa
-contagem é um número cuja base ninguém conhece. Nesta série nada é descartado — o piso
-é 1.341 casos — mas o campo existe para que a série não precise ser esta.
+contagem é um número cuja base ninguém conhece. Nesta série nada é descartado — o menor
+valor da série é 1.341 casos — mas o campo existe para que a série não precise ser esta.
 
 A segunda é não andar sozinho. O MAPE entra na tabela ao lado do MAE e do RMSE, e a
 seção 7 mostra o preço de confiar só nele: as três métricas discordam sobre qual foi a
@@ -672,10 +712,12 @@ pior semana.
 
 md(
     """
-## 7. O primeiro número
+## 7. O primeiro número, em duas janelas
 
 Agora a medição. Brasil inteiro, uma semana à frente, 104 semanas de histórico antes
-da primeira previsão, e uma previsão por semana até o fim da série.
+da primeira previsão, e uma previsão por semana. A primeira janela é o painel inteiro
+até 2026; a segunda é a que o artigo reporta, e ela corta as semanas pontuadas sem
+cortar o histórico.
 """
 )
 
@@ -708,6 +750,71 @@ if REAL:
         (pl.col("mape") * 100).round(1).alias("MAPE %"),
         pl.col("mape_n").alias("semanas no MAPE"),
     ))
+"""
+)
+
+md(
+    """
+### A janela do artigo, ao lado do painel inteiro
+
+O número do artigo não sai do painel inteiro. A série de busca congelada começa em
+2020-01-26 e termina em 2024-12-29, então os conjuntos que usam busca só têm feature
+onde as quatro fontes se sobrepõem — e o protocolo 00 fixa a janela pontuada em
+2022-01-02 a 2024-12-29, **157 semanas**. O painel inteiro até 2026 dá outra barra, bem
+menor; citá-la como "a barra" faria o problema parecer mais fácil do que é.
+
+As janelas se separam por **dois** argumentos, nunca por olho: `to_year` corta o painel
+e `score_from` move só a janela pontuada, mantendo o histórico desde 2014. A terceira
+linha é a do artigo. A quarta mostra que `score_from` sozinho não basta: sem
+`to_year 2024` o painel ainda vai até 2026, e as semanas pontuadas saem 244, não 157.
+"""
+)
+
+code(
+    """
+if REAL:
+    janelas = [
+        ("painel até 2026 (padrão)", None, None),
+        ("janela longa, 2016–2024", 2024, None),
+        ("janela do artigo, 2022-01-02 a 2024-12-29", 2024, 2022),
+        ("só --score-from 2022 (não é a do artigo)", None, 2022),
+    ]
+    barras = []
+    for nome, to_year, score_from in janelas:
+        p = load_target(str(SINAN_PATH), from_year=FIRST_COMPLETE_YEAR, to_year=to_year)
+        r = evaluate(
+            p,
+            horizon=DEFAULT_HORIZON,
+            min_train=DEFAULT_MIN_TRAIN,
+            score_from=score_from,
+        )
+        for baseline in r.baselines:
+            row = r.metrics.filter(pl.col("baseline") == baseline).row(0, named=True)
+            barras.append({
+                "janela": nome,
+                "palpite": baseline,
+                "semanas": row["n"],
+                "média obs.": round(row["mean_truth"]),
+                "MAE": round(row["mae"]),
+                "RMSE": round(row["rmse"]),
+                "MAPE %": round(row["mape"] * 100, 1),
+            })
+    display(pl.DataFrame(barras))
+"""
+)
+
+md(
+    """
+A barra do artigo é a persistência na janela de 157 semanas: **9.022 casos por semana**.
+A persistência é 2,2 vezes pior nessa janela do que no painel de 557 semanas (4.047),
+porque a epidemia recorde de 2024 está dentro dela. O ingênuo sazonal erra 39.552,
+**4,4 vezes** pior que a persistência nessa janela (no painel inteiro a razão é 7,6).
+Copiar o ano anterior custa caro em qualquer janela, mas o número que o artigo reporta
+é o da janela curta.
+
+**A persistência é a barra, não o ingênuo sazonal.** Toda frase do tipo "o modelo bate
+a linha de base ingênua" tem que dizer *qual* ingênua e *em qual* janela, e a resposta
+honesta é a persistência na janela do artigo.
 """
 )
 
@@ -767,9 +874,9 @@ md(
     """
 ### A distância entre os dois, e por que ela é o ponto
 
-A persistência erra **4.047 casos por semana**. O ingênuo sazonal erra **30.714** —
-7,6 vezes mais. O palpite que qualquer pessoa informada daria sobre uma doença sazonal
-é o pior dos dois, e com folga.
+No painel até 2026, a persistência erra **4.047 casos por semana**. O ingênuo sazonal
+erra **30.714** — 7,6 vezes mais. O palpite que qualquer pessoa informada daria sobre
+uma doença sazonal é o pior dos dois, e com folga.
 
 A razão está na figura da seção 2. O ingênuo sazonal copia o nível do ano anterior, e
 esta série não repete nível: 2024 teve média de 125.779 casos por semana contra 32.001
@@ -810,8 +917,8 @@ md(
     """
 ## 8. O número é robusto, e o erro tem endereço
 
-Antes de aceitar 4.047 como régua, vale tentar derrubá-lo. Há duas maneiras óbvias de
-suspeitar do resultado, e as duas se testam.
+Antes de aceitar 4.047 como a barra do painel até 2026, vale tentar derrubar esse
+número. Há duas maneiras óbvias de suspeitar do resultado, e as duas se testam.
 """
 )
 
@@ -910,8 +1017,8 @@ A persistência não erra por acaso: ela erra porque copia o presente dentro de 
 que já mudou. No vale, o presente e o futuro são o mesmo número e o erro é pequeno. Na
 subida, uma semana de diferença vale milhares de casos.
 
-Esse é o espaço onde a notícia teria que ajudar, e é o que a próxima fatia vai testar.
-Se a cobertura de dengue cresce antes dos casos subirem — que é a hipótese de
+Esse é o espaço onde uma feature de texto teria que ajudar, e é o que a próxima fatia
+vai testar. Se a cobertura de dengue cresce antes dos casos subirem — que é a hipótese de
 [`notes/01-lexico-regras.md`](../notes/01-lexico-regras.md) —, ela deveria reduzir
 exatamente essas semanas. E o desenho que mede isso já existe: é o mesmo `evaluate`,
 com uma coluna a mais de covariável.
@@ -928,15 +1035,16 @@ md(
 
 Os números abaixo são da execução que gerou este arquivo.
 
-**A régua existe, e ela é dura.** Repetir a última semana observada erra 4.047 casos
-por semana contra uma média de 30.046 casos nas semanas avaliadas. O erro é de 13% do
-nível médio — um patamar que um modelo de notícia precisa superar antes de qualquer
-coisa ser dita sobre representação.
+**A barra existe, e ela é dura.** No painel até 2026, repetir a última semana observada
+erra 4.047 casos por semana, contra uma média de 30.046 casos nas semanas avaliadas — 13%
+do nível médio. Na janela do artigo o mesmo palpite erra **9.022** casos por semana, com
+MAPE de 16,3%. É esse patamar que um conjunto de features precisa superar antes de
+qualquer coisa ser dita.
 
-**O ingênuo sazonal é o adversário errado.** Ele erra 30.714, sete vezes e meia mais, e
-o motivo é estrutural: a série pula de patamar entre anos, então copiar o ano anterior
-erra por um fator, não por uma margem. Reportar vitória contra ele seria escolher o
-adversário mais fraco.
+**O ingênuo sazonal é o adversário errado.** No painel até 2026, ele erra 30.714 — sete
+vezes e meia mais —, e o motivo é estrutural: a série pula de patamar entre anos, então
+copiar o ano anterior erra por um fator, não por uma margem. Reportar vitória contra ele
+seria escolher o adversário mais fraco.
 
 **As três métricas discordam sobre a pior semana.** O MAE aponta 19 de maio de 2024, o
 auge da epidemia recorde, errado por 84.739 casos. O MAPE aponta a última semana do
@@ -944,8 +1052,8 @@ painel, errada por 4.647 — dezoito vezes menos. Não é defeito de nenhuma das
 ponderação que cada uma aplica, e é o motivo de as três entrarem juntas na tabela.
 
 **O erro tem endereço.** A persistência quebra nas semanas 20, 21, 11, 16 e 19 — a
-subida da epidemia. É onde a notícia pode acrescentar informação, e é onde a próxima
-fatia vai olhar.
+subida da epidemia. É onde uma feature de texto pode acrescentar informação, e é onde a
+próxima fatia vai olhar.
 
 **O resultado não é artefato de um ano.** Tirando 2024 inteiro, o erro da persistência
 cai para 2.614 e o do sazonal para 24.105: a distância sobrevive.
@@ -969,9 +1077,10 @@ md(
     """
 ## 10. O que este notebook não prova
 
-**1. Não é o resultado do protocolo 00.** Falta o modelo "sem texto" — o mesmo desenho
-com casos defasados, busca do Google e clima. É ele que a notícia tem que bater, e ele
-não existe ainda. Os ingênuos medidos aqui são o piso, não a régua final.
+**1. Não é o resultado do protocolo 00.** Falta o conjunto `+ busca` — alvo defasado com
+busca do Google e clima, tudo menos texto. É a barra que o conjunto `+ texto` tem que
+bater, e ele ainda não existe. Os ingênuos medidos aqui dão a barra mais simples, sem
+nenhuma covariável, não a barra final.
 
 **2. Não há métrica probabilística.** O protocolo 00 pede WIS/CRPS (a métrica de
 intervalo de previsão, que pontua a distribuição inteira) e cobertura. Os dois palpites
@@ -979,25 +1088,28 @@ emitem um número por semana e não reivindicam incerteza nenhuma, então calcul
 métricas agora seria inventar uma distribuição que ninguém produziu. Elas entram com o
 primeiro modelo que emita intervalo.
 
-**3. O horizonte é de uma semana.** O protocolo deixou o horizonte aberto entre uma e
-quatro semanas, e a escolha importa: McGough et al. (2017) medem que o melhor modelo
-muda conforme o horizonte — com informação autorregressiva o ganho está em uma semana,
-e sem ela em duas e três. Uma semana é onde o ingênuo é mais duro de bater, então é o
-lugar honesto para começar, e não o único lugar a medir.
+**3. O horizonte é de uma semana.** O protocolo fixa uma semana no número principal e
+quatro semanas como robustez declarada (revisão de 2026-11-20), e as duas são medidas. A
+escolha importa: McGough et al. (2017) medem que o melhor modelo muda conforme o
+horizonte — com informação autorregressiva o ganho está em uma semana, e sem ela em duas
+e três. Uma semana é onde o ingênuo é mais duro de bater, então é o lugar honesto para o
+número principal.
 
 **4. O nível do alvo é a contagem bruta.** Nenhuma transformação logarítmica foi
-aplicada. Isso é decisão de modelo e pertence ao modelo, não à régua; mas significa que
-a escala do erro acompanha a escala da epidemia, e que os anos de epidemia grande pesam
-mais na média.
+aplicada. Isso é decisão de modelo e pertence ao modelo, não ao avaliador; mas significa
+que a escala do erro acompanha a escala da epidemia, e que os anos de epidemia grande
+pesam mais na média.
 
 **5. Sem intervalo de confiança.** Não há bootstrap em blocos sobre o ΔMAE, então as
 diferenças entre palpites são lidas pelo tamanho, não por um teste. A diferença de 7,6×
 não precisa de teste para ser lida; diferenças pequenas entre braços vão precisar.
 
-**6. A geografia é o Brasil.** Notícia é nacional e o alvo aqui é nacional, então a
-comparação não tem descompasso espacial a explicar. A leitura por unidade da federação
-é onde a comparação fica interessante, e é onde a esparsidade morde: 4,5 artigos por
-semana nacionalmente viram quase nada por UF.
+**6. A geografia é o Brasil.** O protocolo fixa BR no número principal e UF como robustez
+declarada, e o pacote já entrega o painel por UF (`load_target(by_state=True)`, seção 2).
+O número principal é BR porque a notícia é de uma fonte nacional e o alvo é nacional —
+não há descompasso espacial a explicar no número principal. A leitura por UF é onde a
+esparsidade morde: poucos artigos por semana nacionalmente viram quase nada por UF (ver
+protocolo 00 §Riscos).
 
 **7. Não há família de referências de previsão neste projeto.** As fichas citadas vêm
 das famílias de embeddings e de tópicos, e nenhuma delas trata do desenho de avaliação
@@ -1018,12 +1130,14 @@ md(
 Este notebook chama o mesmo pacote que a linha de comando:
 
 ```bash
-uv run arboili transform sinan              # CSVs anuais → tabela de casos  (~11 s)
-uv run python -m src.forecast --out data/forecast
+uv run arboili transform sinan                        # CSVs anuais → tabela de casos  (~11 s)
+uv run python -m src.forecast --out data/forecast     # painel até 2026 (557 semanas)
+uv run python -m src.forecast --to-year 2024 --score-from 2022 --out data/forecast  # janela do artigo (157)
 ```
 
-A segunda linha imprime a mesma tabela da seção 7 e escreve as previsões semana a semana
-em `data/forecast/` (diretório ignorado pelo git: o que se versiona é o comando, não a
+A segunda linha imprime a tabela do painel até 2026; as duas seguintes imprimem a janela
+longa e a janela do artigo. As três escrevem as previsões semana a semana em
+`data/forecast/` (diretório ignorado pelo git: o que se versiona é o comando, não a
 tabela que ele imprime).
 
 As previsões são gravadas por semana, e não só o resumo, por um motivo prático: sem elas
@@ -1034,7 +1148,7 @@ muito é um achado diferente de um erro espalhado.
 
 | Decisão | Onde está escrita |
 |---|---|
-| A ordem de trabalho (ingênuos antes de qualquer braço) | [`notes/00-protocolo-comparacao.md`](../notes/00-protocolo-comparacao.md) §Ablações obrigatórias |
+| A ordem de trabalho (ingênuos antes de qualquer conjunto de features) | [`notes/00-protocolo-comparacao.md`](../notes/00-protocolo-comparacao.md) §Ablações obrigatórias |
 | A definição do alvo | [`src/pipeline/sinan/cases.py`](../src/pipeline/sinan/cases.py) |
 | Calendário sem buraco e a recusa | [`src/forecast/panel.py`](../src/forecast/panel.py) |
 | A regra da origem móvel | [`src/forecast/splits.py`](../src/forecast/splits.py) |
@@ -1042,7 +1156,7 @@ muito é um achado diferente de um erro espalhado.
 | As métricas e o denominador do MAPE | [`src/forecast/metrics.py`](../src/forecast/metrics.py) |
 | Constantes e janelas em vigor | [`src/forecast/spec.py`](../src/forecast/spec.py) |
 | Números, ressalvas e o comando | [`src/forecast/README.md`](../src/forecast/README.md) |
-| A hipótese sobre a notícia | [`notes/01-lexico-regras.md`](../notes/01-lexico-regras.md) |
+| A hipótese sobre a feature de texto | [`notes/01-lexico-regras.md`](../notes/01-lexico-regras.md) |
 """
 )
 
@@ -1054,24 +1168,35 @@ md(
     """
 ## Resumo executivo
 
-Este notebook constrói a régua da dissertação. Ele entrega a série-alvo em um único
+Este notebook constrói o avaliador da dissertação. Ele entrega a série-alvo em um único
 lugar, a divisão temporal que nenhum modelo pode furar, os dois palpites ingênuos e as
 três métricas pontuais.
 
-O que a execução encontrou: prever dengue no Brasil uma semana à frente repetindo a
-última semana observada erra **4.047 casos por semana** entre 2014 e 2026, contra uma
-média de 30.046 casos nas semanas avaliadas — 13% do nível médio. O palpite sazonal — repetir a mesma semana do ano
-anterior — erra 30.714, sete vezes e meia mais, porque a série pula de patamar entre
-anos e copiar o ano anterior erra por um fator. A régua honesta é a persistência.
+O artigo pergunta quais features multimodais vale a pena incluir, e reporta três ganhos
+entre quatro conjuntos acumulados (`histórico` → `+ clima` → `+ busca` → `+ texto`),
+sobre dois tipos de modelo. Não existe número único de manchete. A barra desse ganho é o
+erro sem nenhuma feature — os dois palpites ingênuos, medidos aqui. As barras, com a
+janela dita em cada uma:
+
+| Janela | Semanas pontuadas | Persistência MAE | Ingênuo sazonal MAE |
+|---|---|---|---|
+| painel até 2026 (padrão) | 557 | 4.047 | 30.714 |
+| janela longa (`--to-year 2024`) | 470 | 4.358 | 23.618 |
+| **janela do artigo** (`--to-year 2024 --score-from 2022`) | 157 | **9.022** | 39.552 |
+
+A persistência (repetir a última semana observada) é a barra: em horizonte de uma semana
+a curva é quase toda autocorrelação. O ingênuo sazonal é 4,4 vezes pior na janela do
+artigo, porque a série pula de patamar entre anos e copiar o ano anterior erra por um
+fator. O número do artigo é o da terceira linha: **9.022 casos por semana**, não 4.047.
 
 O erro da persistência tem endereço: ele se concentra nas semanas 11 a 21, a subida da
 epidemia. Um método que só empata no vale e ganha na subida já seria útil, e é
 exatamente o que a próxima fatia mede.
 
-O que este notebook **não** entrega é o número do protocolo 00. Falta o modelo "sem
-texto" — casos defasados com busca do Google e clima —, que é a barra contra a qual as
-três representações de notícia serão comparadas. Os ingênuos medidos aqui são o piso
-dessa barra.
+O que este notebook **não** entrega é a barra final do protocolo 00: falta o conjunto
+`+ busca` — alvo defasado com busca do Google e clima, tudo menos texto. É a barra que o
+conjunto `+ texto` tem que bater. Os ingênuos medidos aqui dão a barra mais simples, sem
+nenhuma covariável.
 """
 )
 

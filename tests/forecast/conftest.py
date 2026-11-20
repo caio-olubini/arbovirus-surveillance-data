@@ -1,13 +1,14 @@
-"""Builders shared by the forecast tests.
+"""Construtores compartilhados pelos testes do forecast.
 
-Both are factories rather than fixed frames: the point of most of these tests is
-what happens at a specific shape (a gap, a horizon longer than the tail), and a
-fixed fixture would have to be re-derived per test anyway.
+Os dois são fábricas e não quadros fixos: o ponto da maioria destes testes é o
+que acontece numa forma específica (um buraco, um horizonte maior que a cauda), e
+uma fixture fixa teria que ser re-derivada por teste de qualquer jeito.
 """
 
 from __future__ import annotations
 
 import datetime as dt
+from pathlib import Path
 
 import polars as pl
 import pytest
@@ -15,15 +16,37 @@ import pytest
 from src.forecast.spec import CASES, EW
 from src.pipeline.sinan.spec import CASE_COUNT, EW_SYMPTOM_ONSET, FINAL_CLASSIFICATION
 
-# A Sunday, so the weeks land on the same weekday the panel uses.
+# Um domingo, para as semanas caírem no mesmo dia da semana que o painel usa.
 START = dt.date(2020, 1, 5)
-SUSPECTED = 1  # any CLASSI_FIN other than 5
+SUSPECTED = 1  # qualquer CLASSI_FIN diferente de 5
 DISCARDED = 5
+
+REPO = Path(__file__).resolve().parents[2]
+# A tabela de casos que `arboili transform sinan` escreve por padrão. Só existe
+# depois que a transformação real de ~7 GB rodou, e é por isso que o teste que a
+# lê pula quando ela falta, em vez de falhar num checkout limpo.
+REAL_CASES = REPO / "data" / "epidemiological" / "SINAN" / "SINAN_dengue_cases.parquet"
+# A tabela de referência de 27 linhas de onde o projeto inteiro lê códigos de estado.
+FEDERATIVE_UNITS = REPO / "data" / "epidemiological" / "br_federative_units.csv"
+
+
+@pytest.fixture(scope="session")
+def real_cases_path() -> str:
+    """Caminho para a tabela de casos do arquivo completo; pula se não foi construída."""
+    if not REAL_CASES.exists():
+        pytest.skip(f"{REAL_CASES.name} not built — run `arboili transform sinan`")
+    return str(REAL_CASES)
+
+
+@pytest.fixture(scope="session")
+def fu_path() -> Path:
+    """A tabela de referência de unidades federativas, para os testes de `by_state`."""
+    return FEDERATIVE_UNITS
 
 
 @pytest.fixture
 def panel_from_values():
-    """A target panel: one row per week, exactly the columns `load_target` returns."""
+    """Um painel-alvo: uma linha por semana, exatamente as colunas de `load_target`."""
 
     def _make(values: list[float], start: dt.date = START) -> pl.DataFrame:
         return pl.DataFrame(
@@ -43,11 +66,12 @@ def panel_from_values():
 
 @pytest.fixture
 def cases_from_weeks():
-    """A case-level frame: the input `weekly_cases` expects, one row per case.
+    """Um quadro em nível de caso: a entrada que `weekly_cases` espera, uma linha por caso.
 
-    `weeks` maps a week offset from START to (cases, classification) pairs, so a
-    test can add two rows to the same week or leave a week out entirely — which
-    is the only way to exercise the gap guard.
+    `weeks` mapeia um deslocamento de semana a partir de START para pares
+    (casos, classificação), então um teste pode somar duas linhas na mesma semana
+    ou deixar uma semana de fora por inteiro — que é o único jeito de exercitar a
+    guarda de buraco.
     """
 
     def _make(weeks: dict[int, list[tuple[int, int]]]) -> pl.DataFrame:

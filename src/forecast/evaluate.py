@@ -1,14 +1,14 @@
-"""The rolling-origin loop: the machine that turns a panel into a number.
+"""O laço de origem móvel: a máquina que vira um painel num número.
 
-This is the piece the rest of the project plugs into. A baseline or a model
-enters as a function of the history and leaves as a table of one row per scored
-week, and every number in the paper comes out of that table. Nothing here knows
-what a baseline does; adding braço 01 later is a registry entry, not a rewrite.
+É a peça em que o resto do projeto se encaixa. Um baseline ou um modelo entra
+como função do histórico e sai como uma tabela de uma linha por semana pontuada,
+e todo número do artigo sai dessa tabela. Nada aqui sabe o que um baseline faz;
+acrescentar o braço 01 depois é uma entrada no registro, não uma reescrita.
 
-The contract that makes the comparison trustworthy is in `splits.py` — at origin
-*i* the caller may read the panel up to position *i* and nothing after. Here the
-loop simply never hands over more than that: the history passed to each baseline
-is a slice that ends at the origin.
+O contrato que torna a comparação confiável está em `splits.py` — na origem *i* o
+chamador pode ler o painel até a posição *i* e nada depois. Aqui o laço
+simplesmente nunca entrega mais que isso: o histórico passado a cada baseline é
+uma fatia que termina na origem.
 """
 
 from __future__ import annotations
@@ -30,7 +30,8 @@ from .spec import (
 )
 from .splits import rolling_origin
 
-# Result column names, kept here so a reader of the parquet knows what to expect.
+# Nomes das colunas de resultado, guardados aqui para que quem lê o parquet
+# saiba o que esperar.
 ORIGIN_EW = "origin_ew"
 TRUE = "y_true"
 PRED = "y_pred"
@@ -44,16 +45,16 @@ MAPE = "mape"
 
 @dataclass(frozen=True)
 class ForecastRun:
-    """One evaluation: what was predicted, week by week, and how wrong it was.
+    """Uma avaliação: o que foi previsto, semana a semana, e o quanto errou.
 
-    `predictions` keeps every scored week so a bad average can be traced back to
-    the weeks that caused it — an epidemic peak missed by a wide margin is a
-    different finding from uniform noise, and only the row-level table can tell
-    them apart.
+    `predictions` guarda toda semana pontuada para que uma média ruim possa ser
+    rastreada até as semanas que a causaram — um pico de epidemia errado por
+    muito é um achado diferente de ruído uniforme, e só a tabela linha a linha
+    distingue os dois.
 
-    `metrics` is the summary, grouped by baseline and by horizon step. With
-    several steps ahead the grouping matters: step 1 and step 4 are different
-    questions and averaging them into one number hides which one degraded.
+    `metrics` é o resumo, agrupado por baseline e por passo do horizonte. Com
+    vários passos à frente o agrupamento importa: o passo 1 e o passo 4 são
+    perguntas diferentes e tirar a média dos dois esconde qual deles piorou.
     """
 
     predictions: pl.DataFrame
@@ -62,17 +63,23 @@ class ForecastRun:
     min_train: int
     step: int
     baselines: tuple[str, ...]
+    # O primeiro ano cujas semanas foram pontuadas, ou None para "pontua tudo o
+    # que o painel alcança". Fica registrado porque, sem ele, duas execuções sobre
+    # o mesmo painel com janelas de pontuação diferentes devolvem números
+    # diferentes com as mesmas flags — o histórico ficou fixo, só a janela de
+    # correção andou.
+    score_from: int | None = None
 
     def summary(self) -> str:
-        """The metrics table as plain text, for a terminal or a notebook cell."""
+        """A tabela de métricas como texto simples, para um terminal ou célula."""
         return format_metrics(self.metrics)
 
 
 def format_metrics(metrics: pl.DataFrame) -> str:
-    """Render the metrics table as aligned text.
+    """Desenha a tabela de métricas como texto alinhado.
 
-    Polars' own repr truncates, and a truncated MAE is exactly the kind of thing
-    that gets copied into a slide wrong, so the table is formatted by hand.
+    O repr do Polars corta a linha, e um MAE cortado é exatamente o tipo de coisa
+    que vai parar errada num slide, então a tabela é formatada à mão.
     """
     header = ("baseline", "step", "weeks", "MAE", "RMSE", "MAPE", "MAPE n")
     rows = [
@@ -105,17 +112,27 @@ def evaluate(
     horizon: int = DEFAULT_HORIZON,
     min_train: int = DEFAULT_MIN_TRAIN,
     step: int = 1,
+    score_from: int | None = None,
 ) -> ForecastRun:
-    """Score every baseline at every origin in the panel.
+    """Pontua todo baseline em toda origem do painel.
 
-    `panel` must come from `panel.load_target`: the loop indexes by position, so
-    a missing week would make the seasonal baseline read the wrong reference week
-    without raising. That guarantee is the panel's job, not this function's.
+    `panel` tem que vir de `panel.load_target`: o laço indexa por posição, então
+    uma semana faltando faria o baseline sazonal ler a semana de referência errada
+    sem levantar. Essa garantia é do painel, não desta função.
 
-    `step` walks the origins forward by more than one week when the run is too
-    slow to do every week. It changes which weeks are scored and therefore the
-    numbers, so it is recorded on the run and belongs in any table that quotes
-    them.
+    `step` anda as origens para frente de mais de uma semana quando a execução é
+    lenta demais para fazer toda semana. Muda quais semanas são pontuadas e
+    portanto os números, então fica registrado na execução e pertence a qualquer
+    tabela que os cite.
+
+    `score_from` separa a janela que treina da janela que é corrigida. As origens
+    continuam sendo percorridas pelo painel inteiro, então o histórico atrás da
+    primeira previsão corrigida é tudo desde a primeira semana do painel; só as
+    previsões cuja **semana pontuada** cai antes de 1º de janeiro de `score_from`
+    são descartadas antes do cálculo das métricas. O corte é na semana pontuada,
+    não na origem, porque uma previsão feita na última semana do ano costuma cair
+    na seguinte — e um modelo é julgado pela semana que previu, não pela semana em
+    que estava. `None` corrige toda semana que o painel alcança.
     """
     unknown = [name for name in baselines if name not in BASELINE_FUNCS]
     if unknown:
@@ -154,6 +171,19 @@ def evaluate(
 
     predictions = pl.DataFrame(rows).sort([BASELINE, HORIZON, EW])
 
+    # A janela de pontuação. Descartada aqui, antes das métricas, e não encolhendo
+    # o painel: encolher o painel encurtaria também o histórico que a primeira
+    # previsão corrigida enxerga, que é o botão errado — o ponto de `score_from` é
+    # manter o histórico fixo e mover só a correção.
+    if score_from is not None:
+        predictions = predictions.filter(pl.col(EW).dt.year() >= score_from)
+        if predictions.height == 0:
+            raise ValueError(
+                f"no scored week falls in {score_from} or later: the panel's last "
+                f"week is before the scoring window begins. Lower score_from or "
+                f"widen the panel's to_year."
+            )
+
     summaries = []
     for (name, h), group in predictions.group_by([BASELINE, HORIZON], maintain_order=True):
         truth = group[TRUE].to_list()
@@ -179,4 +209,5 @@ def evaluate(
         min_train=min_train,
         step=step,
         baselines=tuple(baselines),
+        score_from=score_from,
     )

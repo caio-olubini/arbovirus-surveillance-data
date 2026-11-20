@@ -1,17 +1,17 @@
-"""Run the naive baselines and print the number every model has to beat.
+"""Roda os baselines ingênuos e imprime o número que todo modelo tem que bater.
 
     python -m src.forecast
 
-The point of this entry point is to make the project's first result reachable in
-one command. Everything else in the repository so far produces a *product* —
-files that are correct or not. This produces a *measurement*, and a measurement
-you cannot re-run in one line is one nobody will re-check.
+O ponto deste ponto de entrada é tornar o primeiro resultado do projeto
+alcançável em um comando. Todo o resto do repositório até aqui produz um
+*produto* — arquivos que estão certos ou não. Isto produz uma *medição*, e uma
+medição que não se re-executa numa linha é uma que ninguém vai reconferir.
 
-The defaults are the ones protocol 00 fixes for the first pass: Brazil as a
-whole, one week ahead, two years of history before the first forecast. Every one
-of them is a flag, and every flag changes the numbers, so whatever is quoted in
-a table has to say which flags produced it — which is why `--out` writes the
-record of the run beside the results and not only the results.
+Os padrões são os que o protocolo 00 fixa para a primeira passada: o Brasil
+inteiro, uma semana à frente, dois anos de histórico antes da primeira previsão.
+Cada um deles é uma flag, e cada flag muda os números, então o que for citado numa
+tabela tem que dizer quais flags o produziram — e é por isso que `--out` escreve o
+registro da execução ao lado dos resultados, e não só os resultados.
 """
 
 from __future__ import annotations
@@ -80,6 +80,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--to-year", type=int, default=None, help="Last year of the panel.")
     parser.add_argument(
+        "--score-from",
+        type=int,
+        default=None,
+        help="First year whose weeks are scored. The panel — and so the history "
+        "the first forecast may read — still starts at --from-year; only the "
+        "grading moves. Omit to score every week the panel reaches.",
+    )
+    parser.add_argument(
         "--config", type=Path, default=None, help="Path to config.yml."
     )
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -87,7 +95,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def resolve_cases(path: Path | None, config_path: Path | None) -> Path:
-    """The case-level parquet: the flag if given, else config.yml's sinan out_dir."""
+    """O parquet em nível de caso: a flag se dada, senão o out_dir do sinan no config."""
     if path is not None:
         return path
     config = load_config(config_path)
@@ -126,6 +134,7 @@ def main(argv: list[str] | None = None) -> int:
         horizon=args.horizon,
         min_train=args.min_train,
         step=args.step,
+        score_from=args.score_from,
     )
 
     first, last = panel[EW].min(), panel[EW].max()
@@ -133,10 +142,15 @@ def main(argv: list[str] | None = None) -> int:
         f"Target: suspected dengue cases, Brazil, {panel.height} weeks "
         f"({first} → {last}), {panel[CASES].sum():,} cases total."
     )
+    scoring = (
+        "every week the panel reaches"
+        if run.score_from is None
+        else f"weeks from {run.score_from} onward"
+    )
     print(
         f"Setup: horizon {run.horizon} week(s), first forecast after "
-        f"{run.min_train} weeks of history, {run.predictions.height:,} scored "
-        f"week-forecasts."
+        f"{run.min_train} weeks of history, scoring {scoring}, "
+        f"{run.predictions.height:,} scored week-forecasts."
     )
     print()
     print(run.summary())
@@ -151,8 +165,8 @@ def main(argv: list[str] | None = None) -> int:
         record_path = out_dir / f"{stem}_run.json"
         run.predictions.write_parquet(pred_path)
         run.metrics.write_parquet(metrics_path)
-        # The two parquets carry the result; the record carries the setup that
-        # produced it, which is the half a table cannot reconstruct later.
+        # Os dois parquets carregam o resultado; o registro carrega a montagem que
+        # o produziu, que é a metade que uma tabela não reconstrói depois.
         write_record(
             setup_record(panel, run, cases_path),
             record_path,
