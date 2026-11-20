@@ -38,7 +38,7 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 01, 02 e 03 são três *representações* do mesmo corpus de notícias. Cada uma gera
 seu próprio conjunto de features e o artigo compara qual representa melhor a
 notícia para prever dengue. Consequência: existe o [protocolo 00](00-protocolo-comparacao.md),
-que fixa o chão comum. Sem ele a comparação não vale nada.
+que fixa as condições da comparação. Sem ele a comparação não vale nada.
 
 **2026-11-20 — o artigo é sobre o valor das features, não sobre a notícia.**
 A entrada acima diz que "o artigo compara qual representa melhor a notícia para
@@ -53,6 +53,20 @@ Consequências, todas registradas no [protocolo 00](00-protocolo-comparacao.md):
 conjunto de texto — uma escolha interna, não o eixo do artigo; e clima e busca
 deixam de ser condições fixas para virar conjuntos comparados. A ordem e o prazo
 estão em [plano.md](plano.md).
+
+**2026-11-20 — o desenho vira comparação entre conjuntos acumulados, e a granularidade vira BR com UF declarada.**
+A revisão do [protocolo 00](00-protocolo-comparacao.md) tirou clima e busca das
+condições fixas e transformou os quatro blocos de feature em conjuntos: `histórico` →
+`+ clima` → `+ busca` → `+ texto`, em dois tipos de modelo. O artigo reporta os três
+ganhos entre conjuntos, não um número único; o conjunto de texto tem que bater duas
+barras — o conjunto anterior e o ensemble sem texto —, o que dá oito comparações. Em
+granularidade, **BR é o número principal e a UF é robustez declarada**: medida e
+reportada, não "se der tempo", pelo mesmo motivo de antes — o corpus é de uma fonte
+nacional e as linhas de UF são atribuição, não partição. Horizonte: **1 semana no
+número principal, 4 semanas declarado**. Os baselines deixaram de ser invenção
+nossa e ganharam citação (Xiao 2025, Johansson 2019, Wu 2025, Codeço 2018), com o
+levantamento em [06](06-desenho-do-experimento.md). Decisões, custo e cortes em
+[plano.md](plano.md) §10.
 
 **2026-10-07 — notícia não é proxy de casos.**
 O enquadramento é modalidade de **atenção midiática / ambiente informacional**,
@@ -76,9 +90,20 @@ não camada de modelo. Granularidade: **BR e por UF** onde fizer sentido.
   os HTMLs crus ficam em `data/news/dengue/articles/` (não versionados).
 - 4,7 artigos/semana no total nacional; 3,5/semana na janela 2020–2024. Fonte
   **única**, **estatal**, cobertura **nacional**.
-- Alvo: casos SINAN por UF × semana epidemiológica (domingo). Notícia é nacional,
-  alvo é UF — o descompasso espacial é uma limitação declarada, não um detalhe.
-- SINAN cobre 2014–2026; GT cobre 2020–2024. O overlap dos três é curto.
+- Alvo: casos SINAN por semana epidemiológica (domingo), **BR no número principal e
+  UF como robustez declarada**. O descompasso espacial, medido: o corpus é de **uma
+  fonte nacional**, mas as tabelas de features têm **28 localidades** (BR + as 27
+  UF), de 2002-02-17 a 2026-09-13. As linhas de UF são **atribuição por indicação
+  locativa** no texto, não contagem por estado — um artigo que cita três estados
+  conta nos três, então as linhas de UF somam 7.223 menções para 4.369 artigos
+  nacionais e **não somam a linha BR**.
+- **318 semanas do intervalo não têm artigo nenhum** e simplesmente não aparecem na
+  tabela: a linha BR tem 965 semanas com pelo menos um artigo num intervalo de
+  1.283. Semana sem notícia é ausência de sinal, e o modelo precisa de um indicador
+  explícito para não ler isso como sinal neutro.
+- SINAN cobre 2014–2026; GT cobre **2020-01-26 a 2024-12-29**. O overlap dos três é
+  curto de verdade: com 104 semanas mínimas de treino, a grade só é avaliável em
+  **157 semanas** (2022-01-02 a 2024-12-29), e menos nos conjuntos que usam busca.
 - **O corpus atravessa duas gerações de template** (redesign ~2014, que coincide
   com o início da cobertura do SINAN). Era B (2002–2014) põe o corpo em
   `div.inside` e o nome do site no `<h1>`; era C (2014–2026) usa

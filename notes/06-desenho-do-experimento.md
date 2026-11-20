@@ -1,9 +1,9 @@
 # 06 — Como a linha desenha o experimento
 
 **Estado:** testando — 2026-11-20
-**Papel no artigo:** apoio — dá citação aos baselines e ao backbone que o
-[protocolo 00](00-protocolo-comparacao.md) hoje nomeia **sem citar**, e é o
-levantamento de literatura da fatia 1 do [plano](plano.md).
+**Papel no artigo:** apoio — dá citação aos baselines e ao backbone do
+[protocolo 00](00-protocolo-comparacao.md), e é o levantamento de literatura do
+passo 1 do [plano](plano.md). As citações já foram levadas para lá em 2026-11-20.
 
 **O que este arquivo cobre:** o *desenho* dos estudos — alvo, granularidade,
 horizonte, janela, split, métrica, baselines, tipo de modelo. Não é revisão de
@@ -12,10 +12,11 @@ sobre representação de texto).
 
 ## Por que este arquivo existe
 
-O protocolo 00 fixa as condições que valem em todos os braços, mas escreve "TFT
-early-fusion" como backbone e lista quatro baselines **sem uma citação sequer** — e
-o [plano](plano.md) §6 diz que o levantamento de literatura é o que fecha a grade,
-porque "abordagem mais simples" precisa de citação, não de invenção.
+O protocolo 00 fixa as condições que valem em todos os conjuntos, mas escrevia "TFT
+early-fusion" como backbone e listava quatro baselines **sem uma citação sequer** —
+e o [plano](plano.md) §6 diz que o levantamento de literatura é o que fecha a
+grade, porque "abordagem mais simples" precisa de citação, não de invenção. (A
+pendência foi fechada em 2026-11-20: o protocolo 00 agora nomeia e cita.)
 
 O caminho foi ler como os estudos da linha montam o experimento e extrair: o que
 dá para **copiar com citação**, o que precisa ser declarado como **desvio**, e o
@@ -26,15 +27,16 @@ que **ninguém faz** (logo, é onde a contribuição mora).
 | Item | O nosso | Onde |
 |---|---|---|
 | Alvo | casos SINAN dengue **suspeitos**, por semana de início de sintomas | [protocolo 00](00-protocolo-comparacao.md) |
-| Grão espacial | **BR** no número principal; UF exploratório | idem |
+| Grão espacial | **BR** no número principal; **UF como robustez declarada** | idem — revisado em 2026-11-20 |
 | Grão temporal | semana epidemiológica ancorada no domingo | `src/pipeline/epiweek.py` |
-| Horizonte | **1 semana** | [protocolo 00](00-protocolo-comparacao.md) pendências |
+| Horizonte | **1 semana** no número principal; **4 semanas declarado** | idem — revisado em 2026-11-20 |
+| Janela pontuada | **157 semanas**: 2022-01-02 a 2024-12-29, com treino desde 2014 | [plano](plano.md) §6 |
 | Split | rolling-origin, refit só com o passado | [src/forecast/README.md](../src/forecast/README.md) |
 | Janela mínima | 104 semanas de treino | idem (tabela de decisões) |
 | Métricas | MAE, RMSE, MAPE **e** WIS/CRPS/cobertura | [protocolo 00](00-protocolo-comparacao.md) |
-| Baselines | naive, SARIMA/SARIMAX, InfoDengue-bayesiano, Google-Trends-only | idem — **sem citação até agora** |
-| Backbone | TFT early-fusion, o mesmo para todos os braços | idem — **sem citação até agora** |
-| Barra medida | persistência MAE **4.047**, naive sazonal **30.714** casos/semana (557 semanas pontuadas, 661 semanas de 2014-01-05 a 2026-08-30) | [src/forecast/README.md](../src/forecast/README.md) |
+| Baselines | naive (persistência e sazonal), SARIMA/SARIMAX, InfoDengue-bayesiano, só-busca e ensemble — **com citação** | idem; tabela de baselines abaixo e [protocolo 00](00-protocolo-comparacao.md) |
+| Backbone | TFT early-fusion, o mesmo para todos os braços | idem — citação: Lim 2021 |
+| Barra medida | persistência MAE **9.022**, naive sazonal **39.552** casos/semana, na janela do paper (157 semanas); na janela longa (470 semanas, 2016–2024), 4.358 e 23.618 | [src/forecast/README.md](../src/forecast/README.md) |
 
 ## A tabela da linha
 
@@ -61,9 +63,14 @@ A linha trabalha em três faixas: **1–4 semanas** (Xiao 2025; Chen & Moraga 20
 
 Não é erro — é o passo que o modelo precisa acertar antes de qualquer multi-passo,
 e o avaliador já aceita horizonte maior. Mas **passa a ser desvio declarado**, não
-padrão do campo. E tem um custo de teto: a persistência já dá MAE 4.047 em BR, e
-em horizonte curto a curva é quase toda autocorrelação — o espaço para a feature
-multimodal aparecer é pequeno ([src/forecast/README.md](../src/forecast/README.md)).
+padrão do campo, e por isso **h=4 entra medido como robustez** em vez de ficar como
+trabalho futuro (decidido em 2026-11-20).
+
+O custo de teto é real e agora está medido na janela certa: na janela do paper a
+persistência dá MAE **9.022** em BR — 2,1× o número da janela de 2016–2024 (4.358),
+porque 2024 foi ano recorde e a curva sobe de patamar. Em horizonte curto a série é
+quase toda autocorrelação, então o espaço para a feature multimodal aparecer é
+pequeno ([src/forecast/README.md](../src/forecast/README.md)).
 
 ### 2. Alvo — a decisão mais consequente, e a mais fácil de confundir
 
@@ -97,6 +104,21 @@ Nosso BR é a escolha mais grossa, e o motivo é honesto: é onde a notícia (na
 e o alvo têm o mesmo grão, como o protocolo 00 já registra. A consequência é que
 **não somos diretamente comparáveis a nenhum deles** em nível espacial — declarar.
 
+**O que "a notícia é nacional" quer dizer, medido (2026-11-20).** As tabelas de
+features de notícia têm **28 localidades** — BR e as 27 UF — de 2002-02-17 a
+2026-09-13. Então não é que falte grão por UF: é que as linhas de UF são
+**atribuição por indicação locativa** no texto de um corpus de fonte única, não
+contagem por estado. Um artigo que cita três estados conta nos três, e as linhas de
+UF somam 7.223 menções para 4.369 artigos nacionais — elas não somam a linha BR,
+que por construção contém todo artigo. A linha BR também tem 318 semanas vazias
+dentro do intervalo (965 com artigo em 1.283): semana sem notícia não é sinal
+neutro.
+
+**UF passa a robustez declarada** (2026-11-20): a leitura por UF é feita e
+reportada à parte, e o número principal não depende dela. Não é o grão do número
+principal porque a atribuição acima não sustenta isso — e é melhor declarar do que
+descobrir na revisão.
+
 ### 4. Granularidade temporal e calendário
 
 Semanal por semana epidemiológica domina em arbovirose (Johansson 2019, Xiao 2025,
@@ -111,8 +133,10 @@ Duas práticas que a linha adota e nós não:
 
 - **Janela explícita em semanas**: Xiao 2025 usa 156 semanas (3 anos), com
   sensibilidade em 1 e 2 anos, e **exclui 2020** como ano anômalo (COVID). Nosso
-  mínimo é 104 semanas e **não excluímos ano nenhum** — a barra de 4.047 inclui
-  2020 e inclui 2024, que foi recorde.
+  mínimo é 104 semanas e **não excluímos ano nenhum** — a barra inclui 2020 e
+  inclui 2024, que foi recorde. A nossa janela pontuada é de 157 semanas (a do
+  Xiao, de avaliação, tem 46 nowcasts), então a comparação de tamanho é favorável
+  a nós; a de alvo, não (ver eixo 2).
 - **Janela móvel**: Xiao 2025 e Chen & Moraga 2025 usam janela que avança; é a
   mesma linhagem de avaliação do nosso rolling-origin.
 
@@ -175,14 +199,23 @@ idêntico ao que o protocolo 00 declarou de memória.** O protocolo deixa de ser
 | SARIMAX casos + Google Trends | Xiao 2025 ("DCGT"); Chen & Moraga 2025 (SARIMAX) | o que a busca acrescenta ao histórico |
 | Modelo linear **só** com Google Trends | Xiao 2025 ("GT") | se a busca substitui o alvo |
 | InfoDengue bayesiano (binomial negativa hierárquica) | Xiao 2025; Codeço 2018; Bastos 2019 | o padrão operacional brasileiro |
-| Naive sazonal (mesma semana do ano anterior) | tradição de competição (Tashman 2000); já medido por nós em 30.714 | quanto custa ignorar a tendência entre anos |
+| Naive sazonal (mesma semana do ano anterior) | tradição de competição (Tashman 2000); já medido por nós em 39.552 (janela do paper) | quanto custa ignorar a tendência entre anos |
 | **Ensemble de todos os modelos** | Johansson 2019; Wu 2025 | o teto realista — é o que ganha nos dois |
 | **Sem texto / controle negativo** | não é baseline do campo; é nosso | se o texto está sendo usado — Tan et al. 2024 (arXiv:2406.16964) |
 
 **Já no nosso protocolo:** o ensemble. Johansson 2019 mostra que ensemble
 multi-modelo e multi-equipe bate modelo individual de forma consistente, e Wu 2025
 mostra o ensemble no top-3 em 180+ localidades. É barato (média das células da
-grade). **Entra — decidido em 2026-11-20.**
+grade). **Entra — decidido em 2026-11-20**, com um detalhe que a leitura forçou: o
+ensemble **sem texto** é que entra na regra de decisão, como segunda barra do conjunto
+de texto; o ensemble **global** fica descritivo, porque ele contém as células que
+estão sendo julgadas.
+
+**E o InfoDengue entra com prazo fechado** (2026-11-20). Ele é o único baseline
+caro da lista: reimplementar a binomial negativa hierárquica é um projeto dentro do
+projeto. Fica com prazo declarado de uma semana e, se não convergir, sai do
+experimento, vira citação do sistema original e o desvio é registrado — o que não
+acontece é ele consumir o prazo do paper.
 
 ## Tipos de modelo para os dois eixos do desenho
 
@@ -211,12 +244,16 @@ Ou seja: **a grade é nossa**, e é isso que ela tem de contribuição.
 
 ## O que isso muda no nosso desenho
 
-1. **Baselines e backbone ganham citação** — Xiao 2025 para os quatro baselines,
-   Lim 2021 para o TFT. É a pendência que o protocolo 00 tinha em aberto.
-2. **Horizonte 1 semana vira desvio declarado**, com o motivo (multi-passo é o
-   próximo eixo) e o custo (teto baixo por causa da autocorrelação).
+1. **Baselines e backbone ganham citação** — Xiao 2025 e Chen & Moraga 2025 para
+   os seis baselines, Johansson 2019 e Wu 2025 para o ensemble, Lim 2021 para o
+   TFT. Era a pendência que o protocolo 00 tinha em aberto, e ela está fechada.
+2. **Horizonte 1 semana vira desvio declarado, e h=4 entra medido como robustez**
+   (2026-11-20) — deixar o multi-passo só como trabalho futuro deixaria o desenho
+   mais estreito que o próprio campo.
 3. **Alvo BR é o grão mais grosso da linha** — declarar como limitação, junto com
-   o descompasso espacial que o protocolo já registra.
+   o descompasso espacial que o protocolo já registra. **UF entra como robustez
+   declarada**, não como número principal, porque as linhas de UF são atribuição
+   locativa e não partição dos artigos (ver eixo 3).
 4. **2020 não é excluído** enquanto Xiao exclui. Testar como robustez, ao lado do
    corte de 2024 que já existe.
 5. **Quantis para todo mundo, inclusive os ingênuos**, deixa de ser capricho
@@ -227,6 +264,28 @@ Ou seja: **a grade é nossa**, e é isso que ela tem de contribuição.
    células da grade.
 7. **Retrospectivo** é limitação declarada; **EPIFORGE 2020** é o checklist de
    reporte para rodar na fatia 12.
+
+**O que a revisão de 2026-11-20 mudou no desenho**, além dos itens 2, 3 e 6 acima:
+
+8. **O resultado são os ganhos acumulados entre conjuntos, não um número.** São três
+   ganhos (`+clima − histórico`, `+busca − +clima`, `+texto − +busca`), cada um nos dois
+   tipos de modelo. Não existe "o ganho da notícia" em número único — o campo
+   reporta número único porque compara modelos, e nós comparamos **blocos de
+   feature**.
+9. **O conjunto de texto bate duas barras**: o conjunto anterior e o ensemble sem
+   texto. Wu 2025 e Johansson 2019 dizem por quê — em horizonte curto a média de
+   vários modelos é adversário forte, então "ganhou do conjunto anterior" pode ser o
+   texto compensando um modelo mal ajustado. São **oito comparações** ao todo.
+10. **A barra é remedida na janela do paper.** A persistência passa de MAE 4.047
+    (557 semanas, 2014–2026) para **9.022** (157 semanas, 2022–2024). Não é
+    mudança de método: é que o número antigo media outra janela, e uma janela com
+    2024 dentro é mais difícil. Reportar 4.047 como "a barra" fazia o problema
+    parecer mais fácil do que é.
+11. **Uma ou duas codificadoras de embedding na grade**, não uma por variante —
+    há **seis** no disco. As outras viram robustez declarada. Foi o maior corte de
+    escopo da revisão: cada codificadora é uma grade inteira.
+12. **A ablação sem texto é o conjunto `+ busca`** (alvo + clima + busca), e não o
+    `histórico`: o `histórico` é o conjunto mais simples e mede outra coisa.
 
 ## Fontes trazidas
 
@@ -295,26 +354,37 @@ checar:
   está acima da média da linha.
 - **Horizonte curto é o pior lugar para procurar ganho de feature.** Quanto mais
   curto o horizonte, mais da variância já está no próprio histórico.
-- **A janela do nosso experimento é curta.** GT congelado termina em 2024-12-29 e o
-  alvo vai a 2026; com 104 semanas mínimas de treino, a grade só é avaliável em
-  ~150 semanas (2022-01 a 2024-12), contra as 557 da barra atual
-  ([plano](plano.md) §6). Menos semanas pontuadas = menos poder no teste pareado
-  da fatia 9.
+- **A janela do nosso experimento é curta, e agora está contada.** A série de busca
+  congelada vai de 2020-01-26 a 2024-12-29 e o alvo vai a 2026; com 104 semanas
+  mínimas de treino, a grade só é avaliável em **157 semanas** (2022-01-02 a
+  2024-12-29), e em 154 nos conjuntos que usam busca, contra as 557 do painel
+  padrão (2014–2026), que não é a janela do paper ([plano](plano.md) §6). Menos semanas pontuadas = menos poder nas oito
+  comparações pareadas da fatia 10. E como a comparação exige todos os conjuntos nas
+  mesmas semanas, **uma feature só confina o paper inteiro**.
 
 ## Pendências / próximo passo
 
-- [ ] **Levar as citações para dentro do protocolo 00**: os quatro baselines
-      (Xiao 2025) e o backbone TFT (Lim 2021). É o que fecha o lado "baselines"
-      da fatia 1.
-- [ ] **Revisar o protocolo 00 tirando clima e busca das condições fixas** — o
-      marcador `#comparados` da fatia 1. Não foi feito aqui: este arquivo é leitura,
-      aquela revisão muda a regra do jogo.
+- [x] **Levar as citações para dentro do protocolo 00**: os seis baselines mais o
+      ensemble, e o backbone TFT (Lim 2021) — **feito em 2026-11-20**, na revisão
+      abaixo.
+- [x] **Revisar o protocolo 00 tirando clima e busca das condições fixas** — o
+      marcador `#comparados` da fatia 1. **Feito em 2026-11-20**: a revisão também
+      fixou os conjuntos acumulados, o grão BR com UF declarada, os dois horizontes e as oito
+      comparações.
 - [x] **Decidir o ensemble como baseline** (Johansson 2019; Wu 2025) — **entra**,
-      decidido em 2026-11-20.
+      com o sem-texto na regra de decisão e o global descritivo, em 2026-11-20.
+- [ ] **Registrar o valor mínimo do ganho no protocolo 00** — semana 2 do plano,
+      antes de a primeira célula da grade ser calculada.
+- [ ] **Escolher uma ou duas codificadoras de embedding** para a grade, e declarar
+      as outras quatro como robustez.
+- [ ] **Medir o InfoDengue com prazo fechado** — semana 3; se não convergir em uma
+      semana, ele vira citação e o desvio fica registrado.
+- [ ] **Medir UF e h=4 como robustez declarada** — semana 11.
 - [ ] **Testar 2020 como robustez**, ao lado do corte de 2024 já medido.
 - [ ] **Declarar o corte de maturidade do alvo** e por que o nosso não é nowcast
       (Bastos 2019; Xiao 2025).
-- [ ] **Declarar horizonte 1 semana e grão BR como desvios** do padrão da linha.
+- [ ] **Declarar horizonte 1 semana e grão BR como desvios** do padrão da linha —
+      este arquivo já diz o porquê; falta a redação no manuscrito.
 - [ ] **Rodar o manuscrito contra EPIFORGE 2020** antes da fatia 12.
 - [x] **Inserir os DOIs da tabela de fontes no `articles/references.csv`** — feito
       em 2026-11-20 (13 linhas).
