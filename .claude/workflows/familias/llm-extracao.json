@@ -1,0 +1,91 @@
+{
+  "slug": "llm-extracao",
+  "label": "Extração estruturada de eventos epidemiológicos por LLM",
+  "scope": [
+    "LLM (aberto ou comercial) que lê artigo ou relatório de surto e devolve campos estruturados por schema — doença, local, data, contagem de casos e óbitos, gravidade — via geração restringida por JSON schema, few-shot ou ensemble com votação majoritária",
+    "avaliação da extração contra anotação humana: precisão, recall e F1 por campo, exact-match e análise dos erros (número, negação, atribuição a fonte, localidade implícita)",
+    "baselines não-LLM recentes usados como régua da mesma tarefa: NER, regra e classificadores neurais sobre notícia de surto",
+    "domínio: notícia e relatório oficial de surto em saúde pública, multilíngue e em português"
+  ],
+  "out_of_scope": [
+    "LLM como forecaster ou previsão de série temporal — é o caminho 05, não esta família",
+    "fine-tuning de modelo próprio para NER clínico ou biomédico genérico",
+    "sumarização, tradução e geração de texto sem extração de campos",
+    "LLM para rotular ou gerar dado de treino (weak supervision) e anotação assistida de corpus",
+    "topic modeling, clustering e classificação de tópicos",
+    "vigilância baseada em eventos por dicionário, gazetteer e regra — já coberta em articles/features-texto"
+  ],
+  "queries": [
+    "large language model structured extraction outbreak news epidemiological fields",
+    "LLM few-shot information extraction disease surveillance news articles",
+    "GPT-4 extraction case counts outbreak reports evaluation",
+    "JSON schema constrained generation information extraction public health",
+    "ensemble LLM majority voting event extraction epidemic intelligence",
+    "named entity recognition epidemic news case counts baseline comparison",
+    "multilingual LLM extraction disease outbreak Portuguese news",
+    "knowledge graph construction from WHO disease outbreak news LLM",
+    "LLM annotation gold standard epidemiology extraction precision recall",
+    "open-weight LLM local inference structured extraction biomedical",
+    "negation and numeric value extraction from news reports epidemiology",
+    "event-based surveillance LLM versus rule-based extraction timeliness"
+  ],
+  "eixos": [
+    {
+      "slug": "extracao",
+      "titulo": "O que o LLM extrai e quão bem: campos, avaliação e erros",
+      "pergunta": "Quais campos são de fato extraídos de notícia de surto, com que precisão medida contra anotação humana, e onde a extração falha?"
+    },
+    {
+      "slug": "desenho",
+      "titulo": "Como se pede a extração: prompt, schema, few-shot e ensemble",
+      "pergunta": "Quanto do desempenho vem do desenho do prompt e da restrição de formato, e quanto vem do tamanho ou da família do modelo?"
+    },
+    {
+      "slug": "numeros",
+      "titulo": "O elo fraco: contagem, negação e atribuição",
+      "pergunta": "Por que número, negação e atribuição a fonte continuam sendo os campos mais difíceis, e o que se propõe para consertá-los?"
+    },
+    {
+      "slug": "reprodutibilidade",
+      "titulo": "Custo, pesos abertos locais e o problema de congelar a versão",
+      "pergunta": "O que se paga para rodar extração por LLM em um corpus inteiro, e como a área lida com o fato de o modelo mudar embaixo do resultado?"
+    },
+    {
+      "slug": "dominio",
+      "titulo": "Notícia de surto, multilíngue e a barreira do português",
+      "pergunta": "O que já foi feito no nosso domínio e no nosso idioma, e o que aquilo mediu de fato?"
+    }
+  ],
+  "estilo": {
+    "termos": [
+      "LLM",
+      "few-shot",
+      "zero-shot",
+      "prompt",
+      "schema",
+      "JSON",
+      "constrained decoding",
+      "NER",
+      "anotação",
+      "gold standard",
+      "F1",
+      "recall",
+      "knowledge graph",
+      "ontologia",
+      "RDF",
+      "alucinaç",
+      "in-context",
+      "chain-of-thought",
+      "token",
+      "quantizaç",
+      "fine-tun",
+      "votação majoritária",
+      "weak supervision",
+      "embedding",
+      "transformer"
+    ]
+  },
+  "gates": {
+    "min_year": 2019
+  }
+}

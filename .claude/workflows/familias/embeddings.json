@@ -1,0 +1,69 @@
+{
+  "slug": "embeddings",
+  "label": "Embeddings densos como features de notícia",
+  "scope": [
+    "encoders de frase/documento usados como feature para série temporal ou regressão",
+    "pooling e normalização de embeddings (mean, CLS, whitening, SIF, remoção do primeiro componente)",
+    "domínio: texto curto, português ou multilíngue, e notícia/jornalismo"
+  ],
+  "out_of_scope": [
+    "embeddings de grafo, de imagem, de usuário, de produto",
+    "fine-tuning supervisionado para uma tarefa de classificação específica"
+  ],
+  "queries": [
+    "sentence embeddings as features time series forecasting",
+    "text embeddings news articles disease surveillance",
+    "sentence transformer pooling strategies comparison",
+    "multilingual sentence embeddings Portuguese"
+  ],
+  "eixos": [
+    {
+      "slug": "geometria",
+      "titulo": "Como o texto vira vetor: pooling, normalização e a geometria do espaço",
+      "pergunta": "Por que a média crua dos vetores é fraca, e o que de fato conserta — pooling melhor, remoção do componente dominante, branqueamento?"
+    },
+    {
+      "slug": "encoders",
+      "titulo": "Encoders: o que vem pronto e o que exige treino",
+      "pergunta": "Qual o custo real de cada família de encoder, e o que se ganha em troca dele?"
+    },
+    {
+      "slug": "vigilancia",
+      "titulo": "Notícia como fonte de vigilância de doença",
+      "pergunta": "O que já foi feito no nosso domínio, e o que aquilo mediu de fato?"
+    },
+    {
+      "slug": "lingua",
+      "titulo": "Português e multilíngue: o que a área cobre",
+      "pergunta": "A distância de idioma foi medida, ou é assumida pequena por simpatia temática?"
+    }
+  ],
+  "estilo": {
+    "termos": [
+      "pooling",
+      "embedding",
+      "encoder",
+      "branqueament",
+      "whitening",
+      "anisotrop",
+      "componente principal",
+      "transdutiv",
+      "cosseno",
+      "transformer",
+      "fine-tun",
+      "token",
+      "NLI",
+      "word2vec",
+      "bag-of-words",
+      "saco de palavras",
+      "destila",
+      "retrieval",
+      "NRMSE",
+      "SVD",
+      "dimensionalidade",
+      "stopword",
+      "pré-trein",
+      "LDA"
+    ]
+  }
+}

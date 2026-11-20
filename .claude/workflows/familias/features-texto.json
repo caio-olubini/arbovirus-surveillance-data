@@ -1,0 +1,80 @@
+{
+  "slug": "features-texto",
+  "label": "Features manuais de texto: léxico, regras e contagens",
+  "scope": [
+    "vigilância baseada em eventos: dicionário, gazetteer, regras e reconhecimento de entidades nomeadas sobre notícia e fontes abertas",
+    "extração de contagens explícitas do texto (casos, óbitos) e o tratamento de contagem acumulada contra contagem semanal",
+    "estatísticas de superfície do texto como feature: comprimento, contagem de termos, densidade lexical, legibilidade",
+    "domínio: notícia, português ou multilíngue, documento longo, agregação semanal e por unidade geográfica"
+  ],
+  "out_of_scope": [
+    "representações densas de frase ou documento (embeddings) — são a família `embeddings`, já rodada neste repo",
+    "modelagem de tópicos (LDA/DMR) — é o braço 03 do projeto",
+    "extração estruturada por LLM (braço 04) e previsão por LLM (braço 05)",
+    "sistemas de vigilância comerciais ou fechados, sem avaliação publicada"
+  ],
+  "queries": [
+    "event-based surveillance news articles dictionary rules outbreak detection",
+    "news media dengue surveillance Brazil text mining",
+    "automated extraction of case counts from news reports epidemic",
+    "disease surveillance gazetteer geolocation news articles",
+    "evaluation timeliness healthmap biocaster PADI-web outbreak detection",
+    "text surface features readability news article classification"
+  ],
+  "eixos": [
+    {
+      "slug": "dicionario",
+      "titulo": "Vigilância por dicionário e regra: o que os sistemas extraem e quanto acertam",
+      "pergunta": "O que os sistemas de vigilância baseada em eventos extraem do texto por dicionário, gazetteer e regra, com que precisão medida e com que antecedência em relação à notificação oficial?"
+    },
+    {
+      "slug": "contagens",
+      "titulo": "Contagens explícitas no texto: casos, óbitos e a armadilha da contagem acumulada",
+      "pergunta": "O que a literatura consegue extrair de contagens numéricas em prosa jornalística, com que confiabilidade, e como ela trata o fato de a imprensa repetir números acumulados em vez de semanais?"
+    },
+    {
+      "slug": "superficie",
+      "titulo": "Estatísticas de superfície do texto como feature: comprimento, densidade e legibilidade",
+      "pergunta": "O que medidas simples do próprio texto — comprimento, contagem de termos, densidade lexical, legibilidade — acrescentam como feature, e em que condições elas bastam sozinhas?"
+    },
+    {
+      "slug": "dominio",
+      "titulo": "Notícia como fonte de vigilância no nosso recorte: dengue, Brasil e português",
+      "pergunta": "O que já foi medido sobre notícia de arbovirose como fonte de vigilância, e o que esses estudos cobrem do nosso recorte — dengue, Brasil, texto em português, documento longo, agregação semanal e por estado?"
+    },
+    {
+      "slug": "validacao",
+      "titulo": "Como a área valida a extração — e o que falta em português",
+      "pergunta": "Como os estudos medem se a extração está certa — anotação manual, precisão e cobertura por campo, concordância entre anotadores — e onde essa validação simplesmente não existe para o português?"
+    }
+  ],
+  "gates": {
+    "min_year": 2005
+  },
+  "estilo": {
+    "termos": [
+      "gazetteer",
+      "geoparsing",
+      "NER",
+      "TF-IDF",
+      "bag-of-words",
+      "saco de palavras",
+      "n-gram",
+      "token",
+      "stopword",
+      "stemming",
+      "lematiza",
+      "ontologia",
+      "recall",
+      "embedding",
+      "word2vec",
+      "transformer",
+      "pré-trein",
+      "fine-tun",
+      "dimensionalidade",
+      "SVD",
+      "LDA",
+      "event-based"
+    ]
+  }
+}

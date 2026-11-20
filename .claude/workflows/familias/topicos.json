@@ -1,0 +1,107 @@
+{
+  "slug": "topicos",
+  "label": "Modelagem por tópicos como feature de notícia",
+  "scope": [
+    "domínio: notícia de doença/arbovírus, texto curto, português ou multilíngue, agregação semanal e por local — este é o recorte que mais importa",
+    "modelos de tópicos cuja saída (proporção por tópico, tópico dominante, termos por tópico) é usada como feature para previsão, regressão ou vigilância",
+    "tamanho e seleção de k: coerência, estabilidade, perplexidade, e o comportamento em corpus pequeno e desequilibrado no tempo",
+    "modelos com o tempo dentro do modelo: tópicos dinâmicos, prevalência condicionada a metadado, deriva de vocabulário"
+  ],
+  "out_of_scope": [
+    "modelos de tópicos puramente exploratórios, cuja saída não entra em nenhum modelo a jusante",
+    "corpus de texto longo acadêmico, jurídico, de resenha de produto ou de rede social como domínio único",
+    "rotulagem de tópicos por LLM e extração estruturada por LLM como método principal (é outra família deste projeto)",
+    "embeddings densos de sentença sem modelo de tópicos (é a família embeddings deste projeto)"
+  ],
+  "queries": [
+    "topic model topic proportions as features forecasting disease incidence",
+    "temporal topic modeling news articles disease surveillance outbreak",
+    "dynamic topic models topic prevalence covariate time news",
+    "topic coherence number of topics selection stability",
+    "short text topic modeling LDA NMF BERTopic comparison",
+    "topic modeling Portuguese news Brazil dengue arbovirus",
+    "Dirichlet multinomial regression topic prevalence metadata",
+    "news media coverage topic trends epidemic prediction",
+    "BERTopic evaluation stability random seed topic agreement",
+    "topic shares as covariates time series regression text features",
+    "epidemic intelligence topic modeling newspaper corpus evaluation",
+    "topic drift long term news corpus vocabulary change"
+  ],
+  "eixos": [
+    {
+      "slug": "feature",
+      "titulo": "A saída do modelo de tópicos como variável de previsão",
+      "pergunta": "O que já se usou a proporção de cada tópico como covariável para prever ou estimar um alvo, e o que aquilo previu de fato?"
+    },
+    {
+      "slug": "k",
+      "titulo": "Quantos tópicos: coerência, estabilidade e os critérios que discordam",
+      "pergunta": "Como a área escolhe o número de tópicos, e o que ela faz quando coerência e verossimilhança apontam para lados opostos?"
+    },
+    {
+      "slug": "tempo",
+      "titulo": "Tópicos que mudam com o tempo",
+      "pergunta": "Como a área acompanha assunto e vocabulário que mudam ao longo de décadas, e o que mede da estabilidade disso?"
+    },
+    {
+      "slug": "estabilidade",
+      "titulo": "Estabilidade e reprodutibilidade dos tópicos",
+      "pergunta": "A área mede se os tópicos se repetem entre sementes e entre recortes do corpus, ou assume que se repetem?"
+    },
+    {
+      "slug": "dominio",
+      "titulo": "Notícia de doença, texto curto e português",
+      "pergunta": "Qual é o precedente mais próximo do nosso recorte — notícia de arbovirose, em português, agregada por semana — e o que ele mediu?"
+    }
+  ],
+  "gates": {
+    "venue": {
+      "min_h_index": 30,
+      "allow_any_of": [
+        "ACL",
+        "EMNLP",
+        "NAACL",
+        "EACL",
+        "COLING",
+        "TACL",
+        "NeurIPS",
+        "ICLR",
+        "ICML",
+        "AAAI",
+        "JMLR",
+        "KDD",
+        "CIKM",
+        "WSDM",
+        "ECML",
+        "The Web Conference"
+      ]
+    }
+  },
+  "estilo": {
+    "termos": [
+      "LDA",
+      "NMF",
+      "BERTopic",
+      "top2vec",
+      "perplexidade",
+      "coerência",
+      "c_v",
+      "umap",
+      "hdbscan",
+      "hiperparâmetro",
+      "lematiz",
+      "stemm",
+      "stopword",
+      "bigrama",
+      "n-grama",
+      "corpus",
+      "token",
+      "embedding",
+      "dimensionalidade",
+      "tópico",
+      "cluster",
+      "gibbs",
+      "inferência variacional"
+    ]
+  }
+}

@@ -3,11 +3,27 @@
 //   Passo 1 (Buscar)     acha os artigos de uma família de técnicas, aplica os
 //                        gates, baixa os PDFs para articles/<slug>/
 //          (Conferir)    um agente confere que o registro escrito obedece o contrato
-//   Passo 2 (Ler)        um agente por artigo lê o PDF e devolve uma ficha
+//   Passo 2 (Ler)        um agente por artigo lê o PDF e devolve uma ficha, e a
+//                        escreve em articles/<slug>/fichas/<key>.json
+//          (Conferir fichas)  um script procura no PDF o trecho literal que cada
+//                        ficha diz ter copiado dele; citação ausente é invenção
 //          (Rankear)     um agente sintetiza as fichas em ranking.md
 //   Passo 3 (Relatar)    um agente por EIXO escreve uma seção do capítulo
 //          (Sintetizar)  um agente costura as seções em relatorio.md
 //          (Revisar)     um agente confere o capítulo escrito contra as fichas
+//
+// A FICHA É O ATIVO DURÁVEL, e a prosa é a renderização dela. Até 2026-11 o
+// fluxo ia de ficha a relatório e jogava a ficha fora ao fim da execução: o
+// capítulo sobrevivia, a evidência não, e conferir uma afirmação do capítulo
+// significava reabrir o PDF. Agora a ficha fica no disco, com o trecho literal
+// e a página que sustentam cada afirmação, e é ela que torna a conferência
+// mecânica — o script pergunta ao PDF se o trecho está lá, e a leitura humana
+// encolhe de "o artigo inteiro" para "uma frase e um trecho ao lado".
+//
+// O QUE A ÂNCORA NÃO RESOLVE, e não finja que resolve: se a citação SUSTENTA a
+// afirmação. Isso é interpretação, e interpretação não tem teste mecânico. A
+// fase Conferir fichas pega invenção; distorção continua sendo leitura humana,
+// só que agora barata.
 //
 // Por que a leitura é uma fase separada: o rankeador precisa das fichas de TODOS
 // os artigos ao mesmo tempo para compará-las entre si, e um agente só não cabe
@@ -62,11 +78,23 @@
 // completo na mão — e é o script que tem esse conjunto.
 //
 // A PARTE CONTÁVEL DESSA REGRA É MEDIDA POR SCRIPT, não por agente:
-// scripts/checar_estilo_relatorio.py mede comprimento de frase, termo usado
-// antes de ser apresentado e densidade de jargão por parágrafo. A fase Revisar
-// roda o script e reporta os números dele; o que não é contável (a glosa ficou
-// clara para quem lê?) continua sendo julgamento do revisor. Ver ESTILO abaixo,
-// que é onde mora a lista de termos — ela é da família, não do script.
+// scripts/checar_estilo_relatorio.py mede orações empilhadas por frase, termo
+// usado antes de ser apresentado, densidade de jargão por parágrafo, adjetivo
+// inflado, muleta e hedge. A fase Revisar roda o script e reporta os números
+// dele; o que não é contável (a glosa ficou clara para quem lê?) continua sendo
+// julgamento do revisor. Ver ESTILO abaixo, que é onde mora a lista de termos —
+// ela é da família, não do script.
+//
+// O CONTADOR É DE ORAÇÕES, NÃO DE PALAVRAS, e a troca foi em 2026-11-10. Palavra
+// media a coisa errada: cinquenta palavras com duas orações é longo e claro,
+// trinta palavras com cinco orações é curto e ilegível, e o contador antigo
+// reprovava o primeiro e aprovava o segundo. Pior: como ele já tinha achatado
+// todo relatório em 45 palavras de máxima, cortar a frase ao meio virou o jeito
+// de passar — e o corte não desempilha oração nenhuma, então o problema
+// continuava lá, agora distribuído em duas frases. Tamanho de frase, desvio de
+// ritmo, voz passiva e travessão continuam sendo MEDIDOS, e não são gate: sem
+// uma referência de voz medida para comparar, limite inventado é chute com cara
+// de critério.
 //
 // Toda afirmação do capítulo carrega uma citação (Autor, Ano) das fichas que a
 // sustentam, e a fase Revisar lê o ARQUIVO EM DISCO para conferir. Conferir o
@@ -133,7 +161,8 @@ export const meta = {
   phases: [
     { title: 'Buscar', detail: 'OpenAlex + Semantic Scholar, gates, download dos PDFs (ou carrega o registro existente, com reuse_search)' },
     { title: 'Conferir', detail: 'o registro escrito obedece o contrato?' },
-    { title: 'Ler', detail: 'um agente por artigo lê o PDF e devolve uma ficha' },
+    { title: 'Ler', detail: 'um agente por artigo lê o PDF e devolve uma ficha, que é escrita em articles/<slug>/fichas/' },
+    { title: 'Conferir fichas', detail: 'o script procura no PDF o trecho literal que cada ficha diz ter copiado dele — citação ausente é invenção' },
     { title: 'Rankear', detail: 'mérito × custo de adoção neste repo → ranking.md' },
     { title: 'Relatar', detail: 'um agente por eixo escreve uma seção do capítulo, em prosa e com citação (Autor, Ano)' },
     { title: 'Sintetizar', detail: 'costura as seções em relatorio.md, sem veredito e sem custo' },
@@ -203,18 +232,41 @@ const DEFAULT_FAMILY = {
   ],
 }
 
-// `args` é a entrada da rodada. Duas chaves dele NÃO são da família e por isso
-// não viajam dentro do FAMILY: `gates` e `estilo`. O FAMILY é serializado no
-// prompt do agente de busca; se os gates fossem junto, o buscador os veria duas
-// vezes, uma delas como se fossem escopo da família.
+// `args` é a entrada da rodada. Algumas chaves dele NÃO são da família e por
+// isso não viajam dentro do FAMILY: `gates` e `estilo` (configuração de rodada),
+// e os interruptores e nonces abaixo — `reuse_search`, `revisao_nonce`,
+// `conferencia_nonce`. O FAMILY é serializado no prompt do agente de busca; se
+// fossem junto, o buscador os veria como se fossem escopo da família.
 const ARGS = (args && typeof args === 'object' && !Array.isArray(args)) ? args : {}
 
 const FAMILY = { ...DEFAULT_FAMILY, ...ARGS }
-delete FAMILY.gates
-delete FAMILY.estilo
+for (const chave of ['gates', 'estilo', 'reuse_search', 'revisao_nonce', 'conferencia_nonce']) {
+  delete FAMILY[chave]
+}
 
 // Interruptor de reuso — ver o cabeçalho. Explícito de propósito.
 const REUSAR = !!ARGS.reuse_search
+
+// OS DOIS NONCES. Eles não mudam nada do que os agentes fazem: existem para dar
+// ao harness uma forma de saber que o que eles medem mudou. O cache do Workflow
+// decide repetir um agente comparando (prompt, opções) — e nem o prompt da
+// conferência das fichas nem o da revisão contêm o que eles medem: a conferência
+// roda um SCRIPT, que pode ter sido corrigido, e a revisão LÊ o capítulo do
+// disco, que pode ter sido editado. Sem o nonce, rerodar depois de mexer em
+// qualquer um dos dois devolveria o resultado antigo, do cache, sobre um estado
+// que já não existe — e um veredito velho com cara de novo é a pior forma de
+// estar errado.
+//
+// SÃO DOIS, e não um, porque são duas coisas diferentes para refazer. Até
+// 2026-11-10 havia um só, e ele estava nos dois prompts: pedir uma revisão nova
+// obrigava a conferência das fichas a rodar de novo também — o que mudava as
+// citações, o que mudava a entrada da síntese, o que fazia a síntese REESCREVER
+// o capítulo inteiro. Rever custava reescrever. Com os nonces separados, quem
+// quer só um veredito novo passa `revisao_nonce` e nada mais é tocado; quem
+// corrigiu o script de conferência passa `conferencia_nonce` e refaz a
+// conferência sem mexer no texto.
+const NONCE_REVISAO = ARGS.revisao_nonce ?? ''
+const NONCE_CONFERENCIA = ARGS.conferencia_nonce ?? ''
 
 // --- os eixos do relatório ---------------------------------------------------
 // Vêm da família, sobrescrevíveis por `args`. Sem eixos declarados a fase Relatar
@@ -254,8 +306,9 @@ const EIXOS = Array.isArray(FAMILY.eixos) && FAMILY.eixos.length > 0 ? FAMILY.ei
 // A PARTE OBJETIVA DESTA REGRA É MEDIDA POR SCRIPT, não por agente. Agente não
 // conta palavra igual duas vezes, e um limite que se move a cada rodada não é um
 // limite. Ao script (scripts/checar_estilo_relatorio.py) cabe o que é contável —
-// comprimento de frase, termo antes da glosa, densidade de jargão por parágrafo;
-// ao revisor cabe o que não é contável — a glosa ficou clara para quem lê?
+// orações empilhadas por frase, termo antes da glosa, densidade de jargão por
+// parágrafo, adjetivo inflado, muleta, hedge; ao revisor cabe o que não é
+// contável — a glosa ficou clara para quem lê?
 //
 // A LISTA DE TERMOS É DA FAMÍLIA, e por isso mora aqui e não no script: `pooling`
 // é jargão para nós e não seria para uma família de, digamos, epidemiologia.
@@ -374,6 +427,18 @@ const CONTEXT = {
 //       selected_with_pdf:       int,   // ganharam PDF baixado e verificado
 //     },
 //     queries:     [ { source, query, url, hits } ],
+//                  // EXCEÇÃO DATADA, e a única do contrato. Registros gerados em
+//                  // 2026-11-01 ou antes podem trazer `n_results` (só o tamanho da
+//                  // página) no lugar de `url`. Isso NÃO é divergência: é a forma
+//                  // antiga, e ela é aceita enquanto o `generated` do arquivo for
+//                  // daquela data. A URL não deve ser reconstruída a partir do
+//                  // template das buscas por gate — a maioria das consultas segue o
+//                  // template, mas as avulsas (resolução de DOI, busca por título)
+//                  // têm endereço próprio, e o arquivo antigo não diz quais foram
+//                  // avulsas. Inventar uma URL para uma consulta avulsa seria
+//                  // inventar proveniência, que é pior que a ausência do campo.
+//                  // articles/llm-extracao/search.json é o único registro nessa
+//                  // situação, e ele mesmo declara a lacuna em `notes`.
 //     selected: [ {
 //       key, file, title, year, venue, venue_h_index,
 //       doi, citations, citations_per_year, pdf, decision: "selected",
@@ -479,6 +544,10 @@ const CARD_SCHEMA = {
   properties: {
     key: { type: 'string' },
     grupo: { type: 'string', enum: ['representacao', 'aplicacao'] },
+    // O caminho do PDF a partir da raiz do repositório. Existe para a ficha ser
+    // CONFERÍVEL: sem ele, o script de conferência não sabe contra qual arquivo
+    // comparar a citação, e a âncora abaixo vira decoração.
+    pdf: { type: 'string' },
     // author/year existem para o relatório poder citar (Autor, Ano) em vez da
     // chave da ficha. São extraídos do PRÓPRIO PDF, não do references.csv nem
     // do search.json: a leitura tem que ser independente das duas, senão um
@@ -488,6 +557,49 @@ const CARD_SCHEMA = {
     read: { type: 'string' },
     technique: { type: 'string' },
     representation: { type: 'string' },
+    // --- A ÂNCORA -----------------------------------------------------------
+    // Sem isto a ficha é um resumo nas palavras de quem leu, e não há como
+    // conferir se o artigo diz aquilo: a única forma de checar seria reabrir o
+    // PDF e reler, que é exatamente o trabalho que a ficha existe para evitar.
+    // Com o trecho literal e a página, a conferência vira mecânica — o script
+    // pergunta ao PDF se aquele trecho está ali, e o humano passa a ler só os
+    // pares (afirmação, citação) que sobraram, já sabendo que a citação é real.
+    //
+    // O que a âncora NÃO resolve: se a citação sustenta a afirmação. Isso é
+    // interpretação, e continua sendo leitura humana. A âncora encurta essa
+    // leitura de "o PDF inteiro" para "uma frase e um trecho ao lado".
+    afirmacoes: {
+      type: 'array',
+      description: 'de 3 a 5 afirmações centrais do artigo, cada uma ancorada em trecho literal do PDF',
+      items: {
+        type: 'object',
+        properties: {
+          afirmacao: {
+            type: 'string',
+            description: 'o que o artigo estabelece, em uma frase — o achado, não o tema',
+          },
+          citacao: {
+            type: 'string',
+            description: 'trecho COPIADO LITERALMENTE do PDF, com as palavras do autor, sem paráfrase e sem reticências internas. Mínimo de 8 palavras.',
+          },
+          pagina: {
+            type: 'integer',
+            description: 'página do PDF (contando a partir de 1, como aparece no leitor) onde o trecho está',
+          },
+        },
+        required: ['afirmacao', 'citacao', 'pagina'],
+      },
+    },
+    // A ressalva que os PRÓPRIOS autores declaram — não a que você suspeita.
+    // Ela tem dois usos, e o segundo é o que justifica o campo: agregada sobre
+    // todas as fichas de todas as famílias, ela é o catálogo de modos de falha
+    // deste domínio, e é com esse catálogo que um agente adversário ataca o
+    // desenho dos nossos experimentos. Um adversário sem munição externa ataca
+    // os furos que quem desenhou já conhece.
+    ressalva_do_autor: {
+      type: 'string',
+      description: 'a limitação que os autores do artigo declaram, nas palavras deles; "não declara" se não houver',
+    },
     evidence: { type: 'string' },
     needs: { type: 'string' },
     cost_here: { type: 'string' },
@@ -495,8 +607,45 @@ const CARD_SCHEMA = {
     red_flags: { type: 'array', items: { type: 'string' } },
   },
   required: [
-    'key', 'grupo', 'author', 'year', 'read', 'technique', 'representation',
-    'evidence', 'needs', 'cost_here', 'transferable', 'red_flags',
+    'key', 'grupo', 'pdf', 'author', 'year', 'read', 'technique', 'representation',
+    'afirmacoes', 'ressalva_do_autor', 'evidence', 'needs', 'cost_here',
+    'transferable', 'red_flags',
+  ],
+}
+
+// O retorno da fase que roda a conferência mecânica das fichas. Os contadores
+// são COPIADOS da saída do script, não contados por quem lê — mesma razão do
+// script de estilo: número contado a mão não é o mesmo número em toda rodada,
+// e um limite que se move não é limite.
+const FICHAS_SCHEMA = {
+  type: 'object',
+  properties: {
+    script_rodou: {
+      type: 'boolean',
+      description: 'true só se o script rodou e você leu a saída dele; false significa que a conferência mecânica NÃO aconteceu',
+    },
+    fichas: { type: 'integer' },
+    citacoes: { type: 'integer' },
+    pdfs_lidos: { type: 'integer' },
+    sem_texto: { type: 'integer', description: 'PDFs sem texto extraível — citação não conferida, confira a olho' },
+    erros: { type: 'integer' },
+    avisos: { type: 'integer' },
+    citacoes_ausentes: {
+      type: 'array',
+      items: { type: 'string' },
+      description: 'uma linha por citação NÃO encontrada no PDF, no formato "<key>: <trecho>" — é a lista que denuncia invenção',
+    },
+    fichas_sem_arquivo: {
+      type: 'array',
+      items: { type: 'string' },
+      description: 'chaves de ficha que voltaram da leitura mas não têm arquivo em articles/<slug>/fichas/ — a leitura que se perdeu',
+    },
+    divergencias: { type: 'array', items: { type: 'string' } },
+    summary: { type: 'string' },
+  },
+  required: [
+    'script_rodou', 'fichas', 'citacoes', 'pdfs_lidos', 'sem_texto',
+    'erros', 'avisos', 'citacoes_ausentes', 'fichas_sem_arquivo', 'divergencias', 'summary',
   ],
 }
 
@@ -608,10 +757,16 @@ const REPORT_SCHEMA = {
       description: 'fichas que o relatório não citou nenhuma vez — a lista que denuncia o artigo lido e esquecido',
     },
     summary: { type: 'string' },
+    relatorio_sha256: {
+      type: 'string',
+      description: 'sha256 do articles/<slug>/relatorio.md DEPOIS de escrevê-lo, 64 hex — '
+        + 'rode `shasum -a 256 articles/<slug>/relatorio.md`. Serve para a fase Revisar saber '
+        + 'que o texto mudou, e para o veredito ficar preso ao texto que ele julgou.',
+    },
   },
   required: [
     'arquivo', 'secoes', 'claims_no_relatorio', 'claims_sem_fonte',
-    'fichas_citadas', 'fichas_nunca_citadas', 'summary',
+    'fichas_citadas', 'fichas_nunca_citadas', 'summary', 'relatorio_sha256',
   ],
 }
 
@@ -619,6 +774,13 @@ const REVIEW_SCHEMA = {
   type: 'object',
   properties: {
     conforme: { type: 'boolean' },
+    relatorio_sha256: {
+      type: 'string',
+      description: 'sha256 do arquivo QUE VOCÊ LEU, medido por você com '
+        + '`shasum -a 256 articles/<slug>/relatorio.md`, 64 hex. Não copie o valor que '
+        + 'o prompt traz: se ele for diferente do que você mediu, o arquivo mudou depois '
+        + 'de escrito, e é o SEU valor que vale — é ele que prende o veredito ao texto julgado.',
+    },
     claims_conferidas: { type: 'integer' },
     claims_orfas: {
       type: 'array',
@@ -689,9 +851,24 @@ const REVIEW_SCHEMA = {
           type: 'boolean',
           description: 'true só se o script rodou e você leu a saída dele; false significa que a checagem objetiva NÃO aconteceu',
         },
-        frases_longas: { type: 'integer', description: 'ERROs do script: frases acima do limite' },
+        oracoes_empilhadas: { type: 'integer', description: 'ERROs do script: frases que empilham orações acima do limite' },
         termos_sem_glosa: { type: 'integer', description: 'ERROs do script: termos usados antes de serem apresentados' },
-        paragrafos_densos: { type: 'integer', description: 'ERROs do script: parágrafos acima do limite de densidade' },
+        paragrafos_densos: { type: 'integer', description: 'ERROs do script: parágrafos acima do limite de densidade de jargão' },
+        adjetivos_inflados: { type: 'integer', description: 'ERROs do script: adjetivos que não escolhem nada ("robusto", "crucial") acima da densidade limite' },
+        muletas: { type: 'integer', description: 'ERROs do script: frases que anunciam em vez de dizer ("vale ressaltar", "em suma") acima da densidade limite' },
+        hedges: { type: 'integer', description: 'ERROs do script: incerteza empilhada ("pode potencialmente sugerir") acima da densidade limite' },
+        medidas: {
+          type: 'object',
+          description: 'as medidas SEM limite, copiadas do script — contexto para o seu julgamento, não gate. Copie os números, não os recalcule.',
+          properties: {
+            palavras_por_frase_mediana: { type: 'number' },
+            palavras_por_frase_max: { type: 'integer' },
+            palavras_por_frase_desvio: { type: 'number', description: 'desvio-padrão do tamanho das frases; perto de 12 é o compasso uniforme que os relatórios atuais dão' },
+            passiva_por_mil: { type: 'number' },
+            travessao_por_mil: { type: 'number' },
+          },
+          required: ['palavras_por_frase_mediana', 'palavras_por_frase_max', 'palavras_por_frase_desvio', 'passiva_por_mil', 'travessao_por_mil'],
+        },
         prosa_opaca: {
           type: 'array',
           items: { type: 'string' },
@@ -703,7 +880,8 @@ const REVIEW_SCHEMA = {
           description: 'termos que estão entre parênteses, e portanto passam no script, mas cuja glosa não apresenta nada ("(pooling)" depois de "pooling" não explica o que é)',
         },
       },
-      required: ['script_rodou', 'frases_longas', 'termos_sem_glosa', 'paragrafos_densos', 'prosa_opaca', 'glossas_vazias'],
+      required: ['script_rodou', 'oracoes_empilhadas', 'termos_sem_glosa', 'paragrafos_densos',
+                 'adjetivos_inflados', 'muletas', 'hedges', 'medidas', 'prosa_opaca', 'glossas_vazias'],
     },
     summary: { type: 'string' },
   },
@@ -711,7 +889,23 @@ const REVIEW_SCHEMA = {
     'conforme', 'claims_conferidas', 'claims_orfas', 'numeros_divergentes',
     'citacoes_sem_ficha', 'autores_inventados', 'vocabulario_proibido',
     'forca_nao_refletida', 'veredictos_no_relatorio', 'divergencias', 'estilo', 'summary',
+    'relatorio_sha256',
   ],
+}
+
+// O único trabalho deste agente é gravar um arquivo. Ele não julga nada, e o
+// schema é mínimo de propósito: quanto menos ele puder decidir, menos ele pode
+// errar. O hash é o ponto — ele tem que ser calculado DEPOIS de o capítulo
+// estar no disco e ANTES de o registro ser escrito, e é isso que ele confirma.
+const GRAVACAO_SCHEMA = {
+  type: 'object',
+  properties: {
+    gravou: { type: 'boolean', description: 'true só se o arquivo existe no disco ao final' },
+    caminho: { type: 'string' },
+    relatorio_sha256: { type: 'string', description: 'o sha256 do capítulo no momento da gravação, 64 hex' },
+    summary: { type: 'string' },
+  },
+  required: ['gravou', 'caminho', 'relatorio_sha256', 'summary'],
 }
 
 // --- passo 1: buscar --------------------------------------------------------
@@ -867,9 +1061,26 @@ O contrato: as regras abaixo, que estão escritas em .claude/workflows/reference
 
 Cheque, MEDINDO VOCÊ MESMO (não confie na descrição de ninguém sobre o arquivo):
 
-1. FORMA — o arquivo tem as chaves de topo: family, as_of_year, generated, gates,
-   citations_per_year_formula, sources, notes, counts, queries, selected, rejected_by_gate,
-   considered_not_selected. Lista qualquer uma que falte e qualquer extra inesperada.
+1. FORMA — duas coisas, e só estas duas. Não abra uma terceira checagem de forma.
+
+   (a) as chaves de topo: family, as_of_year, generated, gates, citations_per_year_formula,
+   sources, notes, counts, queries, selected, rejected_by_gate, considered_not_selected. Liste
+   qualquer uma que falte e qualquer extra inesperada.
+
+   (b) a forma dos itens de \`queries\`, que o contrato declara como { source, query, url, hits }.
+   Cada item de \`queries\` registra a consulta e o que ela devolveu. O formato atual grava \`url\`
+   (o endereço exato, para a consulta poder ser refeita).
+
+   EXCEÇÃO DATADA, e a única do contrato — vale para (b). O formato usado até 2026-11-01 gravava
+   \`n_results\` (só o tamanho da página) no lugar de \`url\`. NÃO trate a ausência de \`url\` como
+   divergência, e não reporte \`n_results\` como chave extra, quando o arquivo tiver sido gerado em
+   2026-11-01 ou antes e os itens de \`queries\` trouxerem \`n_results\`. O registro está conforme
+   nesse ponto: marque (b) como passando e diga na mesma linha que ele usa a forma antiga. Isto já
+   foi decidido e está escrito no bloco do contrato, no comentário sobre \`queries\` — não reabra a
+   decisão. A URL NÃO deve ser reconstruída a partir do template das buscas por gate: a maioria das
+   consultas segue o template, mas as avulsas (resolução de DOI, busca por título) têm endereço
+   próprio, e o arquivo antigo não diz quais foram avulsas. Escrever uma URL derivada do template
+   para uma consulta avulsa seria inventar proveniência — pior que a ausência do campo.
 
 2. INVARIANTE 1 — counts.mechanical_gate_passers == len(selected) + len(considered_not_selected).
    Esta é a que garante que o funil não tem fundo: se falhar, houve candidato que passou nas regras
@@ -920,6 +1131,9 @@ O que importa na ficha, em ordem:
      sequencial: "${a.key}". Uma rodada anterior renumerou as fichas de 1 a 23 por conta própria, e o
      relatório saiu citando "(01, 12, 07, 02)" — chave que não existe em lugar nenhum do registro e
      que ninguém consegue conferir. A chave é a identidade da ficha, não um rótulo de leitura.
+   - \`pdf\`: o caminho do PDF a partir da RAIZ do repositório — "${a.file}". É contra este arquivo que
+     a sua citação vai ser conferida, então copie o caminho como ele é. Caminho errado faz a
+     conferência acusar PDF ausente e a ficha inteira fica sem verificação.
    - \`author\` / \`year\`: extraia do PRÓPRIO PDF — da capa, do cabeçalho ou da folha de rosto. NÃO
      consulte o references.csv nem o search.json para isto: a leitura é independente dos dois, e é
      justamente essa independência que faz a conferência depois valer.
@@ -933,31 +1147,112 @@ O que importa na ficha, em ordem:
        para custo: não adivinhe, não deduza de um DOI, não copie o ano de uma citação dentro do texto.
        Uma citação inventada é pior que uma citação ausente, porque a ausente o leitor percebe.
 
-1. technique / representation — o que a técnica é e como o texto vira número, em linguagem que alguém que
+1. afirmacoes — A ÂNCORA DA FICHA, e a parte mais importante dela. De 3 a 5 afirmações centrais
+   do artigo, cada uma com o TRECHO LITERAL do PDF que a sustenta e a página onde ele está.
+
+   Por que isto existe: sem a âncora, conferir a sua ficha significa reabrir o PDF e reler, e é
+   esse trabalho que a ficha existe para evitar. Com ela, a conferência vira mecânica — um script
+   procura o seu trecho dentro do PDF e diz se ele está lá. Um trecho que não está é tratado como
+   invenção, e é o defeito que a rodada inteira existe para pegar.
+
+   Consequência prática, e não é ameaça: NÃO PARAFRASEIE A CITAÇÃO. Copie as palavras do autor,
+   na ordem em que estão no PDF, sem reticências internas, sem cortar o meio da frase, sem trocar
+   uma palavra por um sinônimo seu. Mínimo de 8 palavras. Se você não consegue copiar o trecho com
+   fidelidade, é porque a afirmação não está ancorada — e aí a afirmação não entra.
+
+   A página é a do PDF, contando a partir de 1, como aparece no leitor. Se o trecho atravessa a
+   quebra de página, use a página onde ele começa.
+
+   Prefira os resultados e a discussão ao abstract. O número que importa — o ganho sobre o
+   baseline, o tamanho do corpus, o custo medido — está no corpo, e é ele que o relatório vai
+   precisar citar depois. Afirmação sem número e sem trecho literal não vale como âncora.
+
+2. ressalva_do_autor — a limitação que OS AUTORES declaram, nas palavras deles. Não é a ressalva
+   que você suspeita, nem o \`red_flags\` abaixo: é o que o próprio artigo admite, tipicamente no
+   fim da discussão ou numa seção de limitações. Se o artigo não declara nenhuma, escreva
+   "não declara" — não invente uma para preencher o campo.
+   Este campo tem um segundo uso, e é o que o justifica: somadas todas as fichas de todas as
+   famílias, estas ressalvas viram o catálogo de modos de falha deste domínio. É com esse catálogo
+   que um agente adversário vai atacar o desenho dos NOSSOS experimentos — e um adversário sem
+   munição externa ataca só os furos que quem desenhou já conhece.
+
+3. technique / representation — o que a técnica é e como o texto vira número, em linguagem que alguém que
    não leu o artigo entenda. Não copie o abstract. Se for artigo de aplicação, diga qual técnica ele usa
    e o que ele mediu no domínio.
 
-2. evidence — que evidência os autores dão de que funciona, e CONTRA QUE BASELINE. "Melhora 2 pontos de
+4. evidence — que evidência os autores dão de que funciona, e CONTRA QUE BASELINE. "Melhora 2 pontos de
    F1 sobre mean-pooling de BERTimbau" vale; "supera os baselines" não vale. Se o artigo não compara com
    nada, diga isso — é uma informação.
 
-3. needs / cost_here — o que ela exige para rodar (modelo, tamanho, GPU, língua, dados rotulados) e quanto
+5. needs / cost_here — o que ela exige para rodar (modelo, tamanho, GPU, língua, dados rotulados) e quanto
    custaria rodar sobre o NOSSO corpus em CPU. Dê número quando o artigo der; diga "não reportado" quando
    não der. Não estime para baixo: se você não sabe, é "não reportado", não "barato".
 
-4. transferable — o que transfere para o nosso caso e o que não. Preste atenção na distância de domínio:
+6. transferable — o que transfere para o nosso caso e o que não. Preste atenção na distância de domínio:
    um resultado bom em tweet em inglês pode não transferir para notícia em português. Diga onde a distância
    é grande, em vez de assumir que é pequena.
 
-5. red_flags — o que faria você desconfiar: benchmark só em inglês, ganho dentro do ruído, avaliação só
+7. red_flags — o que faria você desconfiar: benchmark só em inglês, ganho dentro do ruído, avaliação só
    intrínseca, baseline fraco, correção medida em um único modelo.
 
 Em \`read\`, diga o que você de fato leu (seções, páginas, tabelas). Não leia só o abstract: limitações e
 resultados costumam estar em outro lugar, e é lá que mora o custo real.
 
+DEPOIS DE DEVOLVER A FICHA, ESCREVA-A NO DISCO. A ficha é o ativo durável desta rodada, e até agora ela
+morria no fim da execução: o relatório sobrevivia, a evidência não. Escreva exatamente o mesmo objeto
+que você devolveu, sem acrescentar nem tirar campo, em:
+
+    articles/${FAMILY.slug}/fichas/${a.key}.json
+
+Crie o diretório se não existir. É esse arquivo que o script de conferência vai ler — se ele não
+existir, a sua leitura não é conferível e o trabalho dela se perde.
+
 Reporte o que o artigo DIZ. Não elogie e não recomende — quem ranqueia é outro agente.`
 
-// --- passo 2b: ranquear -----------------------------------------------------
+// --- passo 2b: conferir mecanicamente as fichas ------------------------------
+// Roda ENTRE a leitura e o ranking, e a posição é o ponto: o ranking e o
+// relatório são construídos SOBRE as fichas. Uma citação inventada descoberta
+// no fim já contaminou tudo que veio depois dela — o relatório cita o número,
+// o sintetizador repete, e a fase Revisar tem que desfazer o caminho inteiro.
+// Descoberta aqui, ela custa uma ficha.
+//
+// O trabalho deste agente é rodar um script e reportar o que ele disse. Não é
+// julgar: se a citação sustenta a afirmação continua sendo leitura humana, e
+// isso o script não responde.
+const verificarFichasPrompt = (keys) => `Você roda UMA checagem mecânica e reporta o resultado. Não conserta nada.
+${NONCE_CONFERENCIA ? `\n(Referência desta rodada: ${NONCE_CONFERENCIA}. Ela não descreve nada aqui — serve só para distinguir esta rodada das anteriores.)\n` : ''}
+Rode exatamente isto, da raiz do repositório:
+
+    uv run python -I scripts/conferir_fichas.py articles/${FAMILY.slug}/fichas --json
+
+O script procura, dentro de cada PDF, o trecho literal que a ficha diz ter copiado dele, e responde
+se o trecho está lá. Citação que não está é tratada como invenção.
+
+ATENÇÃO ao código de saída: o script sai com 1 quando encontra defeito. Isso é o RESULTADO, não uma
+falha da sua execução — leia a saída normalmente e não tente "consertar" nada para ele passar.
+
+Do JSON que ele imprime, copie os contadores para o retorno. NÃO conte você mesmo e NÃO reestime:
+o script existe para o número ser o mesmo em toda rodada, e número contado a mão não é.
+
+Em \`citacoes_ausentes\`, uma linha por citação não encontrada, no formato "<key>: <trecho>". É a
+lista que denuncia invenção, e é a que alguém vai ler primeiro.
+Em \`sem_texto\`, quantos PDFs não tinham texto extraível. Citação de PDF digitalizado NÃO foi
+conferida — o script diz isso em vez de acusar invenção, e o número precisa aparecer aqui para
+ninguém confundir "não conferida" com "conferida e limpa".
+
+DEPOIS, uma checagem que o script não faz porque não conhece o conjunto: as ${keys.length} fichas que
+voltaram da leitura são exatamente estas —
+
+    ${keys.join(', ')}
+
+Confira que cada uma tem um arquivo em articles/${FAMILY.slug}/fichas/<key>.json. Liste em
+\`fichas_sem_arquivo\` as que não têm. Ficha sem arquivo é leitura que se perdeu: ela alimentou o
+ranking e o relatório, mas não é conferível, e na próxima rodada o artigo vai ter que ser lido de novo.
+
+LIMITE DA SUA AÇÃO: você reporta, não reescreve. Não corrija ficha, não apague arquivo, não rode o
+script com outros parâmetros.`
+
+// --- passo 2c: ranquear -----------------------------------------------------
 const rankearPrompt = (cards) => `Você é o ranqueador. Recebeu as fichas de ${cards.length} artigos de
 referência sobre UMA família de técnicas, lidas por agentes que abriram os PDFs. Sua tarefa: ranquear as
 ABORDAGENS (não os artigos) por quão usáveis elas são NESTE repo.
@@ -1108,6 +1403,8 @@ ${JSON.stringify(citacoes, null, 2)}
 
 Escreva articles/${FAMILY.slug}/relatorio.md. É o artefato que um humano abre para entender a área sem abrir PDF nenhum.
 
+DEPOIS DE ESCREVER, rode \`shasum -a 256 articles/${FAMILY.slug}/relatorio.md\` e devolva o hash em \`relatorio_sha256\`. Não é formalidade: é esse hash que diz à fase seguinte que o texto mudou. Sem ele, uma reescrita sua passa despercebida e a revisão julga um texto que já não está no disco — foi o que aconteceu com o capítulo de tópicos, cujo veredito descrevia frases que a reescrita tinha apagado.
+
 ESTRUTURA:
 1. Abertura — o que esta família de técnicas é e o problema de pesquisa que motiva revisá-la: conectar o estado da arte da representação vetorial de texto à previsão de séries temporais epidemiológicas com métodos neurais e dados multimodais. Um ou dois parágrafos. Sem preâmbulo do tipo "este relatório tem como objetivo", e SEM descrever como o capítulo foi produzido: não diga quantos artigos foram lidos, nem quantos "eixos" ou agentes escreveram as seções, nem monte tabela de correspondência entre chave e autor. Isso é andaime de produção e não tem lugar no capítulo.
 2. A seleção do corpus — o que a busca viu e por que cortou. CURTO: uma seção, não uma análise dos descartados. Diga os números e o que eles implicam para quem lê o resto: o corpo do capítulo fala de uma amostra escolhida por critérios explícitos, não da área inteira. Sem esta seção o capítulo mente por omissão. Veja o exemplo de reescrita nas REGRAS abaixo: esta seção é onde o vocabulário de sistema vazou na rodada anterior.
@@ -1131,7 +1428,8 @@ REGRAS QUE VALEM MAIS QUE A FLUÊNCIA:
   - CERTO: "A busca sistemática identificou 1.057 registros únicos candidatos. Após a aplicação dos critérios de elegibilidade — ano de publicação, volume de citações e qualidade do veículo —, 429 artigos os atenderam integralmente, dos quais 23 tiveram o texto completo recuperado e foram incluídos nesta revisão."
 - A CITAÇÃO É (Autor, Ano). Toda afirmação que se apoia na literatura carrega a citação entre parênteses — (Reimers & Gurevych, 2019), (Gao et al., 2021) — ou nomeia o autor na própria frase. NUNCA cite por número de ficha: "(09, 10, 12)" obriga quem lê a procurar um índice que ele não tem. As seções já escrevem assim; se você reescrever um trecho, mantenha. Use o mapa de citações para as lacunas; se uma citação que chegou não casar com o mapa, mantenha como está e diga na summary — não corrija por conta própria.
 - NÃO DESCARTE A SIGLA AO MANTER A GLOSA, e não invente expansão que a seção não deu. "febre aftosa (HFMD)" continua "febre aftosa (HFMD)" — nunca só "febre aftosa". O parêntese é o único vestígio que permite a quem lê desconfiar de uma glosa errada, e foi descartando ele que a rodada anterior escondeu um erro de espécie no meio de uma frase correta. Se a glosa que chegou parece duvidosa, mantenha as duas formas lado a lado; a dúvida vai para a summary, não para o lixo.
-- O NÚMERO FICA NA FRASE, sempre, e a clareza vem do resto da frase. Frase longa se conserta dividindo em duas — nunca cortando o dado, que é o que torna a afirmação valiosa e conferível. "Frase com mais de 45 palavras" não é questão de gosto: é defeito contado por script (${ESTILO.script}), e a fase Revisar roda ele no arquivo que você escrever.
+- O NÚMERO FICA NA FRASE, sempre, e a clareza vem do resto da frase. Nunca corte o dado para encurtar: o número é o que torna a afirmação valiosa e conferível. O que se corta é ORAÇÃO. Uma frase que empilha cinco ou seis orações é ilegível mesmo com trinta palavras, e é isso que o script conta — não o tamanho. Se a frase ficou pesada, mande cada oração para sua própria frase; não a parta no meio com uma vírgula, porque as orações empilhadas continuam empilhadas dos dois lados do corte. É defeito contado por script (${ESTILO.script}), e a fase Revisar roda ele no arquivo que você escrever.
+- NÃO ENCHA O ADJETIVO. "Resultado robusto", "ganho significativo", "abordagem abrangente" não informam: quem escreve assim não pesou robusto contra frágil, preencheu o espaço onde caberia o número. O mesmo vale para a muleta que anuncia em vez de dizer ("vale ressaltar que", "é importante notar que", "em suma") — se a frase continua verdadeira depois de tirar a muleta, ela não fazia falta. E não empilhe incerteza ("pode potencialmente sugerir"): uma afirmação que não afirma não é conferível, e um relatório de evidência vive de ser conferível.
 - NENHUM veredito, NENHUMA recomendação, NENHUM custo. Você recebeu o ranking sem as colunas de mérito, custo, posição e veredito exatamente para não poder repeti-los. A seção 4 SITUA as candidatas dentro do campo; ela não re-justifica a escolha delas.
 - A FRONTEIRA DO CUSTO, que é onde este relatório erra com mais facilidade. Você PODE descrever o que um método é e o que ele exige como insumo: "não supervisionado", "precisa de rótulos em inglês", "opera por álgebra linear sobre vetores já extraídos", "reporta complexidade O(N)". Você NÃO PODE precificar a adoção, aqui ou em qualquer lugar: "barato", "caro", "dispensa GPU", "cabe em minutos", "sem dependência nova", "custo baixo" são todos do ranking. Descrever o insumo é o relatório; precificar o insumo é o ranking. E o mesmo vale ao contrário: o que a LITERATURA deixa de reportar ("nenhum dos artigos revisados traz número de inferência") é uma lacuna da área e deve ser dita — isso não é preço.
 - NÃO invente número, autor, ano ou venue que não esteja nas seções. Se um número não veio, escreva que não veio.
@@ -1143,18 +1441,42 @@ No retorno estruturado, liste as fichas que você de fato citou e as que NUNCA c
 // --- passo 3c: revisar ------------------------------------------------------
 // Lê o ARQUIVO EM DISCO, não o retorno do sintetizador. O defeito nº 3 da
 // primeira rodada foi exatamente conferir o que o agente dizia ter feito.
-const revisarPrompt = (cards, secoes) => `Você confere um capítulo de revisão de literatura escrito contra as fichas que ele deveria resumir. Você NÃO conserta nada — só reporta.
+
+// O GRAVADOR DO VEREDITO. Um agente só para escrever um arquivo, porque o
+// script do workflow não tem acesso ao disco. O conteúdo já vem pronto e
+// conferido pelo schema da revisão: o agente não escolhe nada, não resume nada
+// e não reescreve nada — ele copia o objeto e calcula o hash do capítulo.
+const gravarRevisaoPrompt = (registro) => `Sua única tarefa é gravar um arquivo. Você não julga, não resume e não corrige nada.
+
+1. Escreva articles/${FAMILY.slug}/revisao.json com EXATAMENTE este objeto, acrescentando a ele a chave \`gerado\` com a data de hoje em ISO 8601. Não altere nenhum outro valor — inclusive o \`relatorio_sha256\`, que já vem preenchido —, não reordene, não traduza, não acrescente comentário: o arquivo é lido por um script.
+
+${JSON.stringify(registro, null, 2)}
+
+2. DEPOIS de escrever, meça o capítulo: \`shasum -a 256 articles/${FAMILY.slug}/relatorio.md\`. Devolva essa medição em \`relatorio_sha256\`. Se ela for igual à do objeto acima, devolva \`gravou: true\`. Se for diferente, NÃO corrija o arquivo: o hash gravado é o do texto que a revisão LEU, e é assim que ele tem que ficar. Diga na \`summary\` que o capítulo mudou entre a revisão e a gravação, e devolva \`gravou: true\` — quem for ler o veredito vai ver "vencido", que é a verdade.
+
+Por que o hash gravado não é o do momento da gravação: este registro é um julgamento sobre UM texto, e vale para o texto que a revisão leu. Medir o arquivo de novo aqui e gravar esse número faria o oposto do pretendido — um capítulo reescrito entre a revisão e a gravação ficaria com um veredito que descreve o texto antigo mas aponta para o novo, aprovado para sempre e sem ninguém poder notar. Foi exatamente esse o defeito que a impressão digital veio fechar.`
+
+const revisarPrompt = (cards, secoes, hashEscrito) => `Você confere um capítulo de revisão de literatura escrito contra as fichas que ele deveria resumir. Você NÃO conserta nada — só reporta.
 
 O arquivo: articles/${FAMILY.slug}/relatorio.md
+IMPRESSÃO DIGITAL DO TEXTO QUE A SÍNTESE ESCREVEU: ${hashEscrito || 'não informada'}
+Meça você mesmo, com \`shasum -a 256 articles/${FAMILY.slug}/relatorio.md\`, e devolva o SEU valor em \`relatorio_sha256\`. Se ele for diferente do valor acima, o arquivo mudou depois de escrito — julgue o que está no disco, que é o que você leu, e diga na \`summary\` que houve divergência. Essa impressão digital existe para que este julgamento fique preso ao texto julgado: sem ela, uma reescrita do capítulo passava despercebida, a revisão reaproveitava o julgamento anterior e o veredito acabava descrevendo frases que já não existiam no arquivo.
+${NONCE_REVISAO ? `\n(Referência desta rodada de revisão: ${NONCE_REVISAO}. Ela não descreve o capítulo — serve só para distinguir esta revisão das anteriores.)\n` : ''}
 LEIA O ARQUIVO EM DISCO. Não confie em nenhuma descrição de terceiro sobre ele, e não confie no que o agente que o escreveu disse ter escrito. A primeira rodada deste workflow errou exatamente aí: a verificação conferia o que o agente RESPONDIA, e o arquivo no disco tinha outra forma.
 
-As fichas, que são a fonte de tudo que o capítulo afirma. Cada uma traz \`key\`, \`author\`, \`year\` e \`cita\` — a citação (Autor, Ano) já pronta, com letra (2020a/2020b) quando duas fichas desta família compartilham autor e ano:
-${JSON.stringify(cards, null, 2)}
+As fichas, que são a fonte de tudo que o capítulo afirma, estão em articles/${FAMILY.slug}/fichas/ — um arquivo .json por ficha, nomeado pela chave. LEIA-AS DO DISCO antes de conferir, todas de uma vez:
+
+    python3 -I -c 'import json,glob;[print(json.dumps(json.load(open(f)),ensure_ascii=False)) for f in sorted(glob.glob("articles/${FAMILY.slug}/fichas/*.json"))]'
+
+Não julgue pelo que este prompt disser sobre elas, e não confie em resumo nenhum: o disco é a fonte. Uma ficha corrigida à mão depois da leitura — porque a citação existia no PDF mas faltava no registro, ou porque o número estava com precisão a mais — não aparece em resumo algum, e é justamente ela que vale. Foi assim que uma rodada acusou o capítulo de dizer que a dengue aparece na Índia e na China: a ficha tinha só a China, o artigo tinha as duas, e a ficha foi corrigida. Julgar pelo resumo antigo seria julgar o capítulo contra um registro que já não existe.
+
+O MAPA DE CITAÇÕES, já resolvido. É o único pedaço que vem daqui, e vem porque a letra de desambiguação (2020a/2020b) depende do conjunto inteiro de fichas e só existe neste ponto do processo — nenhum agente isolado poderia tê-la calculado:
+${JSON.stringify(cards.map((c) => ({ key: c.key, author: c.author, year: c.year, cita: c.cita })), null, 2)}
 
 A AUDITORIA DAS SEÇÕES — só o que as seções que compuseram o capítulo declararam sustentar, com a força de cada achado. Isto NÃO é texto entregue e você não confere nada aqui contra o arquivo: é a régua para o check 5, e sem ela o check 5 não tem como rodar.
 ${JSON.stringify(secoes.map((s) => ({ eixo: s.eixo, claims: s.claims })), null, 2)}
 
-ANTES DE CONFERIR, monte você mesmo o mapa citação→ficha a partir de \`cita\`/\`author\`/\`year\` das fichas acima. Não confie na memória: toda citação do capítulo tem que casar com uma entrada desse mapa. Fichas com \`author: "não identificado"\` não têm citação e não entram no mapa.
+ANTES DE CONFERIR, monte você mesmo o mapa citação→ficha a partir de \`cita\`/\`author\`/\`year\` das fichas que você leu do disco, conferindo contra o MAPA DE CITAÇÕES acima. Não confie na memória: toda citação do capítulo tem que casar com uma entrada desse mapa. Fichas com \`author: "não identificado"\` não têm citação e não entram no mapa.
 
 Confira, afirmação por afirmação do capítulo:
 
@@ -1193,8 +1515,11 @@ Confira, afirmação por afirmação do capítulo:
 
    A parte objetiva, medida:
        python3 -I ${ESTILO.script} articles/${FAMILY.slug}/relatorio.md ${TERMOS_FLAG}
-   Rode exatamente isso, com o arquivo em disco, e copie para o retorno os três contadores de ERRO que ele imprime (frases longas, termos sem glosa, parágrafos densos). NÃO conte você mesmo: o script existe justamente para o número ser o mesmo em toda rodada, e um número contado a mão não é. Se o script não rodar, \`script_rodou\` = false e você diz por quê — checagem objetiva que não aconteceu é falha, não é neutro.
+   Rode exatamente isso, com o arquivo em disco, e copie para o retorno os contadores de ERRO que ele imprime (orações empilhadas, termos sem glosa, parágrafos densos, adjetivos inflados, muletas, hedges). NÃO conte você mesmo: o script existe justamente para o número ser o mesmo em toda rodada, e um número contado a mão não é. Se o script não rodar, \`script_rodou\` = false e você diz por quê — checagem objetiva que não aconteceu é falha, não é neutro.
+   O script imprime também um bloco de MEDIDAS SEM LIMITE — tamanho de frase, desvio-padrão, voz passiva, travessão. Elas não reprovam nada e não entram nos contadores: são contexto para você julgar. Leia-as assim: desvio-padrão baixo (perto de 12, que é o que os quatro relatórios atuais dão) é prosa que alterna sempre no mesmo compasso; travessão acima de ~6 por mil palavras é o relatório usando o mesmo recurso a cada parágrafo.
+   O QUE O CONTADOR DE ORAÇÕES QUER DIZER, e por que ele substituiu o de palavras: o que torna uma frase opaca não é o tamanho dela, é quantas orações ela empilha. "A leitura conjunta é que doença e local são os campos maduros, enquanto data e, sobretudo, evento continuam raros, o que muda o desenho de qualquer modelo que dependa dos quatro" tem 30 palavras e cinco orações — e é ilegível. Cinquenta palavras com duas orações é longa e clara. Quando você vir um ERRO de orações, a correção NÃO é cortar a frase em duas no meio: é tirar oração, mandando cada uma para sua própria frase.
    O que a checagem de glosa quer dizer, para você não achar que é ruído: o capítulo escreve o português primeiro e o termo ao lado, então a PRIMEIRA aparição de um termo da lista tem que estar entre parênteses — "os vetores ficam todos parecidos entre si (anisotropia)". Depois disso o termo é livre. O script acusa o termo que aparece solto antes de qualquer apresentação. Títulos não são conferidos, e é de propósito: título é rótulo.
+   As três categorias de vício — adjetivo inflado, muleta, hedge — vêm com AVISO baixo e ERRO alto de propósito. O AVISO é o script dizendo "olhe isto": "resultado relevante" não escolhe nada entre relevante e irrelevante, e "vale ressaltar" anuncia que algo será dito em vez de dizer. Um AVISO sozinho não reprova o relatório; o que reprova é densidade. Use a lista como pauta de leitura, não como veredito.
    A citação (Autor, Ano) NÃO é glosa e não conta como uma: o script já sabe disso e a ignora antes de contar palavra e medir frase, então uma frase com três citações não infla por causa delas. Se você vir o script reclamando de um parêntese que é citação, o script está errado e você reporta — mas confira antes, porque o caso comum é a citação estar correta.
 
    A parte subjetiva, que é sua e só sua:
@@ -1206,6 +1531,7 @@ Confira, afirmação por afirmação do capítulo:
 
 Regras de decisão:
 - conforme = false se QUALQUER check falhar. Se você não conseguir verificar algo, isso é uma falha (dúvida → não conforme). Nunca presuma que passou.
+- O BLOCO DE MEDIDAS SEM LIMITE NÃO REPROVA E NÃO ENTRA EM \`divergencias\`. Tamanho máximo de frase, desvio-padrão, voz passiva e travessão são contexto para você julgar a prosa — o script os imprime justamente porque não têm limite. Uma rodada já se perdeu aqui: o revisor pôs as quatro medidas em \`divergencias\`, e como \`divergencias\` não vazio derruba \`conforme\`, um capítulo que passava em tudo apareceu como reprovado por quatro itens que ele mesmo rotulou "não reprova". Se uma medida te incomodar, diga isso na \`summary\` — nunca em \`divergencias\`. Só entra em \`divergencias\` o que de fato reprova: ERRO do script, item em \`prosa_opaca\`, item em \`glossas_vazias\`, afirmação sem apoio na ficha, citação órfã ou inventada.
 - No check 8, os ERROs do script e as suas duas listas subjetivas pesam igual: qualquer ERRO do script ou qualquer item em \`prosa_opaca\` ou \`glossas_vazias\` já é conforme = false. O script mede o que é contável; ele não substitui o seu julgamento, e passar nele com prosa opaca não é passar.
 - divergencias: uma frase por divergência, com os números medidos dos dois lados.
 - Se o arquivo não existir ou não for markdown legível, conforme = false e diga isso — é o caso mais grave.
@@ -1300,6 +1626,56 @@ if (fichas.length < busca.articles.length) {
 const porGrupo = {}
 for (const f of fichas) porGrupo[f.grupo] = (porGrupo[f.grupo] ?? 0) + 1
 log(`fichas: ${fichas.length} — ${JSON.stringify(porGrupo)}`)
+
+// --- a conferência mecânica das fichas --------------------------------------
+// A pergunta que esta fase responde é a única que uma máquina responde sozinha
+// sobre uma ficha: o trecho que ela diz ter copiado do PDF está no PDF? É a
+// metade de "invenção" da conferência, e é a metade que não depende de
+// julgamento — por isso é script, e por isso o número vale.
+//
+// A OUTRA METADE NÃO É CONFERIDA AQUI, e é importante não confundir as duas:
+// se a citação sustenta a afirmação é interpretação, e continua sendo leitura
+// humana. O que esta fase entrega é a lista curta para essa leitura, já com a
+// certeza de que o trecho existe.
+//
+// NÃO ABORTA quando encontra invenção, pelo mesmo motivo que a fase Conferir
+// não aborta: jogar fora a leitura de vinte artigos por causa de uma ficha
+// ruim seria pior. Mas o status do run passa a 'partial', porque um relatório
+// construído sobre citação inventada não pode terminar como sucesso silencioso
+// — a fase Revisar confere o relatório CONTRA as fichas, e uma ficha com
+// citação inventada faz a revisão passar. É o ponto cego que esta fase existe
+// para fechar, e ele só fecha se a falha aparecer no resultado.
+phase('Conferir fichas')
+log(`procurando no PDF o trecho literal de cada afirmação — ${fichas.length} fichas`)
+
+const conferenciaFichas = await agent(verificarFichasPrompt(fichas.map((f) => f.key)), {
+  label: 'conferir-fichas',
+  phase: 'Conferir fichas',
+  schema: FICHAS_SCHEMA,
+})
+
+if (!conferenciaFichas) {
+  log('ATENÇÃO: a conferência mecânica das fichas NÃO voltou — nada garante que as citações existam nos PDFs')
+} else if (!conferenciaFichas.script_rodou) {
+  log('ATENÇÃO: o script de conferência NÃO rodou. Os contadores abaixo não existem, e a metade mecânica da conferência não aconteceu.')
+} else {
+  log(`fichas: ${conferenciaFichas.fichas} · citações: ${conferenciaFichas.citacoes} · PDFs lidos: ${conferenciaFichas.pdfs_lidos}`)
+  if (conferenciaFichas.sem_texto) {
+    log(`ATENÇÃO: ${conferenciaFichas.sem_texto} PDF(s) sem texto extraível — as citações deles NÃO foram conferidas (digitalizado como imagem?)`)
+  }
+  if (conferenciaFichas.fichas_sem_arquivo?.length) {
+    log(`ATENÇÃO: ${conferenciaFichas.fichas_sem_arquivo.length} ficha(s) sem arquivo em articles/${FAMILY.slug}/fichas/ — leitura que se perdeu: ${conferenciaFichas.fichas_sem_arquivo.join(', ')}`)
+  }
+  if (conferenciaFichas.citacoes_ausentes?.length) {
+    log(`CITAÇÃO NÃO ENCONTRADA NO PDF — ${conferenciaFichas.citacoes_ausentes.length}:`)
+    for (const c of conferenciaFichas.citacoes_ausentes) log(`  · ${c}`)
+  } else if (!conferenciaFichas.erros) {
+    log('conferência mecânica: toda citação das fichas existe no PDF — o que sobra é julgar se ela sustenta a afirmação')
+  }
+  if (conferenciaFichas.divergencias?.length) {
+    for (const d of conferenciaFichas.divergencias) log(`  · ${d}`)
+  }
+}
 
 // --- a citação (Autor, Ano) de cada ficha -----------------------------------
 // Feito AQUI, em JS puro, e não dentro do fichaPrompt, por um motivo
@@ -1421,7 +1797,7 @@ if (relatorio.fichas_nunca_citadas?.length) {
 phase('Revisar')
 log(`conferindo articles/${FAMILY.slug}/relatorio.md contra as ${fichas.length} fichas — afirmação por afirmação`)
 
-const revisao = await agent(revisarPrompt(fichas, secoes), {
+const revisao = await agent(revisarPrompt(fichas, secoes, relatorio.relatorio_sha256), {
   label: 'revisar',
   phase: 'Revisar',
   schema: REVIEW_SCHEMA,
@@ -1464,15 +1840,69 @@ if (revisao) {
   if (!e.script_rodou) {
     log('ATENÇÃO: a checagem objetiva de clareza NÃO rodou nesta revisão — os contadores abaixo não existem')
   } else {
-    log(`clareza (script ${ESTILO.script}): ${e.frases_longas} frase(s) longa(s), ${e.termos_sem_glosa} termo(s) sem glosa, ${e.paragrafos_densos} parágrafo(s) denso(s)`)
+    const m = e.medidas ?? {}
+    log(`clareza (script ${ESTILO.script}): ${e.oracoes_empilhadas} frase(s) com oração empilhada, `
+        + `${e.termos_sem_glosa} termo(s) sem glosa, ${e.paragrafos_densos} parágrafo(s) denso(s), `
+        + `${e.adjetivos_inflados} adjetivo(s) inflado(s), ${e.muletas} muleta(s), ${e.hedges} hedge(s)`)
+    log(`ritmo: frase de ${m.palavras_por_frase_mediana} palavras em média (máx ${m.palavras_por_frase_max}), `
+        + `desvio ${m.palavras_por_frase_desvio} · passiva ${m.passiva_por_mil}/mil · travessão ${m.travessao_por_mil}/mil`)
   }
   if (e.prosa_opaca?.length || e.glossas_vazias?.length) {
     log(`clareza (julgamento do revisor): ${e.prosa_opaca?.length ?? 0} frase(s) opaca(s), ${e.glossas_vazias?.length ?? 0} glosa(s) vazia(s)`)
   }
 }
 
+// --- o veredito vai para o disco --------------------------------------------
+// Até 2026-11-10 ele existia só no objeto de retorno desta rodada, dentro da
+// sessão que a executou. O capítulo ficava no disco; o julgamento sobre ele,
+// não — e a pergunta "está tudo conforme?" não tinha resposta no repositório.
+// O arquivo carrega o hash do capítulo que ele julgou, e é o hash que impede o
+// veredito de virar carimbo. Quem lê os dois é scripts/conferir_revisao.py.
+let vereditoGravado = null
+if (revisao) {
+  const registro = {
+    familia: FAMILY.slug,
+    relatorio: `articles/${FAMILY.slug}/relatorio.md`,
+    relatorio_sha256: revisao.relatorio_sha256,
+    conforme: revisao.conforme,
+    divergencias: revisao.divergencias ?? [],
+    claims_conferidas: revisao.claims_conferidas,
+    claims_orfas: revisao.claims_orfas?.length ?? 0,
+    numeros_divergentes: revisao.numeros_divergentes?.length ?? 0,
+    citacoes_sem_ficha: revisao.citacoes_sem_ficha?.length ?? 0,
+    autores_inventados: revisao.autores_inventados?.length ?? 0,
+    vocabulario_proibido: revisao.vocabulario_proibido?.length ?? 0,
+    forca_nao_refletida: revisao.forca_nao_refletida?.length ?? 0,
+    estilo: revisao.estilo ?? null,
+  }
+  vereditoGravado = await agent(gravarRevisaoPrompt(registro), {
+    label: 'gravar-revisao',
+    phase: 'Revisar',
+    schema: GRAVACAO_SCHEMA,
+  })
+  if (vereditoGravado?.gravou) {
+    const selo = vereditoGravado.relatorio_sha256
+      ? `${String(vereditoGravado.relatorio_sha256).slice(0, 12)}…`
+      : 'sem hash'
+    log(`veredito gravado em articles/${FAMILY.slug}/revisao.json (capítulo ${selo})`)
+  } else {
+    log('ATENÇÃO: o veredito NÃO foi gravado — a revisão existe nesta rodada e se perde com ela')
+  }
+}
+
+// Uma ficha com citação inventada rebaixa o run mesmo com ranking e relatório
+// prontos, e isso é deliberado. A fase Revisar confere o relatório CONTRA as
+// fichas — e uma ficha que afirma algo que o artigo não diz faz a revisão
+// passar, porque a revisão não abre o PDF. É o ponto cego que a fase Conferir
+// fichas fecha, e ele só fica fechado se a falha aparecer no status: um
+// relatório construído sobre evidência inventada não pode terminar como
+// sucesso silencioso.
+const invencoes = conferenciaFichas?.citacoes_ausentes?.length ?? 0
+const semArquivo = conferenciaFichas?.fichas_sem_arquivo?.length ?? 0
+const fichasConferidas = !!conferenciaFichas?.script_rodou && invencoes === 0 && semArquivo === 0
+
 return {
-  status: (ranking && relatorio) ? 'completed' : 'partial',
+  status: (ranking && relatorio && fichasConferidas) ? 'completed' : 'partial',
   family: FAMILY.slug,
   reuso: REUSAR, // true = o registro da busca é de uma rodada anterior, não desta
   busca: {
@@ -1485,6 +1915,19 @@ return {
   contrato: conferencia ? { conforme: conferencia.conforms, divergencias: conferencia.divergencias } : null,
   fichas: fichas.length,
   por_grupo: porGrupo,
+  fichas_conferidas: conferenciaFichas
+    ? {
+      script_rodou: !!conferenciaFichas.script_rodou,
+      citacoes: conferenciaFichas.citacoes,
+      pdfs_lidos: conferenciaFichas.pdfs_lidos,
+      sem_texto: conferenciaFichas.sem_texto,
+      erros: conferenciaFichas.erros,
+      avisos: conferenciaFichas.avisos,
+      // A lista que alguém vai ler primeiro: aqui está o que o PDF não sustenta.
+      citacoes_ausentes: conferenciaFichas.citacoes_ausentes,
+      fichas_sem_arquivo: conferenciaFichas.fichas_sem_arquivo,
+    }
+    : null,
   ranking,
   relatorio: relatorio
     ? {
@@ -1510,14 +1953,25 @@ return {
       estilo: revisao.estilo
         ? {
           script_rodou: revisao.estilo.script_rodou,
-          frases_longas: revisao.estilo.frases_longas,
+          oracoes_empilhadas: revisao.estilo.oracoes_empilhadas,
           termos_sem_glosa: revisao.estilo.termos_sem_glosa,
           paragrafos_densos: revisao.estilo.paragrafos_densos,
+          adjetivos_inflados: revisao.estilo.adjetivos_inflados,
+          muletas: revisao.estilo.muletas,
+          hedges: revisao.estilo.hedges,
+          medidas: revisao.estilo.medidas,
           prosa_opaca: revisao.estilo.prosa_opaca,
           glossas_vazias: revisao.estilo.glossas_vazias,
         }
         : null,
       divergencias: revisao.divergencias,
     }
+    : null,
+  // O veredito que ficou no disco. `null` aqui com `revisao` preenchida acima
+  // significa que a revisão aconteceu e se perdeu — o capítulo está no disco
+  // sem nada dizendo se ele foi aprovado.
+  veredito_gravado: vereditoGravado
+    ? { gravou: vereditoGravado.gravou, caminho: vereditoGravado.caminho,
+        relatorio_sha256: vereditoGravado.relatorio_sha256 }
     : null,
 }
