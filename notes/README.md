@@ -29,6 +29,7 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 | 03 | [Topic modeling temporal](03-topic-modeling.md) | concorrente | testando |
 | 04 | [Extração estruturada por LLM](04-llm-extracao-estruturada.md) | corredor por fora | ideia |
 | 05 | [LLM como forecaster / agente](05-llm-forecaster.md) | corredor por fora | ideia |
+| 06 | [Como a linha desenha o experimento](06-desenho-do-experimento.md) | apoio — baselines e backbone com citação | testando — 2026-11-20 |
 | — | [Ideias soltas](ideias-soltas.md) | caixa de entrada | — |
 
 ## Decisões estruturais já tomadas
@@ -49,9 +50,9 @@ que se anuncie como "notícia prevê dengue" está respondendo outra pergunta.
 
 Consequências, todas registradas no [protocolo 00](00-protocolo-comparacao.md):
 01–03 continuam concorrentes **entre si**, mas agora como a comparação *dentro* do
-bloco de texto — um degrau entre vários, não o eixo do artigo; e clima e busca
-deixam de ser chão comum para virar degraus sob teste. A ordem e o prazo estão em
-[plano.md](plano.md).
+conjunto de texto — uma escolha interna, não o eixo do artigo; e clima e busca
+deixam de ser condições fixas para virar conjuntos comparados. A ordem e o prazo
+estão em [plano.md](plano.md).
 
 **2026-10-07 — notícia não é proxy de casos.**
 O enquadramento é modalidade de **atenção midiática / ambiente informacional**,

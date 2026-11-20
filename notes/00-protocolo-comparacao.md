@@ -33,10 +33,10 @@ arquivo existir continua de pé e agora vale para mais blocos do que três.
 | Calendário | semana epidemiológica ancorada no domingo | `src/pipeline/epiweek.py` |
 | Alvo | casos SINAN dengue **suspeitos** (toda notificação menos os descartados), na semana de **início de sintomas**; **BR** no número principal, UF como leitura exploratória | `SINAN_dengue_cases.parquet` |
 | Covariáveis não-textuais | GT search + ERA5 UF×EW, mesmas features e lags | `GoogleTrends_search_EW`, `ERA5_UF_EW` |
-| Backbone | **o mesmo** para todos os braços | TFT early-fusion como baseline de fusão |
+| Backbone | **o mesmo** para todos os braços | TFT early-fusion (Lim et al. 2021 — DOI em [06](06-desenho-do-experimento.md)) como baseline de fusão |
 | Split | rolling-origin, refit só com passado | — |
 | Métricas | MAE, RMSE, MAPE **e** WIS/CRPS/cobertura | — |
-| Baselines | naive, SARIMA/SARIMAX, InfoDengue-bayesiano, Google-Trends-only | — |
+| Baselines | naive, SARIMA/SARIMAX, InfoDengue-bayesiano, Google-Trends-only e **ensemble** | os que a linha usa — Xiao 2025 para os quatro primeiros, Johansson 2019 e Wu 2025 para o ensemble (DOIs em [06](06-desenho-do-experimento.md)) |
 
 **Só varia a representação do texto.** Um braço = uma representação → features →
 mesmo modelo → mesmas métricas.
