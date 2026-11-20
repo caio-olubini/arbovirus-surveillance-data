@@ -114,7 +114,7 @@ A single configuration would leave a null result uninterpretable, since "this
 representation loses" could not be separated from "this particular encoder was too
 weak". The instance is therefore published as a bracket of six unsupervised
 configurations — the Portuguese standard, its anisotropy-corrected form, a
-multilingual model, a `[CLS]`-pooled model, a title-only floor, and an encoder
+multilingual model, a `[CLS]`-pooled model, a title-only configuration, and an encoder
 trained specifically for Portuguese with a shorter window — read as a range rather
 than as a point. Two of them carry a declared risk: their pretraining cutoff is
 undocumented, so protocol 00's temporal validation is what decides how far their

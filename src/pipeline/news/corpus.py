@@ -1,4 +1,5 @@
-"""Protocol-00 common ground: which articles a braço may see, and where they count.
+"""Protocol-00 fixed condition of the comparison: which articles a braço may
+see, and where they count.
 
 Not the frozen text table — that is `text/`, and it *is* the corpus. This module
 decides the **analysis corpus**: the subset of that table a representation braço is
@@ -50,7 +51,7 @@ def select_articles(
 ) -> tuple[pl.DataFrame, int]:
     """The article set a braço may see, and how many were dropped.
 
-    Two gates, both protocol-00 common ground:
+    Two gates, both protocol-00 fixed conditions of the comparison:
 
     * **Language.** `lang_guess == "pt"` drops the ~3.7% of the corpus Agência
       Brasil publishes in Spanish. The slice is not random — 61 of the 171 are

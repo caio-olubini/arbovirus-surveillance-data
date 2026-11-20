@@ -324,7 +324,7 @@ def severity_score(normalized: str, lexicon: Lexicon) -> int:
 def mentions_disease(normalized: str, lexicon: Lexicon) -> bool:
     """Does a *normalized* article name a dengue-family disease anywhere?
 
-    Public because braço 02 shares it. The article set is common ground under
+    Public because braço 02 shares it. The article set is a fixed condition of the comparison under
     protocol 00 — the gate drops errata pages, photo-agenda stubs and digests
     whose dengue link is incidental — so both braços must drop the same articles,
     or the comparison measures the corpus instead of the representation.

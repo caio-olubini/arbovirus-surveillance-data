@@ -348,7 +348,7 @@ unit suite and the notebook run without the download.
 ### The article set is braço 01's, deliberately
 
 Same language gate, same dengue-term gate, same `UfMatcher` — imported, not
-re-implemented. Protocol 00 fixes the corpus as common ground: if one braço sees
+re-implemented. Protocol 00 fixes the corpus as the fixed condition of the comparison: if one braço sees
 4,369 articles and another sees 4,569, the comparison measures the filter instead of
 the representation. `lexicon.steps.mentions_disease` was extracted out of braço 01's
 `analyse()` so both braços run the *same function* rather than two copies of it.
@@ -392,7 +392,7 @@ in disguise: `corr(n_articles, emb_std) = +0.432` on the real tables.
 The whole bracket, run on 2026-10-14 over the frozen corpus (M1, CPU, batch 16,
 no GPU). Every configuration sees the same 4,369 of 4,569 articles and produces the
 same 5,152 pooled rows over 965 weeks × 28 locations — which is the check that the
-common ground held across six different encoders.
+fixed condition held across six different encoders.
 
 | variant | dim | pooling | window | whitening | truncated | longest | `‖mean‖` | elapsed | size |
 |---|---|---|---|---|---|---|---|---|---|
@@ -598,7 +598,7 @@ this corpus rather than quoted.
 
 The 5,152 (ew, location) groups are **identical to braço 02's row count**, and the
 965 weeks and 28 locations are identical to both earlier braços — the check that the
-common ground actually held across all three.
+fixed condition actually held across all three.
 
 | | |
 |---|---|
@@ -638,7 +638,7 @@ topic 4 is federal policy (*governo, ministério, recursos, lei*).
    count does not care about language, and an embedding puts an English article next
    to its Portuguese counterpart — so braço 03 is the first representation that
    *spends a whole topic* on them and makes them visible. It is **not** fixed here:
-   protocol 00 fixes the article set as common ground, and re-gating it in one braço
+   protocol 00 fixes the article set as the fixed condition of the comparison, and re-gating it in one braço
    would make its corpus differ from the other two and break the comparison. It is
    an open item for protocol 00 and it belongs to all three braços at once.
 3. **Topic stability across seeds has not been established.** One DMR fit at one

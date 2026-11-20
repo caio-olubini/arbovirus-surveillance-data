@@ -20,7 +20,7 @@ the bracket and each is declared per variant rather than hardcoded here:
   mean pooling without fine-tuning is known to suffer from.
 
 Two things are shared with braço 01 on purpose, because protocol 00 fixes them as
-common ground rather than as part of any representation:
+fixed conditions of the comparison rather than as part of any representation:
 
 * **The article set.** The same `lang_guess == "pt"` and dengue-term gates, so the
   braços see the same 4,369 articles and the comparison isolates the
@@ -363,7 +363,7 @@ def article_texts(
     `title_body` is the default because the headline is where a week's framing
     lives ("Surto de dengue cresce no interior de SP"), and dropping it would
     throw away the most topical sentence of the article. `title` exists as the
-    bracket's floor: the least text a dense reading can be given, and the only
+    bracket's title-only configuration: the least text a dense reading can be given, and the only
     configuration where the 512-token window cannot be the explanation.
     """
     if input_fields == INPUT_TITLE:
@@ -384,7 +384,7 @@ def encode_articles(
     """One embedding per article, in the order the corpus is given.
 
     The corpus is expected to be already filtered to the articles this braço is
-    allowed to see — the filter is common ground, and applying it here would make
+    allowed to see — the filter is a fixed condition of the comparison, and applying it here would make
     it invisible to the caller that has to justify it.
     """
     records = list(corpus.select(ARTICLE_ID, EW, TITLE, TEXT).iter_rows(named=True))
@@ -445,7 +445,7 @@ def pooled_schema(dim: int) -> dict[str, pl.DataType]:
 # Pooling
 # ---------------------------------------------------------------------------
 # `scoped_locations` used to live here. It moved to `news.corpus` when braço 03
-# needed the same function: the geo scoping is protocol-00 common ground, so it
+# needed the same function: the geo scoping is a protocol-00 fixed condition of the comparison, so it
 # cannot live inside one of the competing braços. It is re-exported below.
 
 def pool_by_week(

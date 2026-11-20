@@ -1,7 +1,7 @@
 """The case series a downstream braço is allowed to predict.
 
-Protocol 00 fixes the target as common ground between braços: only the
-*representation* of the text may vary. The target therefore has to be one
+Protocol 00 makes the target one of the conditions the comparison fixes: between
+braços, only the *representation* of the text may vary. The target therefore has to be one
 function that every braço calls, not three copies that happen to agree today —
 and they did not agree. Two notebooks summed every notification; a third kept
 only the confirmed ones. The three series differ by up to 42% of their total,

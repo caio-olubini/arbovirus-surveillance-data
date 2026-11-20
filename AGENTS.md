@@ -19,8 +19,9 @@ every document must stand on its own without the conversation that produced it.
   the word. If the English term is the proper name of a thing (`rolling origin`,
   `embeddings`, `gradient boosting`), use it and gloss it in one clause the first
   time.
-- **Prefer concrete verbs and numbers.** "Colocar no git", not "landar". "4.047
-  casos por semana", not "~4k". A number arrives with its unit.
+- **Prefer concrete verbs and numbers.** "Colocar no git", not "landar". "9.022
+  casos por semana", not "~9k". A number arrives with its unit — and, when two
+  windows exist, with the window it was measured on.
 - **No aphorisms.** A sentence that sounds good and carries no information is
   filler. Delete it rather than polish it.
 - **Answer in Brazilian Portuguese.** Code, identifiers, commit messages and
@@ -165,7 +166,7 @@ arbovirus-surveillance-data/
 │           └── topics/                   ← braço 03: tomotopy DMR → EW × (BR + UF) × topic
 │
 ├── notes/                                ← research-path tracker (not paper prose; see notes/README.md)
-│   ├── 00-protocolo-comparacao.md        ← the comparison protocol (fixes the common ground)
+│   ├── 00-protocolo-comparacao.md        ← the comparison protocol (the conditions it fixes)
 │   ├── 01-lexico-regras.md … 05-llm-forecaster.md
 │   └── ideias-soltas.md
 │
@@ -215,9 +216,9 @@ What is actually on disk versus configured. Re-verify before quoting numbers.
 | `EBC_dengue_text.parquet` (+ `.csv.gz`) | ✅ **ready** | 4,569 articles, 973 weeks (2002-02-17 → 2026-09-13), eras b=2,628 / c=1,941, 45 s. 3 pages saved without a body; 171 Spanish. `lang_guess` separates Spanish from not-Spanish only, so the **180 English articles (Agência Brasil's English edition) are labelled `pt`** and pass the language gate — a protocol-00 open item, surfaced by braço 03. |
 | `EBC_dengue_lexicon_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 5,152 rows, 965 weeks × 28 locations, 4,369/4,569 articles, 6 s. Braço 01. |
 | `EBC_dengue_embeddings_article.parquet` | ✅ **ready** | 4,369 rows × 8 cols, 12.6 MB. Braço 02's base configuration, per article, 768-wide L2-normalized. Needs `--extra embeddings` to reproduce; 1,704/4,369 (39.0%) exceed the 512-token window and are truncated. |
-| `EBC_dengue_embeddings_EW.parquet` | ✅ **ready** | 5,152 rows, 965 weeks × 28 locations, 8.7 MB, 654.9 s on CPU. Braço 02 pooled. Article set, week range and per-UF counts are identical to braço 01's — the common ground held. `emb_std` was **removed, not repaired**: for L2-normalized vectors it is an exact function of the mean (`‖std‖² = 1 − ‖mean‖²`, measured to 1.6e-06), so it carried no information the mean did not already carry. |
+| `EBC_dengue_embeddings_EW.parquet` | ✅ **ready** | 5,152 rows, 965 weeks × 28 locations, 8.7 MB, 654.9 s on CPU. Braço 02 pooled. Article set, week range and per-UF counts are identical to braço 01's — the conditions the comparison fixes held. `emb_std` was **removed, not repaired**: for L2-normalized vectors it is an exact function of the mean (`‖std‖² = 1 − ‖mean‖²`, measured to 1.6e-06), so it carried no information the mean did not already carry. |
 | `EBC_dengue_embeddings_<variant>_{article,EW}.parquet` | ✅ **ready** | The bracket's other five configurations — same 4,369 / 5,152 row counts and same 8 / 4 columns each, written by `--variant all` in 92.1 min: `bertimbau_whitening` (12.6 / 8.7 MB, 570.5 s), `e5_large` (16.7 / 11.4 MB, 2,105.0 s, 1024-wide), `bge_m3` (16.7 / 11.4 MB, 2,029.1 s, 1024-wide, `[CLS]`-pooled), `title_only` (12.5 / 8.6 MB, 29.8 s, truncates nothing — longest title 35 tokens), `serafim_title` (12.6 / 8.6 MB, 136.5 s, 128-token window). Read as a range, not a point: a single configuration would make a null result uninterpretable. |
-| `EBC_dengue_topics_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 77,280 rows = 5,152 (EW × location) groups × 15 topics, 965 weeks × 28 locations, 221.3 s on CPU. Braço 03, tomotopy DMR. Needs `--extra topics` to reproduce. **k=15 selected by coherence (0.7510)**; the 5,152 groups are identical to braço 02's — the common ground held. |
+| `EBC_dengue_topics_EW.parquet` (+ `.csv.gz`) | ✅ **ready** | 77,280 rows = 5,152 (EW × location) groups × 15 topics, 965 weeks × 28 locations, 221.3 s on CPU. Braço 03, tomotopy DMR. Needs `--extra topics` to reproduce. **k=15 selected by coherence (0.7510)**; the 5,152 groups are identical to braço 02's — the conditions the comparison fixes held. |
 | `EBC_dengue_topics_meta.parquet` (+ `.csv.gz`) | ✅ **ready** | 225 rows = 15 topics × 15 terms. What each topic *is*; not optional. |
 | `EBC_dengue_topics_sweep.parquet` (+ `.csv.gz`) | ✅ **ready** | 5 rows, one per candidate k with its coherence and `ll_per_word`. The evidence for choosing 15. |
 
@@ -479,7 +480,7 @@ measured corpus facts and declared limitations: `src/pipeline/news/README.md`.
   `src/pipeline/news/embeddings/spec.py` (`VARIANTS`, `VARIANT_ORDER`), and every
   entry pins a **commit sha**, never a branch: `bertimbau-mean` (the base),
   `bertimbau-whitening` (the anisotropy correction, Su et al. 2021),
-  `e5-large`, `bge-m3`, `title-only` (a floor that truncates nothing) and
+  `e5-large`, `bge-m3`, `title-only` (a configuration that truncates nothing) and
   `serafim-title` (a Portuguese sentence encoder, 128-token window). **The pooling
   is not held constant across encoders**, because for some it is not a choice:
   BGE-M3's dense embedding *is* its `[CLS]` token, so reading it with a mean would

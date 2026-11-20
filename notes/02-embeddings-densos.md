@@ -101,7 +101,8 @@ run de origem móvel do protocolo 00 tem de passar uma origem.
 
 As seis configurações rodaram sobre o mesmo corpus congelado (92,1 min de CPU, ~5 GB
 de downloads). Todas viram os mesmos 4.369 artigos e produzem as mesmas 5.152 linhas
-em 965 semanas × 28 localidades — o chão comum resistiu a seis encoders diferentes.
+em 965 semanas × 28 localidades — a mesma base de artigos resistiu a seis encoders
+diferentes.
 
 Nos 479 semanas nacionais com série de casos, o componente principal (PC1) das
 médias semanais de cada configuração correlaciona (Spearman) assim:

@@ -2,9 +2,10 @@
 
 The braços are *parallel*, not layered: each reads the frozen text corpus and
 publishes its own feature table at the same grain (epidemiological week ×
-location). The article then compares which representation predicts dengue
-better. That comparison only means something because the common ground is
-fixed — see notes/00-protocolo-comparacao.md.
+location). The article asks which multimodal features are worth including, and
+compares the three representations among themselves *inside* the text feature set.
+That comparison only means something because the conditions the protocol fixes
+hold — see notes/00-protocolo-comparacao.md.
 
     common.py       shared: HTML → text, accent folding, language guess
     corpus.py       shared: the article-set gates and geo scoping every braço reuses

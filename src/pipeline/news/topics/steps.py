@@ -8,7 +8,7 @@ mixture a week carries says **what** the press was talking about, where braço 0
 `news_volume` only says **how much**.
 
 Two things are shared with braços 01 and 02 on purpose, because protocol 00 fixes
-them as common ground rather than as part of any representation:
+them as fixed conditions of the comparison rather than as part of any representation:
 
 * **The article set.** The same `lang_guess == "pt"` and dengue-term gates, via
   `news.corpus` — so all three braços see the same articles and the comparison

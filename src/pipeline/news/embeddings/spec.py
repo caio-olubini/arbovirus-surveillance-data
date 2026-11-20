@@ -256,7 +256,7 @@ VARIANTS: dict[str, Variant] = {
         input_fields=INPUT_TITLE,
         max_tokens=512,
         note=(
-            "The floor: the least text a dense reading can be given, with no "
+            "The title-only configuration: the least text a dense reading can be given, with no "
             "truncation at all. If the bracket cannot beat counting articles even "
             "here, the failure is not the 512-token window."
         ),

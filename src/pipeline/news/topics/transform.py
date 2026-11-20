@@ -62,7 +62,7 @@ class NewsTopicsTransformResult:
     # outputs — which is exactly what braço 02 did the first time it ran.
     failed: int = 0
     # Documents whose tokens were all stopwords. They still count toward
-    # `n_articles` (the article set is protocol-00 common ground) and carry a
+    # `n_articles` (the article set is a protocol-00 fixed condition of the comparison) and carry a
     # uniform share row, so this is reported rather than silently absorbed.
     empty_docs: int = 0
     topics: int = 0
