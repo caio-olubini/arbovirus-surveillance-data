@@ -11,7 +11,7 @@ Os padrões são os que o protocolo 00 fixa para a primeira passada: o Brasil
 inteiro, uma semana à frente, dois anos de histórico antes da primeira previsão.
 Cada um deles é uma flag, e cada flag muda os números, então o que for citado numa
 tabela tem que dizer quais flags o produziram — e é por isso que `--out` escreve o
-registro da execução ao lado dos resultados, e não só os resultados.
+registro da execução ao lado dos resultados, em vez de gravar só os resultados.
 """
 
 from __future__ import annotations

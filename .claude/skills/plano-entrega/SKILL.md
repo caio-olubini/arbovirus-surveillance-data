@@ -55,9 +55,9 @@ O ciclo semanal. É o modo padrão.
 
 1. **Meça.** Rode o script. Não substitua esta etapa por leitura de arquivos: o
    valor dele é ser a mesma medição toda semana.
-2. **Leia o plano** (`notes/plano.md`) inteiro, não só a tabela.
+2. **Leia o plano** (`notes/plano.md`) inteiro — a tabela sozinha não basta.
 3. **Compare e relate**, nesta ordem:
-   - **A entrega da semana passada ficou pronta?** E ficou de verdade — o
+   - **A entrega da semana passada ficou pronta?** E ficou pronta mesmo: o
      artefato existe **e** o número dentro dele é o que a entrega prometia?
      Existir não é o mesmo que estar certo, e a diferença é o que se quer
      enxergar.
@@ -82,7 +82,7 @@ Quando uma decisão é tomada — a lista de modelos ficou definida, o prazo mud
 ponto de corte disparou, uma frente mudou de escopo.
 
 1. Meça do mesmo jeito.
-2. **Reescreva a estrutura**, não só a tabela: a ordem de dependências, o que fica
+2. **Reescreva a estrutura**, além da tabela: a ordem de dependências, o que fica
    de fora, a lista de entregas e os pontos de corte.
 3. **Toda data que muda, muda com motivo escrito.** Uma data que se move sem
    motivo faz quem lê parar de confiar no plano e voltar a confiar na memória, que
@@ -103,7 +103,7 @@ existe para avisar disso.
 - **`Fecha em`** — data absoluta `AAAA-MM-DD`. A semana é a unidade de trabalho; a
   data é o que torna a semana conferível.
 - **`Prova que fechou`** — o caminho do artefato, entre crases. **Só caminho**: um
-  trecho entre crases com espaço é ignorado pela medição, de propósito, para que
+  trecho entre crases com espaço é ignorado pela medição, por escolha, para que
   prosa entre crases não vire uma falta. Aceita glob
   (`data/forecast/*metrics.parquet`).
 - **`Prosa`** — a seção de texto escrita naquela semana. O plano busca **uma seção
@@ -126,7 +126,7 @@ medição inteira perde o sentido. O mesmo cuidado vale para um artefato que já
 existe: prova que já era verdadeira não mede nada.
 
 **Prova que está no disco e fora do git não fecha a entrega.** Ela aparece como ⚠️,
-e a semana 0 de um plano costuma ser exatamente isso: colocar no git o que já
+e a semana 0 de um plano costuma ser isso: colocar no git o que já
 existe.
 
 Fora da tabela, o plano carrega: prazo, tempo disponível, a pergunta do paper, o

@@ -52,7 +52,7 @@ aparecem (embeddings de palavra estáticos tipo word2vec/GloVe/fastText com pool
 representação aprendida em nível de caractere; embeddings de frase contextuais tipo SBERT/BERT)
 são todas **meio** dentro de um pipeline de aplicação, nenhuma com estudo de pooling,
 normalização, geometria ou dimensionalidade. Ranqueá-las como representação seria misturar os
-dois grupos — exatamente o erro que esta correção existe para impedir. A única com uso direto
+dois grupos — o erro que esta correção existe para impedir. A única com uso direto
 possível aqui (SBERT/BioBERT para similaridade de termos, de Consoli 2025) entra como linha de
 **aplicação**, porque é lá que ela é usada.
 
@@ -68,7 +68,7 @@ Alternativas entre si dentro do grupo. Dois "tentar agora", três "tentar depois
 | 1 | Extração generativa por LLM com schema estrito (zero/few-shot, sem fine-tuning) | `schmidt2024`, `mortezaagha2026` (instância de domínio: `consoli2025`) | Schmidt 2024 (GPT-4 zero-shot, 30 abstracts, 260 itens): 78% completamente corretos, 13% parciais, 10% errados contra extração humana; booleanos e números estáveis, strings abertas instáveis (69% idênticas a temperature 0; 7% de mudança substantiva). Mortezaagha 2026 (schema Pydantic + evidência verbatim + merge determinístico): o refino de schema+prompt leva desfechos de 33%→95%, presença/tipo de desfecho 50%→100% e desenho 75%→100%; evidência preenchida em >99% dos casos; 11 s/PDF contra ~30–40 min de extração manual. Baseline comum: extração humana; Mortezaagha **não tem** baseline externo (os autores declaram). Consoli 2025 dá a instância de domínio: doença F1 0,851, país 0,962, casos 0,658, data 0,869. | Precisa de um LLM. Nenhuma rota local cabe em CPU-minutos sobre 4.369 artigos (7B+ = horas); API de nuvem é paga e o custo **não é reportado** (Schmidt não dá tokens/$; Mortezaagha dá só US$2/1k páginas de OCR, irrelevante aqui). Não precisa de rótulo para o método (só para avaliar). Dependência nova: runtime de LLM local (pesado) ou credencial de API. Mortezaagha ainda exige um especialista de domínio por schema (2–4 semanas). Evidência só em inglês/outro domínio. | tentar depois |
 | 2 | Contrato de saída: JSON como formato de serialização + pedido direcionado | `neveditsin2025` | JSON é o formato mais parseável (McNemar pareado: JSON>YAML χ²=167,6; JSON>XML χ²=69,4; YAML>XML χ²=32,4, todos p≪0,05); o pedido direcionado tem o maior efeito medido (V de Cramér=0,42) e modelos maiores erram menos estruturalmente (90,3% vs 82,6% vs 80,9%, efeito modesto V=0,11). Mede só validade **sintática**, não semântica; documenta os padrões de falha. Baseline: comparação entre formatos e entre tipos de prompt. | Zero: é um achado, sem dependência nova. Só importa quando o braço 04 usar um LLM; hoje não temos essa etapa. Decisão de desenho que se registra agora, custo nenhum. | tentar agora |
 | 3 | Resolução/normalização de termos por similaridade de embeddings (limiar) | `consoli2025` | Agrupa sinônimos de doença/local por cosseno (SBERT all-mpnet-base-v2 / BioBERT, limiar fixado em 0,8) mais synsets do WordNet. Baseline: igualdade de string. Evidência **fraca**: limiar escolhido "experimentalmente", sem análise de sensibilidade; é utilitário, não o foco do artigo. | Baixo: CPU, e os encoders PT/multilíngues já estão no extra `embeddings` (BERTimbau, E5, BGE-M3). Roda sobre strings curtas. Normaliza **variantes de termo** (ex.: "febre da dengue" vs "dengue"), mas **não** resolve município→UF — isso é gazetteer, não cosseno. | tentar agora |
-| 4 | Geoparsing de evento + resolução LOC vs pseudo-local (PLOC) + argumentos numéricos | `dewandaru2020` | A taxonomia LOC vs PLOC e a ligação evento→coordenada→números resolvem exatamente o nosso viés de menção (uma matéria cita muitos lugares, só um é o foco). +23,43% de F1 no passo PLOC (0,734→0,906); +13,88% em argumento (0,785→0,894); +2,46% em entidade (dentro do ruído). Baseline: o mesmo modelo sem as features de evento/regex. Corpus minúsculo (927 sentenças), indonésio. | Método é indonésio, supervisionado (927 frases anotadas), exige POS tagger PT + gazetteer + anotação, e novas dependências (NCRF++, MALLET/Gensim). Sem comparação com outros geoparsers. A **taxonomia** sozinha é grátis de ler e citar; o método não roda aqui. | tentar depois |
+| 4 | Geoparsing de evento + resolução LOC vs pseudo-local (PLOC) + argumentos numéricos | `dewandaru2020` | A taxonomia LOC vs PLOC e a ligação evento→coordenada→números resolvem o nosso viés de menção (uma matéria cita muitos lugares, só um é o foco). +23,43% de F1 no passo PLOC (0,734→0,906); +13,88% em argumento (0,785→0,894); +2,46% em entidade (dentro do ruído). Baseline: o mesmo modelo sem as features de evento/regex. Corpus minúsculo (927 sentenças), indonésio. | Método é indonésio, supervisionado (927 frases anotadas), exige POS tagger PT + gazetteer + anotação, e novas dependências (NCRF++, MALLET/Gensim). Sem comparação com outros geoparsers. A **taxonomia** sozinha é grátis de ler e citar; o método não roda aqui. | tentar depois |
 | 5 | Triagem binária de relevância (documento vs frase) antes de extrair | `kim2020`, `abbood2020` | Kim 2020 (2.864 docs): classificar por **frase** e agregar bate classificar o documento (BiLSTM+SenClass 92,9% vs DocClass 83,9%; ConvNet 89,4% vs 87,6%), porque o sinal cabe em 1–2 frases — e nossas matérias são longas. Abbood 2020 (3.236 artigos, 5% relevantes): pontuação de relevância supervisionada superajusta à classe positiva (precisão máx. 0,22); sem sobreamostragem ADASYN a sensibilidade cai a 0,03. Baseline: TF-IDF + ML clássico / sem sobreamostragem. | Exige rótulos que não temos; o corpus já passou pelo portão de termo-doença, então a triagem responde a uma pergunta que o corpus já respondeu. Kim é inglês, de sites formais de vigilância (WHO/ProMED/CDC), não agência generalista. | tentar depois |
 | 6 | NER / rotulagem de sequência supervisionada (encoder transformer ou BiLSTM-CRF) | `algaradi2025`, `abbood2020`, `dewandaru2020` | Al-Garadi 2025: RoBERTa micro-F1 0,88 para NER, mas o baseline é só a comparação entre 4 transformers (ICs se sobrepõem: RoBERTa 0,88 vs ALBERT 0,86 vs BERT/BERTweet 0,84). Abbood 2020: EpiTator/heurística acerta país 85% e doença 88%, mas data e contagem 0%. Baseline: outros transformers. | Alto: exige rótulos token-level que não temos; só inglês; novas dependências (BERTweet, NCRF++, InaNLP). Sem baseline trivial. | descartar |
 | 7 | Extração generativa com modelo open-weight fine-tunado / instruction-tuned | `shamsabadi2024`, `li2024aegpt` | Shamsabadi 2024 (FLAN-T5-Large 780M fine-tunado por instrução): bate GPT-3.5 (1000x maior) zero-shot em ROUGE (ROUGE-1 80,77 vs 68,44) e o melhor F1 parcial é 0,559 — absoluto modesto. Li 2024 (GPT-3.5 fine-tunado): micro-F1 0,704 estrito vs 0,68 do BERT de domínio — ganho de ~0,02, provavelmente dentro do ruído. Baseline: GPT-3.5 zero-shot / BERT de domínio. | Alto: exige rótulos que não temos (1.500 e 91 documentos anotados à mão) e treino em GPU (12–30 h; A100/V100 reportadas). O resultado principal do Li depende de API proprietária. | descartar |
@@ -102,7 +102,7 @@ municípios não resolvidos do braço 01 (`README` §2 e §6.2) são um problema
 cosseno não resolve. Vale testar como heurística de normalização barata, não como resposta ao
 escopo. **tentar agora.**
 
-**4. Geoparsing LOC vs PLOC.** Dewandaru 2020 nomeia exatamente o problema que o nosso braço 01
+**4. Geoparsing LOC vs PLOC.** Dewandaru 2020 nomeia o problema que o nosso braço 01
 declara: uma matéria cita muitos lugares e só um é o foco do surto. A taxonomia de pseudo-locais
 (metonímia, contexto GPE, nome de organização, menção não-locativa) é geral e vale para PT-BR; o
 método (BiLSTM-CRF indonésio, supervisionado, com gazetteer e POS da língua) não. É a mesma
@@ -136,14 +136,14 @@ grupo `aplicacao` e estão nomeadas como tal.
   justamente a *entrada* do braço 04 — mas nenhuma prevê a série de casos suspeitos que os
   braços 01–03 predizem. Então "melhor" nessas fichas significa melhor na extração, não no alvo
   do protocolo 00. Dizer "nenhuma ficha testa a nossa tarefa" seria verdade sobre o **alvo**
-  (previsão de série) e falso sobre a **tarefa de extração**: é exatamente aí que elas medem.
+  (previsão de série) e falso sobre a **tarefa de extração**: é aí que elas medem.
 - **Aplicação: o custo escondido de todas é o rótulo humano.** Consoli (171 amostras do IDB),
   Al-Garadi (4.200 documentos), Kim (2.864), Shamsabadi (1.500 abstracts), Dewandaru (927
   sentenças), Neveditsin (105 notas), Li (91 relatos), Schmidt (30 estudos). Nenhuma dessas
   abordagens roda sem um gold standard anotado à mão para se avaliar — e nós não temos um.
 - **Aplicação: a contagem numérica é o campo mais fraco de todas.** Schmidt (desenho de estudo
   47%), Consoli (casos F1 0,658), Al-Garadi (acurácia despenca para todas as causas),
-  Shamsabadi (data e método <50%), Abbood (contagem com precisão 0,20). É exatamente o slot que o
+  Shamsabadi (data e método <50%), Abbood (contagem com precisão 0,20). É o slot que o
   `README` §2 já marca como o mais fraco do braço 01 e para o qual o braço 04 existe. As fichas
   não prometem que o LLM resolve isso — só que ele não é trivial.
 - **Aplicação: baseline fraco ou ausente é a regra.** Mortezaagha declara não ter comparação
@@ -164,7 +164,7 @@ grupo `aplicacao` e estão nomeadas como tal.
   00 vale para o braço 04.
 - **Grupo `representacao`: vazio, e por isso não há a frase "nenhuma ficha mede a nossa tarefa"
   aplicada à biblioteca inteira.** Não há ficha de representação nesta família para medir (ou
-  deixar de medir) a nossa tarefa; o grupo simplesmente não existe aqui. As fichas de aplicação
+  deixar de medir) a nossa tarefa; o grupo não existe aqui. As fichas de aplicação
   são as que testam extração de notícia/relato de surto.
 
 ---

@@ -130,7 +130,7 @@ quando o número já vem pontuado; `500 mil casos` não tem pontos e multiplica.
 
 **5. O corpus não é monolíngue, e a fatia não é aleatória.** 171 dos 4.569 artigos
 (3,7%) são espanhóis — a Agência Brasil publica edição em espanhol — e **61 são de
-2016** (Zika e Olimpíadas), 24 de 2002. Um léxico PT-BR subconta exatamente essas
+2016** (Zika e Olimpíadas), 24 de 2002. Um léxico PT-BR subconta essas
 semanas, e a falta cai em ano de epidemia. Por isso `lang_guess` é coluna do corpus
 e o braço filtra para `pt`. A heurística foi medida: 92,4% do que ela marca `other`
 contém palavra funcional espanhola inequívoca, e só 4 de 4.398 linhas `pt` (0,09%)

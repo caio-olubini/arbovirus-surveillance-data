@@ -15,7 +15,7 @@ algo que uma covariável numérica não agrega.
 
 Depende do desenho, e isso é parte do problema — não há uma saída canônica:
 
-- **Reprogramação:** série numérica → tokens → backbone de LLM congelado com
+- **Reprogramação:** série numérica → tokens → LLM congelado como base, com
   camadas de projeção treináveis (Time-LLM, GPT4TS, AutoTimes).
 - **Prompt:** série serializada em texto → o LLM responde com a previsão
   (LLMTime, PromptCast).
@@ -33,7 +33,7 @@ de representação existirem. A ordem é: protocolo 00 → baseline sem texto �
 
 - **A favor, e é forte:** [Du 2025, *Nat Comput Sci* 5:467](https://doi.org/10.1038/s43588-025-00798-6)
   (PandemicLLM): reformula a previsão como raciocínio em texto sobre múltiplos
-  fluxos; backbone LLaMA2 + representação temporal recorrente; previsão ordinal
+  fluxos; LLaMA2 como base + representação temporal recorrente; previsão ordinal
   de tendência de hospitalização em 50 estados dos EUA; **bateu os melhores
   modelos do CDC CovidHub**, especialmente em mudanças de variante e de política.
   É a evidência peer-reviewed mais forte para LLM em previsão epidêmica.
@@ -58,7 +58,7 @@ de representação existirem. A ordem é: protocolo 00 → baseline sem texto �
   entrada quase não muda a saída. Ou seja: o LLM pode não estar fazendo nada.
 - O consenso de 2026 é **dividido**, e o artigo deve reportar assim. A evidência
   positiva concentra-se em cenários com **poucos dados, semanticamente ricos e
-  específicos de epidemiologia** — que é exatamente o seu caso, mas isso significa
+  específicos de epidemiologia** — que é o seu caso, mas isso significa
   que o componente LLM precisa ser justificado **empiricamente**, não por analogia.
 
 ## Custo

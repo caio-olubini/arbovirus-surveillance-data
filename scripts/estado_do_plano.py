@@ -16,8 +16,8 @@ a próxima fatia — que é justamente a parte que nenhuma medição decide.
 O SCRIPT NÃO ESCREVE NADA. Não marca fatia como concluída, não edita o plano.
 Quem edita é a skill, depois de ler isto e depois de você confirmar. Um script
 que se autodeclara concluído é um script que mente: a existência de um arquivo
-não é o mesmo que a fatia estar fechada, e a diferença entre as duas é
-exatamente o que se quer enxergar.
+não é o mesmo que a fatia estar fechada, e a diferença entre as duas é o que se
+quer enxergar.
 
 O QUE ELE NÃO CONSEGUE VER, e por isso não finge ver:
 

@@ -14,7 +14,7 @@ bruto, que só diz *quanto*.
 ## O que produz
 
 Por EW: um vetor de `topic_share[ew, k]` (proporção de cada tópico na semana),
-mais `topic_share` defasado 1–4 semanas. Entra como covariável no mesmo backbone.
+mais `topic_share` defasado 1–4 semanas. Entra como covariável no mesmo modelo.
 
 ## Como testar
 
@@ -22,7 +22,7 @@ mais `topic_share` defasado 1–4 semanas. Entra como covariável no mesmo backb
    `pt_core_news`~~ → **folding de acento + regex de palavra + lista de stopwords
    congelada** (ver §Decisão).
 2. **Modelo primário: STM com o tempo como covariável de prevalência** — é
-   construído exatamente para isso e funciona em corpus pequeno.
+   construído para isso e funciona em corpus pequeno.
    [Roberts 2019, *J Stat Softw* 91(2)](https://doi.org/10.18637/jss.v091.i02).
    → **Implementado como DMR** (`tomotopy`), o mecanismo que o STM estende; ver
    §Decisão para por que não é o pacote R.
@@ -79,7 +79,7 @@ abertas, e o que as fechou:
   BERTopic precisa de embeddings de frase, e reusar o BERTimbau congelado do braço
   02 faria os dois braços compartilharem o encoder ("o mesmo embedding cortado de
   dois jeitos" não é comparação independente). **(3) O corpus é desigualmente denso
-  ao longo de 24 anos** — o risco que esta nota já nomeava, e exatamente o
+  ao longo de 24 anos** — o risco que esta nota já nomeava, e o
   desequilíbrio sob o qual o passo HDBSCAN do BERTopic é conhecidamente instável.
   LDA (`family: lda`) é o baseline, mesma biblioteca e mesmo laço de treino menos
   o metadado.
@@ -87,7 +87,7 @@ abertas, e o que as fechou:
   cada candidato, e o argmax vence — empate vai para o **menor** k. O *sweep
   inteiro* é publicado em `EBC_dengue_topics_sweep` (os modelos que perderam, com
   sua coerência e seu `ll_per_word`), para que a escolha possa ser conferida em vez
-  de aceita. Não existe constante `topic_count` no `spec.py` de propósito: fixá-la
+  de aceita. Não existe constante `topic_count` no `spec.py` por escolha: fixá-la
   faria a seleção parecer mudança de schema.
 - **Tokenização: folding de acento + regex `[a-z]+` + lista de stopwords PT-BR
   congelada.** Sem lematizador, sem POS tagger, sem spaCy — `pt_core_news` foi
@@ -109,7 +109,7 @@ O grão do covariável é **mês**, não a semana do output: 965 níveis semanai
 **Achado que este braço tornou visível:** **180 dos 4.369 artigos (4,1%) são em
 inglês** — a edição em inglês da Agência Brasil — e todos passam pelo portão de
 idioma, porque `common.guess_language` só separa *espanhol* de *não-espanhol* e
-chuta `pt` por padrão. O tópico 1 é exatamente esse artefato (*the, and, that, for,
+chuta `pt` por padrão. O tópico 1 é esse artefato (*the, and, that, for,
 with, health*). Os braços 01 e 02 absorviam esses artigos em silêncio; este é o
 primeiro que gasta um tópico inteiro neles. **Não foi corrigido aqui**: o protocolo
 00 fixa o conjunto de artigos como terreno comum, e re-filtrar em um braço faria seu

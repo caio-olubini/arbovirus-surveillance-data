@@ -89,7 +89,7 @@ As features concretas, com o grão (UF × EW), e como entram no modelo.
 Passos numerados. O que precisa existir antes.
 
 ## Evidência
-O que a literatura mostra, com o que exatamente cada trabalho demonstra.
+O que a literatura mostra, com o que cada trabalho demonstra.
 Separar **evidência a favor** de **contra-evidência** — a segunda é obrigatória.
 
 ## Custo

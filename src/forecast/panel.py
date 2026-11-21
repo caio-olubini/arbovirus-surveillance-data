@@ -134,7 +134,7 @@ def _state_panel(
     cada unidade esperada, então a série de um estado é contígua mesmo através de
     uma sequência de semanas quietas. As semanas para as quais um estado não tem
     linha são as únicas que a soma das 27 unidades perderia, e zerá-las é o que
-    faz essa soma reconstruir exatamente a série nacional.
+    faz essa soma reconstruir a série nacional.
     """
     weekly = weekly_cases(frame, by_state=True).rename({EW_SYMPTOM_ONSET: EW})
 
@@ -196,7 +196,7 @@ def _expected_states(fu_path: str | Path | None) -> set[str]:
 
     O caminho sai do `config.yml` quando o chamador não passa um, para que o
     painel e todo outro estágio leiam a mesma tabela — uma segunda cópia da lista
-    de estados é exatamente o tipo de deriva que este pacote existe para evitar.
+    de estados é o tipo de deriva que este pacote existe para evitar.
     """
     if fu_path is None:
         from ..config import load_config

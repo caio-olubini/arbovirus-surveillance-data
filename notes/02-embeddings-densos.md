@@ -74,7 +74,7 @@ Três coisas variam e cada uma é declarada por configuração, não fixada no c
 - **O pooling não é parâmetro livre.** O embedding denso do BGE-M3 *é* o token
   `[CLS]` (o `1_Pooling/config.json` do checkpoint diz
   `pooling_mode_cls_token: true`). Forçar média nele mediria uma configuração que
-  ninguém usa, e um BGE-M3 fraco ficaria ininterpretável — exatamente o erro que o
+  ninguém usa, e um BGE-M3 fraco ficaria ininterpretável — o erro que o
   bracket existe para evitar. Cada encoder é lido como os autores o publicaram.
 - **A janela é 512 em todo modelo que aguenta**, para que um ganho não venha de um
   encoder lendo mais texto que outro em silêncio. Os 128 tokens do Serafim são a
@@ -197,7 +197,7 @@ custo ordens de magnitude menor; re-inicializar aleatoriamente ≈ pré-treinado
 Existe também uma auditoria de 2026 argumentando que o ganho de texto multimodal
 muitas vezes desaparece quando se remove uma coluna numérica co-empacotada
 (arXiv:2608.22321 — **não verificado**, checar antes de citar). O controle negativo
-do protocolo 00 existe exatamente por causa disso.
+do protocolo 00 existe por causa disso.
 
 ## Custo
 
@@ -229,6 +229,6 @@ reprodutibilidade (fixar versão/revisão do checkpoint — feito, por sha de co
       congelado? Fine-tuning muda a natureza do braço — decidir antes de comparar.
       Por ora **congelado**, como o resto do pipeline.
 - [ ] Testar no Time-MMD Health antes de ir para dengue.
-- [ ] Rodar o protocolo 00 de fato — braços 01, 02 e 03 sob o mesmo modelo, mesmas
+- [ ] Rodar o protocolo 00 de ponta a ponta — braços 01, 02 e 03 sob o mesmo modelo, mesmas
       métricas e o controle negativo (texto embaralhado), com o branqueamento
       reajustado a cada origem. A seção exploratória do notebook **não** é isso.

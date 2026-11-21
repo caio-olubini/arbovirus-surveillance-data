@@ -7,7 +7,7 @@ acrescentar o braço 01 depois é uma entrada no registro, não uma reescrita.
 
 O contrato que torna a comparação confiável está em `splits.py` — na origem *i* o
 chamador pode ler o painel até a posição *i* e nada depois. Aqui o laço
-simplesmente nunca entrega mais que isso: o histórico passado a cada baseline é
+nunca entrega mais que isso: o histórico passado a cada baseline é
 uma fatia que termina na origem.
 """
 
@@ -78,7 +78,7 @@ class ForecastRun:
 def format_metrics(metrics: pl.DataFrame) -> str:
     """Desenha a tabela de métricas como texto alinhado.
 
-    O repr do Polars corta a linha, e um MAE cortado é exatamente o tipo de coisa
+    O repr do Polars corta a linha, e um MAE cortado é o tipo de coisa
     que vai parar errada num slide, então a tabela é formatada à mão.
     """
     header = ("baseline", "step", "weeks", "MAE", "RMSE", "MAPE", "MAPE n")
