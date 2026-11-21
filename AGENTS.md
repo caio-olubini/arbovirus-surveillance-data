@@ -24,6 +24,38 @@ every document must stand on its own without the conversation that produced it.
   windows exist, with the window it was measured on.
 - **No aphorisms.** A sentence that sounds good and carries no information is
   filler. Delete it rather than polish it.
+- **Write like a person, not like a model.** A document here must not read as
+  though a machine produced it. These are the tics that keep coming back, and the
+  ones to remove on sight:
+  - **The "not X, but Y" reversal as a rhythm.** Once, to correct a confusion the
+    reader actually has, it is useful. Repeated, it stages a correction nobody was
+    making. Say the thing; drop the negation.
+  - **The "not only… but also" and "more than a Z, it is a W" escalations.** They
+    are translated filler. Keep the claim, cut the scaffolding.
+  - **Emphatic adverbs that add nothing:** "de fato", "de verdade", "exatamente",
+    "simplesmente", "literalmente", "de propósito", "sem exceção". Almost every one
+    of them can go with the sentence unchanged.
+  - **Every bullet a bolded thesis; every paragraph closing with its own summary.**
+    A list is for items, not for twelve miniature arguments. If the content is a
+    paragraph, write a paragraph.
+  - **Meta-commentary about the document.** "Este arquivo fixa…", "é preciso dizer
+    qual se está usando", "a palavra exata não aparece aqui de propósito". Say the
+    content; the reader does not need the file narrating its own design.
+  - **Verdicts and praise nobody asked for.** "o mais próximo de nós", "a lacuna é
+    nossa", "o mais acurado da linha". Report what the source did. Keep the
+    judgement only where a claim in the paper depends on it.
+  - **Corporate and machine verbs:** "alavancar", "endereçar", "impactar",
+    "performar", "otimizar", "mitigar", "viabilizar", "proporcionar", "orquestrar",
+    "suportar" (in the sense of allowing something). Portuguese has plain verbs —
+    usar, tratar, melhorar, permitir, reduzir.
+  - **Three-item lists when three is not the number.** If two things vary, say
+    two. Padding to three is a habit, not a finding.
+- **Report results; do not referee them.** A paper that measures which feature set
+  pays its cost states the measured gain, on which weeks, at which grain, with its
+  uncertainty, and then discusses what it means. It does not declare a champion, a
+  classification or a knockout. Pre-registering what will be compared, and the
+  magnitude that will be called material, is method — that stays. Calling a set
+  "the winner" is not.
 - **Answer in Brazilian Portuguese.** Code, identifiers, commit messages and
   artefact names follow the repository's existing convention (mostly English);
   everything written for a person is Portuguese.

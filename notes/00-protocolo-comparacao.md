@@ -1,36 +1,37 @@
 # 00 — Protocolo de comparação das features
 
-**Estado:** rascunho — 2026-10-07
-**Última revisão:** 2026-11-20
+**Estado:** rascunho — criado em 2026-10-07, revisado em 2026-11-21
 
 ## Por que este arquivo existe
 
-Decidimos (2026-10-07) que 01, 02 e 03 são **representações concorrentes** do mesmo
-corpus: cada uma gera seu próprio conjunto de features e o artigo responde "qual
-representação da notícia prevê dengue melhor?". Comparação entre representações só
-vale se todo o resto estiver fixo. É o que este arquivo fixa.
+Este arquivo fixa o que **não pode variar** entre os conjuntos comparados. O artigo
+pergunta se as features multimodais carregam sinal relevante e quais valem a pena
+incluir, contra abordagens mais simples. Os conjuntos `histórico`, `+ clima`,
+`+ busca` e `+ texto` são as quatro versões dessa pergunta, e a notícia é uma
+instância de feature multimodal — o mecanismo pelo qual a pergunta é respondida,
+não o assunto do paper.
 
-Se um braço ganhar porque usou um split melhor, um horizonte diferente ou uma
-métrica que favorece o seu tipo de erro, o resultado é ruído publicado como achado.
+Se um conjunto aparecer melhor porque usou um split diferente, um horizonte
+diferente ou uma métrica que favorece o seu tipo de erro, o que se publica é ruído
+com cara de achado. Comparar conjuntos só vale com o resto fixo.
 
 ## Revisão — 2026-11-20: o artigo compara features, não representações
 
-O parágrafo acima está **estreito demais, e errado no sujeito**: o artigo não é
-sobre a notícia, nem sobre os boletins. Ele pergunta se as **features multimodais
-propostas carregam sinal relevante e quais vale a pena incluir**, contra abordagens
-mais simples. As representações de notícia (01, 02, 03) são **instâncias** de
-feature multimodal — o mecanismo pelo qual a pergunta é respondida, não o assunto.
+Até 2026-11-20 este arquivo abria dizendo que 01, 02 e 03 eram **representações
+concorrentes** do mesmo corpus e que o artigo respondia "qual representação da
+notícia prevê dengue melhor?". Isso era **estreito demais, e errado no sujeito**: o
+artigo não é sobre a notícia, nem sobre os boletins. As representações (01, 02, 03)
+são instâncias de feature multimodal, não o assunto.
 
-A revisão de hoje tira quatro coisas do lugar, e todas as quatro estavam aqui
-escritas de outro jeito:
+A revisão de 2026-11-20 tirou quatro coisas do lugar, e todas as quatro estavam
+aqui escritas de outro jeito:
 
 1. **Clima e busca saem das condições fixas e viram conjuntos comparados.** Eram
-   iguais em todos os braços; passam a entrar um a um, porque a pergunta é
-   exatamente quais features incluir. As demais condições fixas continuam valendo.
-2. **O resultado são os ganhos acumulados, sem manchete.** Não existe "o ganho do
-   texto" em número único: existem três ganhos, cada um medido contra o conjunto
-   imediatamente anterior, e o mesmo bloco tem que ganhar nos dois tipos de
-   modelo.
+   iguais em todos os braços; passam a entrar um a um, porque a pergunta é quais
+   features incluir. As demais condições fixas continuam valendo.
+2. **O resultado é um conjunto de ganhos medidos, não um número só.** São três,
+   cada um medido contra o conjunto imediatamente anterior e reportado nos dois
+   tipos de modelo. Não existe "o ganho do texto" em número único.
 3. **Granularidade espacial: BR no número principal, UF como robustez
    declarada** — não como leitura exploratória. A leitura por UF é feita e
    reportada; o número principal não depende dela. Motivo em "Riscos".
@@ -50,7 +51,7 @@ escritas de outro jeito:
 | Grão espacial | **BR** no número principal; **UF como robustez declarada** | — |
 | Horizonte | **1 semana**; **4 semanas** como robustez declarada | — |
 | Janela pontuada | de **2022-01-02 a 2024-12-29** (157 semanas), com treino desde 2014 | [plano](plano.md) §6 |
-| Backbone | **o mesmo** para todos os conjuntos | TFT early-fusion (Lim et al. 2021) como baseline de fusão — [06](06-desenho-do-experimento.md) |
+| Modelo | **não varia entre os conjuntos**: o mesmo modelo *simples* e o mesmo *sequencial* em todos eles. Qual modelo concreto cada tipo usa é decisão do passo 4 do [plano](plano.md); o TFT (Lim et al. 2021) é a citação de fusão — [06](06-desenho-do-experimento.md) | — |
 | Split | rolling-origin, refit só com passado | `rolling_origin` |
 | Métricas | MAE, RMSE, MAPE **e** WIS/CRPS/cobertura | `src/forecast/README.md` |
 
@@ -77,21 +78,28 @@ Dois tipos de modelo — *simples* (gradient boosting ou regressão sobre tabela
 
 **O que o artigo reporta são três ganhos, um por conjunto:** `+clima − histórico`,
 `+busca − +clima`, `+texto − +busca`. Não existe "o ganho da notícia" em número
-único, e um paper que apresente um só estará escondendo de onde ele veio.
+único, e um paper que reporte um só não mostra de onde o número saiu.
 
 **São oito comparações pareadas**, e todas entram na correção para comparações
 múltiplas: seis entre conjuntos consecutivos (três níveis × dois tipos de modelo) e
-duas contra o **ensemble sem texto**. O conjunto `+ texto` tem que bater duas barras,
-não uma — o conjunto anterior e a média de tudo que não usa texto. Motivo: em
-horizonte curto a média de vários modelos é um adversário forte (Johansson 2019;
-Wu 2025), e um ganho que só aparece contra o conjunto anterior pode ser o texto
-compensando um modelo mal ajustado.
+duas do conjunto `+ texto` contra o **ensemble sem texto**. O conjunto de texto é
+comparado com os dois — o conjunto anterior e a média de tudo que não usa texto —,
+porque em horizonte curto a média de vários modelos é um número difícil de superar
+(Johansson 2019; Wu 2025), e um ganho medido apenas contra o conjunto anterior pode
+vir do texto compensando um modelo mal ajustado, não da informação que ele carrega.
+
+**O que o paper faz com esses números:** reporta cada ganho nas semanas em que foi
+medido, no grão declarado, com a incerteza, e discute o que eles indicam. A
+magnitude registrada antes do resultado diz o que o paper vai tratar como material;
+ela não é um veredito sobre qual conjunto é o melhor.
 
 **Dentro do conjunto `+ texto`**, as representações (léxico, embeddings, tópicos e
-extração por LLM) são comparadas entre si, sob a mesma regra de decisão. Entram na
-grade **uma ou duas codificadoras de embedding**; as outras variantes ficam como
-robustez declarada, porque cada codificadora é uma grade inteira e não uma coluna a
-mais.
+extração por LLM) são comparadas entre si, sob a mesma regra de decisão — com uma
+exceção: a **extração por LLM está em standby desde 2026-11-21**, dependente de a
+anotação manual terminar (passo 6 do [plano](plano.md); ver
+[04](04-llm-extracao-estruturada.md)). Entram na grade **uma ou duas codificadoras
+de embedding**; as outras variantes ficam como robustez declarada, porque cada
+codificadora é uma grade inteira e não uma coluna a mais.
 
 **A ablação sem texto é o conjunto `+ busca`** — tudo menos texto, alvo e clima e
 busca juntos. É o delta que o artigo precisa reportar. O conjunto `histórico` é o
@@ -99,44 +107,52 @@ conjunto mais simples, não a ablação: sem clima nem busca, ele mede outra coi
 
 **Controle negativo:** substituir o texto por vazio / constante / embaralhado. Se o
 erro não mudar, o texto não está sendo usado e o ganho é artefato de arquitetura.
-Ver `Tan et al. 2024` (arXiv:2406.16964) — remover o LLM de arquiteturas tipo
-Time-LLM empata ou melhora.
+Ver `Tan et al. 2024` (arXiv:2406.16964; registrado em `articles/references.csv` em
+2026-11-21) — remover o LLM de arquiteturas tipo Time-LLM empata ou melhora. **Não
+confundir com Tam et al. 2024** (EMNLP Industry), que é sobre restrição de formato,
+não sobre ablação.
 
 ## Baselines — fora dos quatro conjuntos, e com citação
 
 | Baseline | Citação | O que ele testa |
 |---|---|---|
-| Persistência (casos da semana anterior) | Xiao 2025 ("naive"); tradição de Tashman 2000 | a barra de qualquer modelo |
+| Persistência (casos da semana anterior) | Xiao 2025 ("naive"); tradição de Tashman 2000 | o resultado mais simples que existe; serve de referência para os demais |
 | Naive sazonal (mesma semana do ano anterior) | tradição de competição (Tashman 2000) | quanto custa ignorar a tendência entre anos |
 | SARIMA só com casos | Xiao 2025 ("DC"); Chen & Moraga 2025 (ARIMA) | o que o histórico sozinho entrega |
 | SARIMAX casos + Google Trends | Xiao 2025 ("DCGT"); Chen & Moraga 2025 (SARIMAX) | o que a busca acrescenta ao histórico, num modelo estatístico em vez de aprendizado de máquina |
 | Modelo linear **só** com Google Trends | Xiao 2025 ("GT") | se a busca substitui o alvo |
 | InfoDengue bayesiano (binomial negativa hierárquica) | Codeço 2018; Bastos 2019; Xiao 2025 | o padrão operacional brasileiro |
-| **Ensemble de todos os modelos** | Johansson 2019; Wu 2025 | o teto realista — é o que ganha nos dois |
+| **Ensemble de todos os modelos** | Johansson 2019; Wu 2025 | em Johansson 2019 é o que fica à frente; em Wu 2025, o que fica no top-3 em 180+ localidades |
 
 Os DOIs estão em [06](06-desenho-do-experimento.md).
 
 **O baseline só-busca fica fora dos quatro conjuntos**, como comparação independente: ele
 responde "a busca substitui o alvo?", que não é um dos conjuntos.
 
-**O ensemble entra de dois jeitos, e os dois papéis são diferentes.** O ensemble
-**sem texto** (a média dos conjuntos que não usam texto) entra na regra de decisão: o
-conjunto de texto tem que batê-lo. O ensemble **global** (a média de tudo, texto
-incluído) fica descritivo, porque ele contém as células que estão sendo julgadas —
-usá-lo na regra seria julgar o réu com o júri.
+**O ensemble entra de dois jeitos, com papéis diferentes.** O ensemble **sem texto**
+(a média dos conjuntos que não usam texto) entra na regra de decisão: é uma das duas
+comparações do conjunto de texto. O ensemble **global** (a média de tudo, texto
+incluído) é descritivo — ele contém as mesmas células que estão sendo comparadas,
+então não serve de referência para compará-las.
 
 **O InfoDengue entra com prazo fechado.** Ele é reimplementado aqui, com um prazo
 declarado de uma semana; se não convergir dentro do prazo, ele sai do experimento,
 vira citação do sistema original e o desvio fica registrado. O que não acontece é
 ele consumir o prazo inteiro do paper.
 
-**A barra medida hoje** (persistência e naive sazonal, BR, horizonte 1) tem dois
-números, e é preciso dizer qual se está usando: na janela longa (2016–2024, 470
-semanas pontuadas) a persistência dá MAE **4.358** e o naive sazonal **23.618**
-casos/semana; na janela do paper (2022-01-02 a 2024-12-29, 157 semanas) a
-persistência dá MAE **9.022** e o naive sazonal **39.552**. A janela longa é
-robustez declarada; o número do paper é o da segunda. Os dois vivem em
-`data/forecast/`, e a tabela das três janelas — com o comando que produz cada uma —
+**Os dois ingênuos já medidos** (persistência e naive sazonal, BR, horizonte 1) têm
+três números, porque o medidor pontua três janelas. "A janela longa" sozinho não diz
+qual — há duas —, então cada uma vai nomeada:
+
+| Janela | Semanas pontuadas | Persistência (MAE) | Naive sazonal |
+|---|---|---|---|
+| Painel padrão (2014–2026) | 557 | 4.047 | 30.714 |
+| Longa (2016–2024) | 470 | 4.358 | 23.618 |
+| **Do paper** (2022-01-02 a 2024-12-29) | **157** | **9.022** | **39.552** |
+
+O número do paper é o da terceira linha. As duas primeiras são robustez declarada, e
+citar a de 557 semanas como referência faz o problema parecer mais fácil do que ele
+é. As três vivem em `data/forecast/`, e a tabela com o comando que produz cada uma
 está em [`src/forecast/README.md`](../src/forecast/README.md) §1. A janela do paper
 exige as duas flags juntas (`--to-year 2024 --score-from 2022`); só `--score-from`
 deixa o painel ir até 2026 e devolve 244 semanas pontuadas, não 157.
@@ -166,7 +182,7 @@ deixa o painel ir até 2026 e devolve 244 semanas pontuadas, não 157.
   construção. É a razão de o número principal ser BR.
 - **Semanas sem artigo.** A linha BR tem **965 semanas com pelo menos um artigo**
   dentro de um intervalo de 1.283 semanas — 318 semanas sem nenhum artigo, que
-  simplesmente não aparecem na tabela. Mascarar semana sem artigo e usar um
+  não aparecem na tabela. Mascarar semana sem artigo e usar um
   indicador explícito de "sem notícia", para o modelo distinguir ausência de sinal
   de sinal neutro. Nacionalmente são ~3,6 artigos/semana; numa UF, a maioria das
   semanas fica em zero.
@@ -191,18 +207,17 @@ deixa o painel ir até 2026 e devolve 244 semanas pontuadas, não 157.
       principal; **UF como robustez declarada**, com o tamanho do descompasso
       medido (ver "Riscos"). Log é decisão de modelo e pertence ao modelo.
 - [x] Escrever o baseline "sem texto" antes de qualquer representação — ele é a
-      barra. **Medido:** persistência MAE **9.022** e naive sazonal **39.552**
+      referência. **Medido:** persistência MAE **9.022** e naive sazonal **39.552**
       casos/semana na janela do paper (157 semanas, 2022-01-02 a 2024-12-29), com
-      treino desde 2014; na janela longa (470 semanas) 4.358 e 23.618. A
-      persistência é a barra de verdade: em horizonte de 1 semana a curva é quase
-      toda autocorrelação, e o naive sazonal paga 4,4× por ignorar a tendência
+      treino desde 2014; na janela longa de 2016–2024 (470 semanas), 4.358 e 23.618.
+      A persistência é a referência que vale: em horizonte de 1 semana a curva é
+      quase toda autocorrelação, e o naive sazonal paga 4,4× por ignorar a tendência
       entre anos. Falta o "sem texto" com busca e clima, que é o conjunto `+ busca`.
-- [ ] **Registrar aqui o ganho que conta como ganho**, em casos por semana, no
-      passo 2 do [plano](plano.md), antes de a primeira célula da grade ser
-      calculada. O número de comparações já está registrado acima (**oito**).
-      A palavra exata que o plano usa como confirmação deste registro não aparece
-      neste arquivo de propósito: escrevê-la antes da decisão faria o passo
-      parecer pronto.
+- [ ] **Registrar aqui a magnitude que o paper vai tratar como material**, em casos
+      por semana, no passo 2 do [plano](plano.md), antes de a primeira célula da
+      grade ser calculada. O número de comparações já está registrado acima
+      (**oito**). O plano confere este registro por um marcador que ainda não existe
+      neste arquivo; criá-lo antes da decisão faria o passo parecer pronto.
 - [ ] Decidir quais **uma ou duas codificadoras de embedding** entram na grade, e
       declarar as outras como robustez.
 

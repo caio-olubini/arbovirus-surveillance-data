@@ -27,9 +27,10 @@ Regra de ouro: se daqui a seis meses você ler o arquivo e não souber *o que er
 | 01 | [Léxico PT-BR + regras](01-lexico-regras.md) | concorrente | testando |
 | 02 | [Embeddings densos + pooling por EW](02-embeddings-densos.md) | concorrente | testando |
 | 03 | [Topic modeling temporal](03-topic-modeling.md) | concorrente | testando |
-| 04 | [Extração estruturada por LLM](04-llm-extracao-estruturada.md) | corredor por fora | ideia |
+| 04 | [Extração estruturada por LLM](04-llm-extracao-estruturada.md) | corredor por fora | standby — 2026-11-21 |
 | 05 | [LLM como forecaster / agente](05-llm-forecaster.md) | corredor por fora | ideia |
-| 06 | [Como a linha desenha o experimento](06-desenho-do-experimento.md) | apoio — baselines e backbone com citação | testando — 2026-11-20 |
+| 06 | [Como a linha desenha o experimento](06-desenho-do-experimento.md) | apoio — baselines e modelo com citação | testando — 2026-11-21 |
+| — | [Revisão de literatura](revisao-bibliografica.md) | resumo — o que a área fez, até onde chegou | ativo — 2026-11-21 |
 | — | [Ideias soltas](ideias-soltas.md) | caixa de entrada | — |
 
 ## Decisões estruturais já tomadas
@@ -58,8 +59,9 @@ estão em [plano.md](plano.md).
 A revisão do [protocolo 00](00-protocolo-comparacao.md) tirou clima e busca das
 condições fixas e transformou os quatro blocos de feature em conjuntos: `histórico` →
 `+ clima` → `+ busca` → `+ texto`, em dois tipos de modelo. O artigo reporta os três
-ganhos entre conjuntos, não um número único; o conjunto de texto tem que bater duas
-barras — o conjunto anterior e o ensemble sem texto —, o que dá oito comparações. Em
+ganhos entre conjuntos, não um número único; o conjunto de texto é comparado com
+dois resultados — o conjunto anterior e o ensemble sem texto —, o que dá oito
+comparações. Em
 granularidade, **BR é o número principal e a UF é robustez declarada**: medida e
 reportada, não "se der tempo", pelo mesmo motivo de antes — o corpus é de uma fonte
 nacional e as linhas de UF são atribuição, não partição. Horizonte: **1 semana no
@@ -97,12 +99,12 @@ não camada de modelo. Granularidade: **BR e por UF** onde fizer sentido.
   locativa** no texto, não contagem por estado — um artigo que cita três estados
   conta nos três, então as linhas de UF somam 7.223 menções para 4.369 artigos
   nacionais e **não somam a linha BR**.
-- **318 semanas do intervalo não têm artigo nenhum** e simplesmente não aparecem na
+- **318 semanas do intervalo não têm artigo nenhum** e não aparecem na
   tabela: a linha BR tem 965 semanas com pelo menos um artigo num intervalo de
   1.283. Semana sem notícia é ausência de sinal, e o modelo precisa de um indicador
   explícito para não ler isso como sinal neutro.
 - SINAN cobre 2014–2026; GT cobre **2020-01-26 a 2024-12-29**. O overlap dos três é
-  curto de verdade: com 104 semanas mínimas de treino, a grade só é avaliável em
+  curto: com 104 semanas mínimas de treino, a grade só é avaliável em
   **157 semanas** (2022-01-02 a 2024-12-29), e menos nos conjuntos que usam busca.
 - **O corpus atravessa duas gerações de template** (redesign ~2014, que coincide
   com o início da cobertura do SINAN). Era B (2002–2014) põe o corpo em

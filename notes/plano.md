@@ -30,11 +30,18 @@ Natal e no Ano Novo, então contam meio período.
 
 ### Passo 1 — Conferir o levantamento de literatura · até 2026-11-27
 
-- [ ] ler [06](06-desenho-do-experimento.md) e decidir o que fica — confirma: as
-      cinco fontes marcadas como não verificadas ficam resolvidas ou cortadas
-- [ ] conferir a revisão do protocolo 00: clima e busca saíram das condições
+- [x] ler [06](06-desenho-do-experimento.md) e decidir o que fica — confirma: as
+      cinco fontes marcadas como não verificadas ficam resolvidas ou cortadas.
+      **Feito em 2026-11-21**: as cinco confirmadas por Crossref, OpenAlex e
+      Europe PMC, nenhuma cortada, e os metadados entraram no
+      [references.csv](../articles/references.csv)
+- [x] conferir a revisão do protocolo 00: clima e busca saíram das condições
       fixas, viraram conjuntos comparados; 8 células; oito comparações —
-      confirma: `00-protocolo-comparacao.md` aceito ou corrigido por você
+      confirma: `00-protocolo-comparacao.md` aceito ou corrigido por você.
+      **Feito em 2026-11-21**: corrigido por você — a abertura passou a dizer o
+      que o artigo pergunta, a linha do modelo deixou de fixar um modelo único,
+      a extração por LLM ficou marcada como standby e as três janelas de
+      pontuação passaram a ter nome
 
 ### Passo 2 — O avaliador fechado · até 2026-12-04
 
@@ -80,7 +87,7 @@ Natal e no Ano Novo, então contam meio período.
 
 - [ ] conjunto `+ texto` nos dois tipos de modelo — confirma:
       `data/forecast/grid/texto__*_metrics.parquet`
-- [ ] ensemble sem texto, a segunda barra do `+ texto` — confirma:
+- [ ] ensemble sem texto, a segunda comparação do `+ texto` — confirma:
       `data/forecast/ensemble/*_metrics.parquet`
 - [ ] Resultados §conjuntos de features escrito
 
@@ -158,10 +165,11 @@ a frase que resume cada decisão, porque cada passo da lista depende delas.
 5. **Brasil é o número principal; UF é robustez declarada** — declarado quer dizer
    medido e reportado à parte.
 6. **Métrica principal: WIS/CRPS**, que pontua a distribuição; MAE ao lado.
-7. **Regra de decisão:** o conjunto `+ texto` bate duas barras — o conjunto
-   anterior e o ensemble sem texto. São **oito comparações** na correção para
-   comparações múltiplas, e o valor mínimo do ganho é declarado antes de existir
-   resultado.
+7. **Regra de decisão:** o conjunto `+ texto` é comparado com dois resultados — o
+   conjunto anterior e o ensemble sem texto. São **oito comparações** na correção
+   para comparações múltiplas, e o valor mínimo do ganho é declarado antes de
+   existir resultado. O que o artigo reporta é o ganho medido, com a incerteza, e
+   a discussão do que ele indica — não um conjunto declarado vencedor.
 8. **A ablação sem texto é o conjunto `+ busca`**, não o `histórico`.
 9. **Uma ou duas codificadoras de embedding na grade**; as outras variam como
    robustez declarada.
@@ -229,7 +237,7 @@ omissão:
 
 - **O prazo é imposto pelo programa ou autoimposto?** Se for negociável, os passos
   11 e 12 são o que ganharia prazo. Se for imposto, os pontos de corte são a única
-  alavanca.
+  margem de manobra.
 - **O orientador e a banca precisam concordar com o redesenho?** A pergunta do
   paper mudou de "qual representação de notícia" para "quais features valem a pena
   incluir", e o desenho passou de três braços para 8 células em dois horizontes.

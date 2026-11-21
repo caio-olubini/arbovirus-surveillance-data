@@ -1,7 +1,7 @@
 # 06 — Como a linha desenha o experimento
 
-**Estado:** testando — 2026-11-20
-**Papel no artigo:** apoio — dá citação aos baselines e ao backbone do
+**Estado:** testando — 2026-11-21
+**Papel no artigo:** apoio — dá citação aos baselines e ao modelo do
 [protocolo 00](00-protocolo-comparacao.md), e é o levantamento de literatura do
 passo 1 do [plano](plano.md). As citações já foram levadas para lá em 2026-11-20.
 
@@ -13,7 +13,7 @@ sobre representação de texto).
 ## Por que este arquivo existe
 
 O protocolo 00 fixa as condições que valem em todos os conjuntos, mas escrevia "TFT
-early-fusion" como backbone e listava quatro baselines **sem uma citação sequer** —
+early-fusion" como modelo único e listava quatro baselines **sem uma citação sequer** —
 e o [plano](plano.md) §6 diz que o levantamento de literatura é o que fecha a
 grade, porque "abordagem mais simples" precisa de citação, não de invenção. (A
 pendência foi fechada em 2026-11-20: o protocolo 00 agora nomeia e cita.)
@@ -35,8 +35,8 @@ que **ninguém faz** (logo, é onde a contribuição mora).
 | Janela mínima | 104 semanas de treino | idem (tabela de decisões) |
 | Métricas | MAE, RMSE, MAPE **e** WIS/CRPS/cobertura | [protocolo 00](00-protocolo-comparacao.md) |
 | Baselines | naive (persistência e sazonal), SARIMA/SARIMAX, InfoDengue-bayesiano, só-busca e ensemble — **com citação** | idem; tabela de baselines abaixo e [protocolo 00](00-protocolo-comparacao.md) |
-| Backbone | TFT early-fusion, o mesmo para todos os braços | idem — citação: Lim 2021 |
-| Barra medida | persistência MAE **9.022**, naive sazonal **39.552** casos/semana, na janela do paper (157 semanas); na janela longa (470 semanas, 2016–2024), 4.358 e 23.618 | [src/forecast/README.md](../src/forecast/README.md) |
+| Modelo | o mesmo modelo *simples* e o mesmo *sequencial* em todos os conjuntos — o que varia entre eles é só o bloco de feature | [protocolo 00](00-protocolo-comparacao.md) — citação de fusão: Lim 2021 |
+| Referência medida | persistência MAE **9.022**, naive sazonal **39.552** casos/semana, na janela do paper (157 semanas); na janela longa (470 semanas, 2016–2024), 4.358 e 23.618 | [src/forecast/README.md](../src/forecast/README.md) |
 
 ## A tabela da linha
 
@@ -66,7 +66,7 @@ e o avaliador já aceita horizonte maior. Mas **passa a ser desvio declarado**, 
 padrão do campo, e por isso **h=4 entra medido como robustez** em vez de ficar como
 trabalho futuro (decidido em 2026-11-20).
 
-O custo de teto é real e agora está medido na janela certa: na janela do paper a
+E o número da janela certa é mais duro: na janela do paper a
 persistência dá MAE **9.022** em BR — 2,1× o número da janela de 2016–2024 (4.358),
 porque 2024 foi ano recorde e a curva sobe de patamar. Em horizonte curto a série é
 quase toda autocorrelação, então o espaço para a feature multimodal aparecer é
@@ -84,7 +84,7 @@ Três coisas diferentes circulam na literatura sob o nome "prever dengue":
 - **Proxy**: casos prováveis em vez de suspeitos (Freitas 2025), ou hospitalizações.
 
 O SINAN **reescreve a série** retroativamente, e é isso que torna a distinção
-obrigatória: Bastos 2019 modela exatamente esse atraso (estrutura de run-off
+obrigatória: Bastos 2019 modela esse atraso (estrutura de run-off
 triangle, INLA bayesiano), ilustrando com dengue no Rio de Janeiro e SARI no Paraná.
 Sem declarar o corte de maturidade, dois números de "nowcast" não são comparáveis.
 
@@ -133,7 +133,7 @@ Duas práticas que a linha adota e nós não:
 
 - **Janela explícita em semanas**: Xiao 2025 usa 156 semanas (3 anos), com
   sensibilidade em 1 e 2 anos, e **exclui 2020** como ano anômalo (COVID). Nosso
-  mínimo é 104 semanas e **não excluímos ano nenhum** — a barra inclui 2020 e
+  mínimo é 104 semanas e **não excluímos ano nenhum** — a janela inclui 2020 e
   inclui 2024, que foi recorde. A nossa janela pontuada é de 157 semanas (a do
   Xiao, de avaliação, tem 46 nowcasts), então a comparação de tamanho é favorável
   a nós; a de alvo, não (ver eixo 2).
@@ -142,12 +142,12 @@ Duas práticas que a linha adota e nós não:
 
 Excluir 2020 é uma decisão declarada deles, não uma verdade. A nossa versão disso
 já existe como robustez (o avaliador mede com e sem 2024), mas 2020 ainda não foi
-testado — e é o ano que pode estar inflando a barra de persistência para cima.
+testado — e é o ano que pode estar inflando o resultado da persistência.
 
 ### 6. Split
 
 Tashman 2000 é a referência canônica de avaliação fora da amostra por origem
-móvel ("rolling origin"), com refit a cada origem — exatamente o que
+móvel ("rolling origin"), com refit a cada origem — que é o que
 `rolling_origin` faz. Bergmeir & Benítez 2012 é o complemento: mostra **quando** a
 validação cruzada é uma aproximação aceitável de erro fora da amostra em séries
 temporais, e quando não é. O nosso desenho (refit só com o passado) está no lado
@@ -164,7 +164,7 @@ conservador dos dois — não é eixo de divergência, mas agora tem citação.
 - **Logscore e cobertura**: Xiao 2025 reporta logscore e cobertura de 50% e 95%.
   Detalhe revelador: **InfoDengue ficou de fora da comparação de cobertura** (emite
   no nível municipal, não no estadual) e **o naive também** (é pontual). É
-  exatamente o buraco que a fatia 2 fecha ao exigir quantis de **todo** mundo,
+  o buraco que a fatia 2 fecha ao exigir quantis de **todo** mundo,
   inclusive dos dois ingênuos. Nenhum número de WIS é comparável entre estudos se
   um deles não emite distribuição.
 - **MAPE**: é o que a linha mais reporta e o que menos aguenta alvo perto de zero.
@@ -188,28 +188,28 @@ fatia 12.
 
 ## Baselines consagrados — a lista que o protocolo 00 pode citar
 
-A melhor notícia desta leitura: **o conjunto de baselines do Xiao 2025 é quase
-idêntico ao que o protocolo 00 declarou de memória.** O protocolo deixa de ser
+O conjunto de baselines do Xiao 2025 é quase
+idêntico ao que o protocolo 00 declarou de memória. O protocolo deixa de ser
 "nossos baselines" e passa a ser "os baselines que a linha usa".
 
 | Baseline | Quem usa | O que ele testa |
 |---|---|---|
-| Persistência (casos da semana anterior) | Xiao 2025 ("naive"); a tradição vem de Tashman 2000 | a barra mínima de qualquer modelo |
+| Persistência (casos da semana anterior) | Xiao 2025 ("naive"); a tradição vem de Tashman 2000 | o resultado mais simples que existe; serve de referência para os demais |
 | SARIMA só com casos | Xiao 2025 ("DC"); Chen & Moraga 2025 (ARIMA) | o que o histórico sozinho entrega |
 | SARIMAX casos + Google Trends | Xiao 2025 ("DCGT"); Chen & Moraga 2025 (SARIMAX) | o que a busca acrescenta ao histórico |
 | Modelo linear **só** com Google Trends | Xiao 2025 ("GT") | se a busca substitui o alvo |
 | InfoDengue bayesiano (binomial negativa hierárquica) | Xiao 2025; Codeço 2018; Bastos 2019 | o padrão operacional brasileiro |
 | Naive sazonal (mesma semana do ano anterior) | tradição de competição (Tashman 2000); já medido por nós em 39.552 (janela do paper) | quanto custa ignorar a tendência entre anos |
-| **Ensemble de todos os modelos** | Johansson 2019; Wu 2025 | o teto realista — é o que ganha nos dois |
+| **Ensemble de todos os modelos** | Johansson 2019; Wu 2025 | a média de vários modelos é o resultado difícil de superar em horizonte curto: em Johansson 2019 fica à frente dos modelos individuais, em Wu 2025 fica no top-3 em 180+ localidades |
 | **Sem texto / controle negativo** | não é baseline do campo; é nosso | se o texto está sendo usado — Tan et al. 2024 (arXiv:2406.16964) |
 
 **Já no nosso protocolo:** o ensemble. Johansson 2019 mostra que ensemble
 multi-modelo e multi-equipe bate modelo individual de forma consistente, e Wu 2025
 mostra o ensemble no top-3 em 180+ localidades. É barato (média das células da
 grade). **Entra — decidido em 2026-11-20**, com um detalhe que a leitura forçou: o
-ensemble **sem texto** é que entra na regra de decisão, como segunda barra do conjunto
-de texto; o ensemble **global** fica descritivo, porque ele contém as células que
-estão sendo julgadas.
+ensemble **sem texto** é que entra na regra de decisão, como a segunda comparação do
+conjunto de texto; o ensemble **global** fica descritivo, porque ele contém as
+mesmas células que estão sendo comparadas.
 
 **E o InfoDengue entra com prazo fechado** (2026-11-20). Ele é o único baseline
 caro da lista: reimplementar a binomial negativa hierárquica é um projeto dentro do
@@ -222,29 +222,53 @@ acontece é ele consumir o prazo do paper.
 - **Simples (tabular)**: regressão, random forest, XGBoost, SVM — é o que Chen &
   Moraga 2025 compara contra os estatísticos, e o que Wu 2025 usa como componentes.
   É o tipo *simples* da grade.
-- **Sequencial**: LSTM/GRU — no Chen & Moraga 2025 o LSTM com covariáveis de clima
-  foi o ML mais acurado (e o mais lento); Chen & Moraga 2025 também é a fonte do
-  grão de clima UF × EW com lags lidos por SHAP.
+- **Sequencial**: LSTM/GRU — no Chen & Moraga 2025 (*Trop Med Health*, Rio de
+  Janeiro) o LSTM com covariáveis de clima foi o ML mais acurado, exceto em 12
+  semanas, onde o Prophet com covariáveis ganha. O grão de clima **UF × EW com
+  lags lidos por SHAP** é do **outro** paper deles (Chen & Moraga 2025, *BMC Public
+  Health*, doi:10.1186/s12889-025-22106-7) — são dois papers do mesmo primeiro
+  autor no mesmo ano, e este arquivo os fundia numa citação só (corrigido em
+  2026-11-21).
 - **Fusão multimoda**: **TFT** (Lim et al. 2021, Int. J. Forecasting 37(4):1748–1764,
-  arXiv:1912.09363) é a citação que falta para o backbone do protocolo 00 —
+  arXiv:1912.09363) é a citação que falta para o modelo do protocolo 00 —
   multi-horizonte, atenção interpretável, aceita covariáveis estáticas e
-  conhecidas no futuro, que é exatamente o formato do nosso problema (o calendário
+  conhecidas no futuro, que é o formato do nosso problema (o calendário
   é conhecido; a notícia não é).
 - **Controle negativo**: Tan et al. 2024 (arXiv:2406.16964) — remover o componente
   de LLM empata ou melhora. Já citado no protocolo 00, e é o que justifica a
   ablação obrigatória.
 
-**A lacuna que sobra é a nossa.** As quatro famílias de literatura lidas
-(embeddings, features de texto, tópicos, extração por LLM) não têm um tipo de
-modelo consagrado para fundir texto com um alvo preditivo: a ponte entre representação e
-vigilância não foi construída ([articles/embeddings/relatorio.md:71](../articles/embeddings/relatorio.md))
-e a extração é sempre por documento, nunca como série
+**A lacuna que sobra é a nossa — e ela é mais estreita do que parecia.** O campo
+mede duas coisas separadas: *quão bem lê o texto* (classificação de relevância,
+extração de entidade, qualidade do vetor — medidos em similaridade intrínseca) e
+*quão bem prevê casos* (Sprint 2026, Chen & Moraga 2025, Silva & Nery 2026,
+Palmer 2026). **A ponte entre as duas nunca foi construída**: nenhum trabalho
+levantado mede se a escolha da representação de texto muda a previsão
+([articles/embeddings/relatorio.md:71](../articles/embeddings/relatorio.md)), e a
+extração é sempre por documento, nunca como série
 ([articles/llm-extracao/relatorio.md:113](../articles/llm-extracao/relatorio.md)).
-Ou seja: **a grade é nossa**, e é isso que ela tem de contribuição.
+Do lado que prevê casos, **um único estudo** confronta uma representação
+de notícia com um baseline que a dispensa — Ghosh 2017 —, um passo à frente, sem
+métrica probabilística e sem replicação.
+
+**Duas ressalvas que a frase de novidade precisa carregar.**
+
+A primeira: a pergunta *"qual a contribuição relativa de cada fonte de dado"* **já
+foi feita** — Koplewitz 2022, para clima e busca, em 20 cidades brasileiras. O que
+não foi feito é essa mesma pergunta com **texto jornalístico como um bloco**, em
+BR/UF, sob pontuação probabilística e com comparações pareadas corrigidas. A
+diferença é de escopo, e tem de estar escrita — sem isso, um revisor aponta.
+
+A segunda: **arquitetura não é a contribuição.** Silva & Nery 2026 (o gradient
+boosting bate a rede sequencial em 27 capitais), Palmer 2026 (com dado em tempo, o
+modelo mais simples ganha) e a Sprint 2024 no *PNAS* (nenhum modelo domina; o
+ensemble ganha) dizem a mesma coisa por caminhos independentes: complexidade não é
+o eixo. **A grade é nossa, e o que ela mede é o valor do bloco de feature.**
+Declarar isso evita que um revisor leia o paper como mais um benchmark de modelos.
 
 ## O que isso muda no nosso desenho
 
-1. **Baselines e backbone ganham citação** — Xiao 2025 e Chen & Moraga 2025 para
+1. **Baselines e modelo ganham citação** — Xiao 2025 e Chen & Moraga 2025 para
    os seis baselines, Johansson 2019 e Wu 2025 para o ensemble, Lim 2021 para o
    TFT. Era a pendência que o protocolo 00 tinha em aberto, e ela está fechada.
 2. **Horizonte 1 semana vira desvio declarado, e h=4 entra medido como robustez**
@@ -260,26 +284,27 @@ Ou seja: **a grade é nossa**, e é isso que ela tem de contribuição.
    nosso: é o que o Xiao 2025 não conseguiu fazer e por isso comparou cobertura
    com dois modelos a menos.
 6. **Ensemble entra como baseline** — decidido em 2026-11-20 (Johansson 2019; Wu
-   2025). É o adversário que a linha de fato considera, e é barato: a média das
+   2025). É a referência que a linha usa, e é barato: a média das
    células da grade.
 7. **Retrospectivo** é limitação declarada; **EPIFORGE 2020** é o checklist de
    reporte para rodar na fatia 12.
 
 **O que a revisão de 2026-11-20 mudou no desenho**, além dos itens 2, 3 e 6 acima:
 
-8. **O resultado são os ganhos acumulados entre conjuntos, não um número.** São três
-   ganhos (`+clima − histórico`, `+busca − +clima`, `+texto − +busca`), cada um nos dois
+8. **O resultado é um conjunto de ganhos medidos, não um número.** São três
+   (`+clima − histórico`, `+busca − +clima`, `+texto − +busca`), cada um nos dois
    tipos de modelo. Não existe "o ganho da notícia" em número único — o campo
    reporta número único porque compara modelos, e nós comparamos **blocos de
    feature**.
-9. **O conjunto de texto bate duas barras**: o conjunto anterior e o ensemble sem
-   texto. Wu 2025 e Johansson 2019 dizem por quê — em horizonte curto a média de
-   vários modelos é adversário forte, então "ganhou do conjunto anterior" pode ser o
-   texto compensando um modelo mal ajustado. São **oito comparações** ao todo.
-10. **A barra é remedida na janela do paper.** A persistência passa de MAE 4.047
-    (557 semanas, 2014–2026) para **9.022** (157 semanas, 2022–2024). Não é
+9. **O conjunto de texto é comparado com dois resultados**: o conjunto anterior e o
+   ensemble sem texto. Wu 2025 e Johansson 2019 dizem por quê — em horizonte curto a
+   média de vários modelos é um número difícil de superar, então um ganho medido só
+   contra o conjunto anterior pode vir do texto compensando um modelo mal ajustado.
+   São **oito comparações** ao todo.
+10. **A referência é remedida na janela do paper.** A persistência passa de MAE
+    4.047 (557 semanas, 2014–2026) para **9.022** (157 semanas, 2022–2024). Não é
     mudança de método: é que o número antigo media outra janela, e uma janela com
-    2024 dentro é mais difícil. Reportar 4.047 como "a barra" fazia o problema
+    2024 dentro é mais difícil. Reportar 4.047 como referência fazia o problema
     parecer mais fácil do que é.
 11. **Uma ou duas codificadoras de embedding na grade**, não uma por variante —
     há **seis** no disco. As outras viram robustez declarada. Foi o maior corte de
@@ -290,8 +315,10 @@ Ou seja: **a grade é nossa**, e é isso que ela tem de contribuição.
 ## Fontes trazidas
 
 **Lançadas em `articles/references.csv` em 2026-11-20** — 13 linhas novas, com os
-metadados puxados do Crossref (nada digitado de memória). Abaixo a versão legível,
-com o motivo de cada uma:
+metadados puxados do Crossref (nada digitado de memória). **Outras cinco entraram
+em 2026-11-21**, na verificação das candidatas — ver a seção [Fontes
+verificadas](#fontes-verificadas--2026-11-21) adiante. Abaixo a versão legível das
+13 primeiras, com o motivo de cada uma:
 
 | Citação | DOI | Por que importa |
 |---|---|---|
@@ -307,39 +334,45 @@ com o motivo de cada uma:
 | Chen X, Moraga P 2025. Assessing dengue forecasting methods: a comparative study of statistical models and machine learning techniques in Rio de Janeiro, Brazil. *Trop Med Health* 53:52 | 10.1186/s41182-025-00723-7 | horizontes 1–4 e 8–12 semanas, janela móvel, estatísticos × ML × ensemble |
 | Codeço C, Coelho F, Cruz O, Oliveira S, Castro T, Bastos L 2018. Infodengue: a nowcasting system for the surveillance of arboviruses in Brazil. *Rev Épidémiol Santé Publique* 66:S386 | 10.1016/j.respe.2018.05.408 | citação canônica do InfoDengue, o baseline operacional brasileiro |
 | Bastos LS, Economou T, Gomes MFC, et al. 2019. A modelling approach for correcting reporting delays in disease surveillance data. *Stat Med* 38(22):4363–4377 | 10.1002/sim.8303 | o atraso de notificação que obriga a declarar o corte de maturidade |
-| Lim B, Arik SO, Loeff N, Pfister T 2021. Temporal Fusion Transformers for interpretable multi-horizon time series forecasting. *Int J Forecasting* 37(4):1748–1764 | 10.1016/j.ijforecast.2021.03.012 (arXiv:1912.09363) | a citação que falta para o backbone TFT do protocolo 00 |
+| Lim B, Arik SO, Loeff N, Pfister T 2021. Temporal Fusion Transformers for interpretable multi-horizon time series forecasting. *Int J Forecasting* 37(4):1748–1764 | 10.1016/j.ijforecast.2021.03.012 (arXiv:1912.09363) | a citação que falta para o modelo TFT do protocolo 00 |
 
-## Fontes candidatas — ainda não verificadas
+## Fontes verificadas — 2026-11-21
 
-Nenhuma afirmação desta nota depende delas. Ficam como leads, com o que falta
-checar:
+As cinco candidatas que ficavam aqui **foram confirmadas** e nenhuma foi cortada.
+A verificação foi por Crossref, OpenAlex e Europe PMC — não pelas páginas dos
+editores, que davam 403 e reCAPTCHA. Os metadados completos estão em
+`articles/references.csv` (linhas acrescentadas em 2026-11-21) e os PDFs de acesso
+aberto em `articles/`.
 
-- **Dengue Forecasting Sprint brasileira, 2024/2025** — Araujo et al., medRxiv
-  (**não verificado** — checar; 10.1101/2025.05.12.25327419). O preprint deu 403 no
-  acesso direto. O que apareceu em busca (6 equipes, 5 estados, temporadas EW 41 →
-  EW 40, foco probabilístico, ensemble adotado para 2025) **não foi confirmado no
-  texto** e não deve ser citado como número.
-- **Silva & Nery, "Comparative evaluation of machine learning strategies for
-  short-term dengue forecasting in Brazilian capital municipalities"** —
-  Int J Biometeorol (**não verificado** — checar; PubMed 42599321). Se confirmado,
-  é o par brasileiro mais próximo em grão municipal.
-- **"Predicting dengue incidence leveraging internet-based data sources. A case
-  study in 20 cities in Brazil"** — *PLoS Negl Trop Dis* e0010071
-  (**não verificado** — checar). Interessa pelo desenho multi-cidade com dado de
-  internet.
-- **ARBOALVO** — *PLoS Negl Trop Dis* (**não verificado** — checar;
-  10.1371/journal.pntd.0012984).
-- **"Dengue hospitalizations in Brazil: Forecasting with climatic and physicians'
-  digital search data under real-world reporting delays"** — *PLOS Digital Health*
-  (**não verificado** — checar). Alvo alternativo (hospitalizações) com atraso de
-  reporte declarado; pode ser o desenho mais próximo em tratamento de atraso.
-- Os **detalhes do Chen & Moraga 2025** (horizontes, lista de modelos) vêm do
-  resumo de busca: o texto completo no PMC deu reCAPTCHA e o medRxiv deu 403.
-  A citação em si está verificada; os **números** de desenho, não.
+| Fonte | O que é | Por que importa aqui |
+|---|---|---|
+| **Araujo et al. 2026**, *PNAS* 123(7):e2508989123 — [doi](https://doi.org/10.1073/pnas.2508989123) | A *Dengue Forecasting Sprint* (IMDC24): seis equipes internacionais, cinco estados brasileiros, temporadas 2024 e 2025, casos e clima; o ensemble foi adotado pelas autoridades de saúde. **É artigo publicado — o que circulava era preprint** | A iniciativa nacional da linha. Sustenta o ensemble como o resultado difícil de superar: nenhum modelo domina |
+| **Silva & Nery 2026**, *Int J Biometeorol* 70(8):233 — [doi](https://doi.org/10.1007/s00484-026-03300-7) | 27 capitais, horizontes até 4 semanas, GRU (MIMO) contra CatBoost (direto), validação walk-forward. O GRU subajusta; o CatBoost ganha na maioria | É o nosso par de tipos de modelo, no Brasil, com a mesma validação. É a evidência de que complexidade não é o eixo |
+| **Koplewitz et al. 2022**, *PLoS NTD* 16(1):e0010071 — [doi](https://doi.org/10.1371/journal.pntd.0010071) | 20 cidades brasileiras, semanal: termos sazonais autorregressivos + clima + busca na internet, com random forest e LASSO | **O mais próximo da nossa pergunta.** O resumo diz que "pouco trabalho foi feito para entender a contribuição relativa das diferentes fontes de dado". A frase de novidade precisa se diferenciar dele explicitamente |
+| **Palmer et al. 2026**, *PLOS Digit Health* 5(5):e0001206 — [doi](https://doi.org/10.1371/journal.pdig.0001206) | Internações por dengue no Brasil, várias regiões: clima + registros de busca de **médicos**, em dois cenários — dado imediato e com atraso de notificação real | Com dado em tempo os modelos **mais simples** ganham; sob atraso, o sinal de busca passa a ajudar. Sustenta a contra-evidência |
+| **ARBOALVO (Alves et al. 2025)**, *PLoS NTD* 19(4):e0012984 — [doi](https://doi.org/10.1371/journal.pntd.0012984) | **Corrigido:** não é sistema nacional. É um modelo bayesiano espaçotemporal para **uma cidade** — Natal/RN, por bairro, 2015–2018, INLA, previsão de 4 semanas | Citação de contexto. Fora do eixo do paper |
+
+**O que a verificação corrigiu, além das cinco:**
+
+- A **ARBOALVO** estava descrita como sistema nacional; é um modelo de uma cidade.
+- A atribuição do **Chen & Moraga** estava trocada — ver a seção de tipos de modelo.
+- A **Sprint** subiu de preprint para artigo publicado no *PNAS*.
+- Os números de desenho do **Chen & Moraga** (*Trop Med Health*) foram confirmados
+  no texto: Rio de Janeiro, dados do InfoDengue 2016–2023, horizontes de 1, 2, 3, 4,
+  8 e 12 semanas, janela móvel de 6 anos, e o LSTM com covariáveis de clima como o
+  ML mais acurado — exceto em 12 semanas, onde o Prophet com covariáveis ganha.
+
+**O que a verificação não fechou:** a pergunta "alguém já usou um LLM para extrair
+features de notícia e aplicar em dengue?" não tem resposta de censo — a checagem
+foi por busca, não revisão sistemática. O que ela mostrou é que a fronteira
+"LLM + texto + previsão de doença" **se encheu em 2025–2026**, sempre em outra
+doença (COVID, influenza, respiratórias, HFMD) e nunca em dengue nem em português.
+O que segue sem resposta medida é o que este paper mede: **o bloco de texto paga o
+próprio custo?** O caminho [04](04-llm-extracao-estruturada.md) registra isso.
 
 ## Contra-evidência
 
-- **O ganho pode simplesmente não existir.** Johansson 2019: skill baixo no início
+- **O ganho pode não existir.** Johansson 2019: skill baixo no início
   da temporada, e **mais baixo nas temporadas de alta incidência** — justamente
   onde a previsão valeria mais. Modelos que incluíam mais dado biologamente
   informativo tiveram skill **médio menor** que os simples.
@@ -365,7 +398,7 @@ checar:
 ## Pendências / próximo passo
 
 - [x] **Levar as citações para dentro do protocolo 00**: os seis baselines mais o
-      ensemble, e o backbone TFT (Lim 2021) — **feito em 2026-11-20**, na revisão
+      ensemble, e o modelo TFT (Lim 2021) — **feito em 2026-11-20**, na revisão
       abaixo.
 - [x] **Revisar o protocolo 00 tirando clima e busca das condições fixas** — o
       marcador `#comparados` da fatia 1. **Feito em 2026-11-20**: a revisão também
@@ -387,8 +420,16 @@ checar:
       este arquivo já diz o porquê; falta a redação no manuscrito.
 - [ ] **Rodar o manuscrito contra EPIFORGE 2020** antes da fatia 12.
 - [x] **Inserir os DOIs da tabela de fontes no `articles/references.csv`** — feito
-      em 2026-11-20 (13 linhas).
-- [ ] **Verificar as cinco candidatas** marcadas acima.
+      em 2026-11-20 (13 linhas) e ampliado em 2026-11-21 (mais 5, na verificação
+      das candidatas).
+- [x] **Verificar as cinco candidatas** — feito em 2026-11-21: as cinco
+      confirmadas, nenhuma cortada, e os resultados estão na seção
+      [Fontes verificadas](#fontes-verificadas--2026-11-21). A verificação também
+      corrigiu a descrição da ARBOALVO e a atribuição do Chen & Moraga, e trocou a
+      Sprint pelo artigo publicado no *PNAS*.
 - [ ] **Baixar os PDFs de acesso aberto** (Bracher 2021, Xiao 2025, Freitas 2025,
       Johansson 2019/PMC, Wu 2025, Chen & Moraga 2025) e arquivar em
-      `articles/` — lembrando que PDF sob `articles/` é gitignored de propósito.
+      `articles/` — lembrando que PDF sob `articles/` é gitignored por escolha.
+      **Já baixados em 2026-11-21** para as cinco verificadas, exceto a Sprint
+      (`07`, fechada no PNAS): Koplewitz (`08`), Silva & Nery (`09`), ARBOALVO
+      (`10`) e Palmer (`11`).
