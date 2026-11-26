@@ -7,22 +7,30 @@ até onde cada estudo chegou, qual o estado da arte".
 
 ## Para que serve
 
-Esta nota junta num texto só o que está espalhado em cinco lugares: os quatro
-relatórios de estado da arte das famílias de representação de texto — [léxico e
-regras](../articles/features-texto/relatorio.md), [vetores densos de texto
-(embeddings)](../articles/embeddings/relatorio.md), [agrupamentos temáticos
-(tópicos)](../articles/topicos/relatorio.md) e [extração estruturada por modelo
-de linguagem (LLM)](../articles/llm-extracao/relatorio.md) — mais o levantamento
-de desenho de experimento de [06](06-desenho-do-experimento.md). Todo número
-citado abaixo vem de um desses arquivos, e o caminho de volta aparece fechando
-cada seção.
+Esta nota responde à pergunta "o que já foi feito na área, até onde cada estudo
+chegou" a partir dos artigos, não das sínteses escritas sobre eles. A base é o
+que está fichado em [articles/](../articles/README.md): 118 artigos, cada um com
+as afirmações que sustentam o texto, a frase literal do autor e o número da
+página — 590 afirmações ao todo. Onde um número decide uma frase, ele foi
+conferido no PDF do próprio artigo, porque a ficha registra cinco afirmações por
+artigo, e isso é uma seleção, não a extração inteira.
+
+**Até onde esta versão vai.** A família de léxico e de estatística de superfície
+(37 artigos) já foi reescrita sobre as fichas. As de vetores densos de texto
+(embeddings), de agrupamentos temáticos (tópicos), de extração estruturada por
+modelo de linguagem (LLM) e o desenho de previsão ainda vêm dos relatórios de
+família e da nota [06](06-desenho-do-experimento.md), e serão reescritas do
+mesmo modo. A seção [Fontes](#fontes-desta-nota) dá o caminho de volta de cada
+artigo citado.
 
 Uma ressalva vale para tudo o que segue. As quatro famílias saíram de busca
 sistemática com critérios explícitos de ano, volume de citações e qualidade do
-veículo. A de tópicos partiu de 3.935 candidatos e reteve 48; a de embeddings,
-de 1.057 e reteve 23; a de léxico, de 434 e reteve 35; a de LLM, de 916 e
-reteve 10. O corte por citações remove por construção trabalho antigo ou pouco
-citado. O que segue descreve uma amostra declarada, não um censo da área.
+veículo. A de tópicos partiu de 3.935 candidatos e reteve 48; a de vetores
+densos, de 1.057 e reteve 23; a de extração por modelo de linguagem, de 916 e
+reteve 10; a de léxico, de 434 e reteve 35 — mas a família tem 37 fichas, e as
+duas a mais estão registradas nas [pendências](#pendências). O corte por
+citações remove por construção trabalho antigo ou pouco citado. O que segue
+descreve uma amostra declarada, não um censo da área.
 
 ## A resposta curta
 
@@ -93,7 +101,8 @@ regressor externo. É o primeiro trabalho da amostra a confrontar uma
 representação de notícia com um baseline que dispensa notícia, e continua sendo
 o único a fazer isso com notícia de doença na escala de uma série temporal.
 No mesmo período, Dieng et al. (2019) põem tópicos e palavras no mesmo espaço
-vetorial, e a geometria dos embeddings vira tema: a média dos vetores de palavra
+vetorial, e a geometria dos vetores densos (embeddings) vira tema: a média dos
+vetores de palavra
 de um texto rende 54,81 de acurácia contra 29,19 do vetor do primeiro elemento
 da frase (token) e 61,32 do GloVe.
 
@@ -109,8 +118,8 @@ altos em país e doença e nulos em contagem.
 
 ## As cinco famílias, uma a uma
 
-As duas primeiras seções vêm do mesmo relatório
-([léxico](../articles/features-texto/relatorio.md)).
+As duas primeiras seções vêm da família de 37 artigos fichados em
+[articles/features-texto](../articles/features-texto/README.md).
 
 ### Léxico, regra e contagem
 
@@ -118,42 +127,114 @@ As duas primeiras seções vêm do mesmo relatório
 texto fala de doença, de que doença e onde. É a abordagem com maior histórico e
 a que sustenta os sistemas em operação.
 
-**Até onde chegou.** Nos campos fáceis, quase no limite: 95% em doença e
-hospedeiro, 94,8% no classificador do BioCaster. Nos campos difíceis, longe:
-80% em local, F1 76,97% na extração de nome de doença, 0,66 por sentença na
-classificação de evento do PADI-web. A pontualidade é o ponto mais disputado da
-área — Barboza et al. (2013) medem 10,2 dias de antecedência sobre a fonte
-oficial (intervalo de confiança de 95%: 6,7 a 13,8 dias) e o GPHIN é o primeiro
-a reportar 56% de 578 surtos, enquanto Ganser et al. (2022) encontram 73,5% dos
-eventos detectados alguma vez mas apenas 9,2% dentro de duas semanas, e 12 de 24
-países sem nenhuma detecção oportuna.
+**Nos campos fáceis, a abordagem chegou ao limite do que se mede.** A extração
+combinada do PADI-web acerta 95% em doença e hospedeiro e 85% em número de
+casos; o classificador de relevância do BioCaster acerta 94,8%, contra 92,1% de
+uma máquina de vetores de suporte no mesmo dado. Quando o PADI-web foi medido
+sobre 100 artigos anotados por dois epidemiologistas, caiu para 92% — cinco
+pontos abaixo dos 97,2% da validação cruzada —, e os autores registram a queda
+em vez de reportar só o número maior.
 
-**O limite declarado pelos próprios autores.** Ng et al. (2020) registram que
-nenhum sistema de vigilância baseada em evento incorpora um algoritmo de
-contagem de casos, e que os esquemas de marcação manual (anotação) não preveem o
-campo de contagem (Conway 2010, Chanlekha 2010). A concordância entre anotadores
-na contagem de eventos fica em 67%. Contagem acumulada não é tratada por nenhum
-trabalho da família.
+**Nos campos difíceis, ainda longe.** Local é o campo fraco: 80% no PADI-web e
+76,97% na extração de nome de doença no BioCaster. O HealthMap casa cada palavra
+contra um dicionário de mais de 2.300 padrões de lugar e 1.100 de doença. Acerta
+84% dos 778 alertas de um mês, e acerta 91% quando a fonte é o ProMED, curado à
+mão, contra 81% no Google News. Os sistemas mais novos de localização não
+resolvem o problema: numa comparação de 27 deles sobre 26 conjuntos públicos, 21
+passam de 0,7 de precisão e só 2 passam de 0,7 de revocação, a fração dos
+lugares mencionados que o sistema encontra.
+
+**A pontualidade é o ponto mais disputado da área.** Barboza et al. (2013)
+medem 10,2 dias de antecedência sobre a notificação oficial da OMS ou da OIE
+(intervalo de confiança de 95%: 6,7 a 13,8 dias), e 93% de sensibilidade quando
+os sete sistemas são somados. Barboza et al. (2014) medem 98% de 86 eventos
+detectados antes do boletim oficial. O GPHIN, medido pela própria OMS, foi a
+primeira fonte a captar 56% dos 578 surtos que a organização verificou entre
+1998 e 2001. Do outro lado, Ganser et al. (2022) encontram 73,5% dos surtos
+cobertos alguma vez, mas só 9,2% dentro de duas semanas em torno do início — e,
+entre os 24 países do estudo, o HealthMap não detectou nenhum surto a tempo em
+12 deles (50%). Bahk et al. (2015) medem o atraso pelo lado oposto: o relato
+oficial chega 1,26 dia depois da notícia (p = 0,002), e em 70% dos 111 surtos a
+notícia vem primeiro.
+
+Os dois lados dessa disputa medem objetos diferentes, e a diferença não se
+resolve. Barboza mede quantos dias o sinal de mídia precede a notificação
+oficial de um evento que já se conhece. Ganser mede se o sinal cai dentro de uma
+janela de tempo contada do início do surto, exista ou não notificação oficial.
+Antecedência contra um registro oficial, portanto, não se traduz por si só em
+alerta precoce, e o número de dias de vantagem depende inteiramente da
+referência escolhida.
+
+**O limite estrutural do dicionário.** Um dicionário reconhece só o que está
+cadastrado, e ampliá-lo é trabalho manual. Os próprios autores do HealthMap
+documentam o caso: a cidade de Fond du Lac aparece no texto de uma notícia, não
+está no dicionário e não é reconhecida. Brownstein et al. (2008) descrevem a
+manutenção das listas de doença e de lugar como ambígua, coloquial e sujeita a
+mudança. O HealthMap erra em 11% dos alertas no campo de local e 6% no de
+doença; sobre os 778 alertas de um mês, 123 (16%) precisaram de correção de um
+analista humano.
+
+**O limite que os próprios autores declaram.** Contagem de casos é o campo que
+nenhum sistema entrega. Ng et al. (2020) registram que nenhum sistema de
+vigilância baseada em evento incorpora um algoritmo que extraia contagem, e que
+existem apenas peças soltas para montá-lo. Os esquemas de marcação manual do
+texto (anotação) não carregam o campo, e a concordância entre anotadores depende
+do que se mede: é alta no tipo do evento (0,87 e 0,90 em Chanlekha et al., 2010)
+e baixa no número de eventos (67% em Conway et al., 2010). Carlson et al. (2023)
+são a exceção — 2.789 relatos oficiais lidos à mão, com campo de casos e de
+mortes —, e o preço é a leitura humana de cada relato.
+
+**O português aparece como ausência.** Collier (2010) registra que a epidemia de
+dengue no Ceará, entre julho e setembro de 2008, passou sem detecção, e atribui
+a falha à falta de capacidade em português naquele momento. You et al. (2020),
+sobre o Zika de 2016, encontram 162 relatos em português e 140 em espanhol,
+contra apenas 65 em inglês — e analisam só os ingleses. A língua que fica de
+fora é onde a doença estava.
 
 ### Estatística de superfície
 
 **O que faz.** Conta palavras, documentos por dia e tamanho de texto, sem
 vocabulário curado.
 
-**Até onde chegou.** É suficiente para triagem, e os números são estáveis entre
-estudos independentes: 97,2% e 92% de acurácia, 0,94 de área sob a curva ROC,
-F1 0,93. Collier et al. (2010) medem a frequência diária de documentos com
-melhor detector em F1 0,63, e mostram que dia de semana rende 1,37 documento por
-dia contra 0,49 no fim de semana. Na legibilidade, Crossley et al. (2011)
-comparam fórmulas de comprimento com um índice de coesão: 49,3% e 44,3% contra
-60,0% (t(598) = −2,635, p < 0,010). Lee et al. (2021) chegam a 99% de acurácia
-com um modelo híbrido, igualam o melhor concorrente usando 30% dos dados de
-treino, e o ganho é maior justamente quando há pouco dado.
+**Até onde chegou na triagem.** É suficiente para separar notícia de doença de
+notícia que não é, e o resultado é alto: sobre um conjunto de textos em 6
+idiomas (corpus), o BERT chega a F1 86,25 e uma máquina de vetores de suporte
+sobre contagem ponderada pela raridade de cada termo (TF-IDF) chega a 80,00, com
+uma rede convolucional em 77,50. O sistema especializado em multilíngue cai a
+43,48, e os classificadores clássicos zeram em polonês e chinês, onde o BERT não
+zera. A contagem pura também sustenta detecção de surto: Collier (2010) usa a
+frequência diária de documentos por par doença-país, mede o melhor detector em
+F1 0,63, e mostra que dia de semana rende 1,37 documento contra 0,49 no fim de
+semana. Purgar as contagens de 1 ou 2 documentos sobe o F1 em cerca de 1 a 1,5
+ponto.
+
+**Onde a medida de superfície quebra.** Duas famílias de estudos medem isso e
+chegam ao mesmo lugar. Pitler e Nenkova (2008) acham que caracteres por palavra,
+palavras por frase e comprimento quase não explicam a nota humana de
+legibilidade: das métricas de superfície, só o comprimento do artigo aparece, e
+com correlação de −0,37. O vocabulário sobe a 0,63 e as relações entre orações a
+0,48; juntas, oito medidas chegam a explicar 77,6% da variação (R² = 0,776).
+Chae e Nenkova (2009) usam medidas da estrutura da frase e acham correlação
+fraca: o modelo separa tradução automática de tradução humana com 87% de acerto,
+separar tradução boa de ruim cai para 61%, e cruzar de domínio derruba para 57%.
+Crossley et al. (2011) fecham o padrão numa tarefa de legibilidade: as fórmulas
+de comprimento acertam 49,3% e 44,3% dos 300 textos, contra 60,0% de um índice
+que mede coesão.
+
+**O meio-termo entre os dois.** Lee et al. (2021) mostram que a escolha não é
+entre contar e representar. O modelo híbrido, que soma 255 medidas linguísticas
+a um modelo de linguagem treinado em texto massivo (transformer), chega a 99% de
+acurácia, iguala o melhor concorrente usando 30% dos dados de treino, e o ganho
+é maior justamente onde há menos dado. O próprio artigo registra que o ganho
+encolhe conforme o conjunto de treino cresce.
 
 **O limite.** O volume de cobertura acompanha disrupção econômica e social, não
-morbidade. E há duas features que ninguém mediu: comprimento de documento como
-variável preditiva e densidade lexical não aparecem em nenhum trabalho da
-amostra.
+doença. Brownstein et al. (2008) medem isso sobre o Google News: a frequência
+com que um patógeno aparece na mídia se relaciona com a disrupção potencial, não
+com a mortalidade, e a cobertura é enviesada para países com mais veículos de
+imprensa. Duas medidas que interessam a este projeto não aparecem em nenhum
+trabalho da família: comprimento de documento como variável preditiva e
+densidade lexical.
 
 ### Embeddings densos
 
@@ -384,9 +465,10 @@ contornar:
   estão marcadas como não conformes: embeddings (uma divergência, atribuição de
   país em Ghosh 2017), léxico (uma troca de atribuição entre BioCaster e
   Brownstein) e tópicos (quatro erros de glosa e sete afirmações órfãs). A de
-  extração por LLM está conforme. Os números citados acima vieram dos
-  relatórios, não das fichas; onde a divergência toca um número usado aqui, ele
-  precisa ser reconferido na ficha antes de entrar no manuscrito.
+  extração por LLM está conforme. A reescrita sobre as fichas é também a
+  conferência dessa divergência, e ela já foi feita para a família de léxico: a
+  troca não sobreviveu à reescrita. As outras três famílias seguem com números
+  vindos do relatório até a fatia delas.
 - **As sete referências não mobilizadas pela família de tópicos**, registradas
   na seção "O que ficou de fora" do relatório dela, com o motivo de cada uma.
 - **O detalhe de cada estudo.** Esta nota dá o achado e o número; a ficha de
@@ -395,10 +477,64 @@ contornar:
 - **Previsão de arbovirose no Brasil fora do eixo de texto.** Está em
   [06](06-desenho-do-experimento.md), que é o lugar dela.
 
+## Fontes desta nota
+
+Cada artigo citado no corpo, com a chave da ficha que guarda as afirmações, a
+frase literal do autor e a página. As fichas estão em
+`articles/<família>/fichas/` e os PDFs em `articles/<família>/`.
+
+### Léxico, regra e contagem · estatística de superfície
+
+| Autor | Ano | Grupo | Ficha |
+|---|---|---|---|
+| Arsevska et al. | 2018 | aplicação | `arsevska2018web` |
+| Bahk et al. | 2015 | aplicação | `bahk2015timeliness` |
+| Barboza et al. | 2013 | aplicação | `barboza2013evaluation` |
+| Barboza et al. | 2014 | aplicação | `barboza2014performance` |
+| Brownstein et al. | 2008 | aplicação | `brownstein2008surveillance` |
+| Carlson et al. | 2023 | aplicação | `carlson2023who` |
+| Chae & Nenkova | 2009 | representação | `chae2009fluency` |
+| Chanlekha et al. | 2010 | aplicação | `chanlekha2010spatial` |
+| Collier et al. | 2008 | aplicação | `collier2008biocaster` |
+| Collier | 2010 | aplicação | `collier2010unusual` |
+| Collier | 2011 | aplicação | `collier2011cross` |
+| Consoli et al. | 2025 | aplicação | `consoli2025knowledge` |
+| Conway et al. | 2010 | aplicação | `conway2010disease` |
+| Crossley et al. | 2011 | representação | `crossley2011readability` |
+| Freifeld et al. | 2008 | aplicação | `freifeld2007healthmap` |
+| Ganser et al. | 2022 | aplicação | `ganser2022global` |
+| Gritta et al. | 2020 | aplicação | `gritta2020pragmatic` |
+| Hu et al. | 2023 | aplicação | `hu2023location` |
+| Keller et al. | 2009 | aplicação | `keller2009unstructured` |
+| Keller et al. | 2009 | aplicação | `keller2009vocabulary` |
+| Klenner & Ailloud | 2009 | representação | `klenner2009coreference` |
+| Kriesch & Losacker | 2025 | aplicação | `kriesch2025geolocated` |
+| Lee et al. | 2021 | representação | `lee2021text` |
+| Madoff et al. | 2011 | aplicação | `madoff2011monitoring` |
+| de Melo & Figueiredo | 2021 | aplicação | `melo2021news` |
+| Meng et al. | 2022 | aplicação | `meng2022biocaster` |
+| Milinovich et al. | 2013 | aplicação | `milinovich2013internet` |
+| Mutuvi et al. | 2020 | aplicação | `mutuvi2020multilingual` |
+| Leal-Neto et al. | 2016 | aplicação | `neto2016digital` |
+| Ng et al. | 2020 | aplicação | `ng2020nlp` |
+| Pitler & Nenkova | 2008 | representação | `pitler2008revisiting` |
+| Schwind et al. | 2014 | aplicação | `schwind2014local` |
+| Snow et al. | 2008 | aplicação | `snow2008crowdsourcing` |
+| Syed et al. | 2023 | aplicação | `syed2023geospatre` |
+| Valentin et al. | 2020 | aplicação | `valentin2020padi` |
+| Valentin et al. | 2021 | aplicação | `valentin2021padi` |
+| You et al. | 2020 | aplicação | `you2021text` |
+
 ## Pendências
 
-- [ ] reconferir nas fichas os números desta nota que caem nas três famílias
-      marcadas como não conformes, antes de o texto virar manuscrito
+- [ ] reescrever sobre as fichas as quatro famílias que faltam — vetores densos
+      (23), tópicos (48), extração por LLM (10) — e o desenho de previsão, que
+      sai de [articles/references.csv](../articles/references.csv)
+- [ ] decidir o que fazer com as duas fichas de léxico sem linha na bibliografia
+      e fora do funil registrado em `search.json` (35 selecionados contra 37
+      fichas): `klenner2009coreference` e `snow2008crowdsourcing`. Ambas têm PDF
+      e ficha, e nenhuma das duas aparece em `selected`, em
+      `considered_not_selected` ou em `rejected_by_gate`
 - [ ] decidir se esta nota vira a seção de Trabalho relacionado do passo 4 ou se
       serve só de fonte para ela
 - [ ] registrar em [articles/references.csv](../articles/references.csv) as
@@ -412,12 +548,11 @@ contornar:
 
 O medidor foi rodado com a lista de termos das quatro famílias juntas
 (`--termo` de cada `.claude/workflows/familias/*.json`), uma vez que esta nota
-atravessa as quatro. Comandos e contagem, em 2026-11-21:
+atravessa as quatro. Comandos e contagem, em 2026-11-25:
 
 ```
 python3 scripts/checar_estilo_relatorio.py notes/revisao-bibliografica.md \
-    $(termos das quatro famílias) --mostrar 12
-→ 1 ERRO (o falso positivo de NER) · 2 AVISO (parágrafo denso na abertura e a
-  lista de pendências lida como prosa) · 0 em orações empilhadas, adjetivo
-  inflado, muleta e hedge
+    $(termos das quatro famílias) --mostrar 15
+→ 1 ERRO (o falso positivo de NER) · 0 AVISO · 0 em orações empilhadas,
+  parágrafo denso, adjetivo inflado, muleta e hedge
 ```

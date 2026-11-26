@@ -49,11 +49,46 @@ confirmed by API before download:
 | `10_arboalvo_2025_bayesian_natal_rn.pdf` | Alves et al., *PLoS Negl. Trop. Dis.* (2025) [doi:10.1371/journal.pntd.0012984](https://doi.org/10.1371/journal.pntd.0012984) | PLOS published PDF (gold OA) |
 | `11_palmer_2026_dengue_hospitalizations_delays.pdf` | Palmer et al., *PLOS Digit. Health* (2026) [doi:10.1371/journal.pdig.0001206](https://doi.org/10.1371/journal.pdig.0001206) | PLOS published PDF (gold OA) |
 
-- `07` (Sprint et al.) has **no PDF on purpose**: the preprint closed at *PNAS*
-  (2026, 123(7):e2508989123), whose PDF is paywalled. The citation is in
-  `references.csv`; the file is not.
+The twelve added on **2026-11-25** are the forecasting, nowcasting and
+forecast-evaluation line the literature review needed as base texts. Eleven came
+from publisher or repository open access; one is an accepted-manuscript copy.
+`File Attachments` in `references.csv` was filled for each.
+
+| File | Citation | Source of the file |
+|------|----------|--------------------|
+| `07_araujo_2026_probabilistic_forecasts_dengue_preparedness.pdf` | Araujo et al., *PNAS* (2026) [doi:10.1073/pnas.2508989123](https://doi.org/10.1073/pnas.2508989123) | Europe PMC `PMC12912988` — supersedes the earlier "no PDF on purpose" note, which predated the PMC deposit |
+| `12_johansson_2019_open_challenge_probabilistic_dengue.pdf` | Johansson et al., *PNAS* (2019) [doi:10.1073/pnas.1909865116](https://doi.org/10.1073/pnas.1909865116) | eScholarship (UC) accepted manuscript — the PNAS PDF endpoint answers 403 |
+| `13_bracher_2021_evaluating_epidemic_forecasts_interval.pdf` | Bracher et al., *PLoS Comput. Biol.* (2021) [doi:10.1371/journal.pcbi.1008618](https://doi.org/10.1371/journal.pcbi.1008618) | PLOS published PDF (gold OA) |
+| `14_gneiting_2007_strictly_proper_scoring_rules.pdf` | Gneiting & Raftery, *JASA* (2007) [doi:10.1198/016214506000001437](https://doi.org/10.1198/016214506000001437) | Raftery's UW publication page, author copy of the published version — Unpaywall reports it closed |
+| `17_pollett_2021_reporting_items_epidemic_forecasting.pdf` | Pollett et al., *PLoS Med.* (2021) [doi:10.1371/journal.pmed.1003793](https://doi.org/10.1371/journal.pmed.1003793) | PLOS published PDF (gold OA) |
+| `18_wu_2025_ensemble_short_term_dengue_forecasts.pdf` | Wu et al., *PNAS* (2025) [doi:10.1073/pnas.2422335122](https://doi.org/10.1073/pnas.2422335122) | Europe PMC `PMC12377650` |
+| `19_xiao_2025_dengue_nowcasting_brazil_surveillance.pdf` | Xiao et al., *PLoS Negl. Trop. Dis.* (2025) [doi:10.1371/journal.pntd.0012501](https://doi.org/10.1371/journal.pntd.0012501) | PLOS published PDF (gold OA) |
+| `20_picinini_freitas_2025_probabilistic_epidemic_burden.pdf` | Picinini Freitas et al., *Infect. Dis. Model.* (2025) [doi:10.1016/j.idm.2025.07.014](https://doi.org/10.1016/j.idm.2025.07.014) | Europe PMC `PMC12359213` |
+| `21_chen_moraga_2025_assessing_dengue_forecasting_methods.pdf` | Chen & Moraga, *Trop. Med. Health* (2025) [doi:10.1186/s41182-025-00723-7](https://doi.org/10.1186/s41182-025-00723-7) | BMC published PDF (gold OA) |
+| `23_bastos_2019_correcting_reporting_delays.pdf` | Bastos et al., *Stat. Med.* (2019) [doi:10.1002/sim.8303](https://doi.org/10.1002/sim.8303) | arXiv `1709.09150` preprint of the published article |
+| `24_lim_2021_temporal_fusion_transformers.pdf` | Lim et al., *Int. J. Forecast.* (2021) [doi:10.1016/j.ijforecast.2021.03.012](https://doi.org/10.1016/j.ijforecast.2021.03.012) | arXiv `1912.09363` preprint of the published article |
+| `26_tan_2024_language_models_useful_time_series.pdf` | Tan et al., NeurIPS (2024) [arXiv:2406.16964](https://arxiv.org/abs/2406.16964) | arXiv preprint |
+
+The same pass filled the empty `File Attachments` of
+`00_borges_2026_arboili_data_descriptor.pdf`, which was already on disk but
+unlinked.
+
+- Four items in `references.csv` are **closed access** and are therefore still
+  absent — the first three confirmed against Unpaywall on 2026-11-25, the fourth
+  against OpenAlex on 2026-11-26: Tashman (2000)
+  [doi:10.1016/s0169-2070(00)00065-0](https://doi.org/10.1016/s0169-2070(00)00065-0),
+  Bergmeir & Benítez (2012)
+  [doi:10.1016/j.ins.2011.12.028](https://doi.org/10.1016/j.ins.2011.12.028),
+  Codeço et al. (2018)
+  [doi:10.1016/j.respe.2018.05.408](https://doi.org/10.1016/j.respe.2018.05.408),
+  and Hyndman & Fan (1996)
+  [doi:10.1080/00031305.1996.10473566](https://doi.org/10.1080/00031305.1996.10473566),
+  *The American Statistician* 50(4), 361–365 — the definition of the type-7 sample
+  quantile the forecast intervals are read on. The Codeço item is not an article at
+  all but a one-page congress abstract (S386) in *Revue d'Épidémiologie et de Santé
+  Publique*; no full text exists to fetch.
 - `05_munoz_sabater_2021_era5_land.pdf` — obtained from Copernicus ESSD open-access PDF (`essd-13-4349-2021.pdf`).
-- `04_hersbach_2020_era5_global_reanalysis.pdf` — **the one article still missing** (re-checked 2026-11-10). The article is open access (CC BY, published version), but Wiley serves it behind a **Cloudflare JS challenge** (`Just a moment...` → HTTP 403 to every automated request). Unpaywall, OpenAlex, Semantic Scholar and OpenAIRE all resolve to the same blocked Wiley URL — there is no green-OA repository copy to fall back on, the Wiley TDM endpoint needs a token, the Wayback Machine has no snapshot of the PDF, and the ECMWF eLibrary path 404s. Header/browser spoofing does not clear the challenge. **Download it manually in a browser** from [doi:10.1002/qj.3803](https://doi.org/10.1002/qj.3803) (or the direct link `https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.3803`) and save as `04_hersbach_2020_era5_global_reanalysis.pdf`.
+- `04_hersbach_2020_era5_global_reanalysis.pdf` — **the one open-access article still missing** (re-checked 2026-11-10). The article is open access (CC BY, published version), but Wiley serves it behind a **Cloudflare JS challenge** (`Just a moment...` → HTTP 403 to every automated request). Unpaywall, OpenAlex, Semantic Scholar and OpenAIRE all resolve to the same blocked Wiley URL — there is no green-OA repository copy to fall back on, the Wiley TDM endpoint needs a token, the Wayback Machine has no snapshot of the PDF, and the ECMWF eLibrary path 404s. Header/browser spoofing does not clear the challenge. **Download it manually in a browser** from [doi:10.1002/qj.3803](https://doi.org/10.1002/qj.3803) (or the direct link `https://rmets.onlinelibrary.wiley.com/doi/pdf/10.1002/qj.3803`) and save as `04_hersbach_2020_era5_global_reanalysis.pdf`.
 
 The two short filenames (`02_lstm_shap_dengue_brazil_climate_lags.pdf`, `03_ensemble_ml_dengue_outbreaks_climate.pdf`) are failed downloads — 1.8 KB HTML error pages ("Preparing to download", the PMC proof-of-work challenge), not PDFs — and duplicate the longer-named files above; ignore or delete them.
 
