@@ -63,6 +63,8 @@ PRODUCTS: list[tuple[str, str]] = [
     ("Notícia — tópicos (braço 03)", "data/pipeline/news/EBC_dengue_topics_EW.parquet"),
     ("Previsão — previsões", "data/forecast/*predictions.parquet"),
     ("Previsão — métricas", "data/forecast/*metrics.parquet"),
+    ("Previsão — quantis", "data/forecast/*quantiles.parquet"),
+    ("Previsão — faixas centrais", "data/forecast/*intervals.parquet"),
 ]
 
 BACKTICK = re.compile(r"`([^`]+)`")
@@ -196,7 +198,7 @@ def measure_slices(plan: Plan, root: Path) -> None:
     A prova aceita duas formas, porque a maioria das fatias não se prova por
     existência. `caminho` prova que o artefato foi produzido; `caminho#marcador`
     prova que ele diz o que a fatia prometia — o README do avaliador que passou a
-    descrever o WIS, o plano que passou a citar o ganho mínimo declarado. Sem a segunda
+    descrever o WIS, o protocolo que passou a declarar a janela pontuada. Sem a segunda
     forma, todo documento que já existe apareceria como fatia fechada no dia em
     que foi criado, e a fatia nunca teria como fechar.
 

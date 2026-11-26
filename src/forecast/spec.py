@@ -53,3 +53,62 @@ FIRST_COMPLETE_YEAR = 2014
 # rather than only in prose so that a saved result carries the level it was
 # computed at.
 GEOGRAPHY = "BR"
+
+# --- the quantile grid ------------------------------------------------------
+
+# The levels every distributional metric is computed on: seven of them, which is
+# three central intervals — 50%, 80%, 95%. The set comes from the COVID-19
+# Forecast Hub, which asks for this seven-level subset on the incident-cases
+# target while asking for twenty-three on deaths — so it is the field's own
+# answer for a series of this kind, not a simplification of ours. The reason to
+# prefer it here is the sample: the most extreme level is 0.025, the second of
+# eighty ordered observations, and the error samples are in the hundreds, so a
+# twenty-three-level grid would put weight on tails the data cannot support.
+QUANTILE_LEVELS = (0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
+
+# The central intervals reported beside WIS, one row each: the pair of levels
+# that bound the interval and the coverage it claims. Written out rather than
+# derived, so that what gets reported is readable in one place, and then checked
+# against the grid below: a table typed by hand can drift from the grid it
+# describes, and the check refuses the drift. Arithmetic would find these three
+# pairs as well — `1 - 0.025` is the double that `0.975` is — so the check is not
+# there for today's numbers; it is there for the next set somebody types.
+CENTRAL_INTERVALS = ((0.025, 0.975, 0.95), (0.1, 0.9, 0.8), (0.25, 0.75, 0.5))
+
+# How many observed h-step errors a predictive distribution needs before it is
+# scored. Two full seasons: enough for the widest level on the grid to rest on
+# more than a handful of order statistics. The rule bites only at the start of
+# the panel — with 104 weeks of training, persistence has 103 errors by its
+# first origin and the seasonal naive has 52, so its distributions begin later.
+# Inside the paper's scoring window the samples are far above this floor and the
+# floor changes nothing; on the default panel to 2026 it trims the first weeks,
+# and the run record carries both counts so the difference is visible.
+MIN_ERROR_SAMPLE = 104
+
+
+def _check_grid() -> None:
+    """The intervals and the grid must not drift apart."""
+    for lower, upper, coverage in CENTRAL_INTERVALS:
+        for level in (lower, upper):
+            if level not in QUANTILE_LEVELS:
+                raise RuntimeError(
+                    f"the interval {lower}–{upper} names a level that is not in "
+                    f"QUANTILE_LEVELS: {level}"
+                )
+        # As duas metades do par, e não só a de baixo: um `upper` trocado passa
+        # pela checagem de cobertura sempre que o par errado tiver a mesma
+        # largura, e aí a faixa pontuada não é a faixa que a tabela nomeia.
+        if abs((lower + upper) - 1.0) > 1e-9:
+            raise RuntimeError(
+                f"the interval {lower}–{upper} is not a central pair: its levels "
+                f"must add to 1, and they add to {lower + upper}."
+            )
+        if abs(coverage - (1.0 - 2.0 * lower)) > 1e-9:
+            raise RuntimeError(
+                f"the interval {lower}–{upper} claims coverage {coverage}, but its "
+                f"levels say {1.0 - 2.0 * lower}."
+            )
+
+
+_check_grid()
+

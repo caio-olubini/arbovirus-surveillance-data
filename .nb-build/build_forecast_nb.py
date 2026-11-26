@@ -1082,11 +1082,12 @@ busca do Google e clima, tudo menos texto. É a barra que o conjunto `+ texto` t
 bater, e ele ainda não existe. Os ingênuos medidos aqui dão a barra mais simples, sem
 nenhuma covariável, não a barra final.
 
-**2. Não há métrica probabilística.** O protocolo 00 pede WIS/CRPS (a métrica de
-intervalo de previsão, que pontua a distribuição inteira) e cobertura. Os dois palpites
-emitem um número por semana e não reivindicam incerteza nenhuma, então calcular aquelas
-métricas agora seria inventar uma distribuição que ninguém produziu. Elas entram com o
-primeiro modelo que emita intervalo.
+**2. Não há distribuição produzida por um modelo.** O avaliador já pontua a metade
+probabilística — WIS, com cobertura e largura de cada faixa central ao lado —, e os
+dois palpites já entram nela. Mas a distribuição deles é lida dos próprios erros que já
+cometeram, não produzida por um modelo: é o que permite pontuar os ingênuos sob a mesma
+regra, não uma previsão de incerteza. Um modelo que emita a própria distribuição ainda
+não existe, e é ele que abre a comparação probabilística entre representações.
 
 **3. O horizonte é de uma semana.** O protocolo fixa uma semana no número principal e
 quatro semanas como robustez declarada (revisão de 2026-11-20), e as duas são medidas. A

@@ -29,11 +29,13 @@ from pathlib import Path
 import polars as pl
 
 from .evaluate import ORIGIN_EW, ForecastRun
-from .spec import CASES, EW, GEOGRAPHY
+from .spec import BASELINE, CASES, EW, GEOGRAPHY, HORIZON
 
 # Incrementado quando uma chave é renomeada ou removida, para que quem lê
-# distinga uma chave faltando de uma chave que nunca existiu.
-SCHEMA = "forecast.run/1"
+# distinga uma chave faltando de uma chave que nunca existiu. A versão 2
+# acrescenta a metade probabilística: sem o incremento, um leitor não saberia se
+# `quantile_levels` faltou ou se a execução é anterior à grade.
+SCHEMA = "forecast.run/2"
 
 
 def setup_record(
@@ -67,6 +69,21 @@ def setup_record(
             "baselines": list(run.baselines),
             "origins": run.predictions[ORIGIN_EW].n_unique(),
             "scored": run.predictions.height,
+            # A metade probabilística, com os dois números que a explicam. Os
+            # níveis porque duas grades não são comparáveis; a amostra mínima
+            # porque é ela que decide desde quando existe distribuição; e as
+            # semanas em contagem de semanas, não de linhas — a tabela de quantis
+            # tem uma linha por nível, então contar linhas diria sete vezes o que
+            # `scored` diz uma vez. O horizonte entra na chave junto com o
+            # baseline, pelo mesmo motivo que entra em `scored`: com mais de um
+            # passo, a mesma semana é prevista mais de uma vez.
+            "quantile_levels": list(run.levels),
+            "min_error_sample": run.min_error_sample,
+            "scored_quantiles": run.quantile_predictions.select(
+                [BASELINE, HORIZON, EW]
+            )
+            .unique()
+            .height,
         },
     }
 

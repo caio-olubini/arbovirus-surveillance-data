@@ -15,7 +15,7 @@ import polars as pl
 from src.forecast.__main__ import main
 from src.forecast.evaluate import evaluate
 from src.forecast.record import SCHEMA, setup_record, write_record
-from src.forecast.spec import CASES, EW, GEOGRAPHY
+from src.forecast.spec import BASELINE, CASES, EW, GEOGRAPHY
 from src.pipeline.sinan.spec import CASE_COUNT, EW_SYMPTOM_ONSET, FINAL_CLASSIFICATION
 
 SUSPECTED = 1
@@ -75,6 +75,54 @@ def test_origins_counts_weeks_scored_not_rows_written(panel_from_values):
     )["evaluation"]
     assert one["origins"] == both["origins"]
     assert both["scored"] == 2 * one["scored"]
+
+
+# --- a metade probabilística no registro -------------------------------------
+
+
+def test_the_record_carries_the_grid_and_the_floor(panel_from_values):
+    """Duas execuções com grades diferentes não são comparáveis por acidente."""
+    panel = panel_from_values(rising(120))
+    run = a_run(panel, levels=(0.25, 0.5, 0.75), min_error_sample=8)
+    evaluation = setup_record(panel, run, "c.parquet")["evaluation"]
+    assert evaluation["quantile_levels"] == [0.25, 0.5, 0.75]
+    assert evaluation["min_error_sample"] == 8
+
+
+def test_scored_quantiles_counts_weeks_not_rows(panel_from_values):
+    """A tabela de quantis tem uma linha por nível, então contar linhas mentiria sete vezes."""
+    panel = panel_from_values(rising(120))
+    run = a_run(panel)
+    evaluation = setup_record(panel, run, "c.parquet")["evaluation"]
+    assert run.quantile_predictions.height == 7 * evaluation["scored_quantiles"]
+    assert 0 < evaluation["scored_quantiles"] < evaluation["scored"]
+
+
+def test_the_point_count_is_untouched_by_the_distribution(panel_from_values):
+    """`scored` continuou querendo dizer semanas pontuadas, e não linhas escritas."""
+    panel = panel_from_values(rising(120))
+    without = setup_record(panel, a_run(panel, min_error_sample=10_000), "c.parquet")
+    with_ = setup_record(panel, a_run(panel), "c.parquet")
+    assert without["evaluation"]["scored"] == with_["evaluation"]["scored"] == 16
+    assert without["evaluation"]["scored_quantiles"] == 0
+    assert with_["evaluation"]["scored_quantiles"] == 15
+
+
+def test_scored_quantiles_keeps_the_horizon_apart_from_the_week(panel_from_values):
+    """Com mais de um passo, a mesma semana é prevista mais de uma vez.
+
+    Contar (baseline, semana) sem o passo subconta: no horizonte 4 cada semana
+    aparece quatro vezes na tabela de quantis, e o registro diria que só uma
+    fração delas ganhou distribuição — o número que o leitor usa para saber se a
+    metade probabilística cobriu a mesma janela que a pontual.
+    """
+    panel = panel_from_values(rising(200))
+    run = a_run(panel, horizon=4, min_error_sample=8)
+    evaluation = setup_record(panel, run, "c.parquet")["evaluation"]
+    collapsed = run.quantile_predictions.select([BASELINE, EW]).unique().height
+    assert run.quantile_predictions.height == 7 * evaluation["scored_quantiles"]
+    assert evaluation["scored_quantiles"] == evaluation["scored"]
+    assert evaluation["scored_quantiles"] > collapsed
 
 
 # --- o arquivo --------------------------------------------------------------
@@ -139,6 +187,49 @@ def test_the_cli_writes_the_record_beside_the_results(tmp_path):
     assert "--min-train 104" in record["command"]
     assert (out / "dengue_br_h1_predictions.parquet").exists()
     assert (out / "dengue_br_h1_metrics.parquet").exists()
+    assert (out / "dengue_br_h1_quantiles.parquet").exists()
+    assert (out / "dengue_br_h1_intervals.parquet").exists()
+
+
+def test_the_cli_records_the_floor_it_was_run_with(tmp_path):
+    """Uma execução com piso baixo pontua a distribuição desde a primeira origem."""
+    start = dt.date(2020, 1, 5)
+    weeks = [start + dt.timedelta(weeks=i) for i in range(120)]
+    cases = pl.DataFrame(
+        {
+            EW_SYMPTOM_ONSET: weeks,
+            CASE_COUNT: [10] * len(weeks),
+            FINAL_CLASSIFICATION: [SUSPECTED] * len(weeks),
+        }
+    )
+    cases_path = tmp_path / "SINAN_dengue_cases.parquet"
+    cases.write_parquet(cases_path)
+    out = tmp_path / "out"
+
+    assert (
+        main(
+            [
+                "--cases",
+                str(cases_path),
+                "--out",
+                str(out),
+                "--min-train",
+                "60",
+                "--min-error-sample",
+                "4",
+            ]
+        )
+        == 0
+    )
+
+    record = json.loads((out / "dengue_br_h1_run.json").read_text(encoding="utf-8"))
+    assert record["evaluation"]["min_error_sample"] == 4
+    assert record["evaluation"]["scored_quantiles"] > 0
+    assert "--min-error-sample 4" in record["command"]
+    quantiles = pl.read_parquet(out / "dengue_br_h1_quantiles.parquet")
+    assert quantiles.height == 7 * record["evaluation"]["scored_quantiles"]
+    intervals = pl.read_parquet(out / "dengue_br_h1_intervals.parquet")
+    assert set(intervals["coverage_level"].to_list()) == {0.5, 0.8, 0.95}
 
 
 def test_the_scoring_window_is_recorded_and_changes_what_is_graded(tmp_path):

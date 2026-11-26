@@ -35,6 +35,7 @@ from .spec import (
     EW,
     FIRST_COMPLETE_YEAR,
     GEOGRAPHY,
+    MIN_ERROR_SAMPLE,
 )
 
 log = logging.getLogger("forecast")
@@ -88,6 +89,13 @@ def build_parser() -> argparse.ArgumentParser:
         "grading moves. Omit to score every week the panel reaches.",
     )
     parser.add_argument(
+        "--min-error-sample",
+        type=int,
+        default=MIN_ERROR_SAMPLE,
+        help="Observed errors a baseline needs before its distribution is scored. "
+        "Below this the week is skipped in the probabilistic tables only.",
+    )
+    parser.add_argument(
         "--config", type=Path, default=None, help="Path to config.yml."
     )
     parser.add_argument("-v", "--verbose", action="store_true")
@@ -135,6 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         min_train=args.min_train,
         step=args.step,
         score_from=args.score_from,
+        min_error_sample=args.min_error_sample,
     )
 
     first, last = panel[EW].min(), panel[EW].max()
@@ -155,6 +164,8 @@ def main(argv: list[str] | None = None) -> int:
     print()
     print(run.summary())
     print()
+    print(run.distribution_summary())
+    print()
 
     if args.out:
         out_dir = load_config(args.config).resolve(args.out) if not args.out.is_absolute() else args.out
@@ -162,11 +173,15 @@ def main(argv: list[str] | None = None) -> int:
         stem = f"dengue_{GEOGRAPHY.lower()}_h{run.horizon}"
         pred_path = out_dir / f"{stem}_predictions.parquet"
         metrics_path = out_dir / f"{stem}_metrics.parquet"
+        quantile_path = out_dir / f"{stem}_quantiles.parquet"
+        interval_path = out_dir / f"{stem}_intervals.parquet"
         record_path = out_dir / f"{stem}_run.json"
         run.predictions.write_parquet(pred_path)
         run.metrics.write_parquet(metrics_path)
-        # Os dois parquets carregam o resultado; o registro carrega a montagem que
-        # o produziu, que é a metade que uma tabela não reconstrói depois.
+        run.quantile_predictions.write_parquet(quantile_path)
+        run.intervals.write_parquet(interval_path)
+        # Os parquets carregam o resultado; o registro carrega a montagem que o
+        # produziu, que é a metade que uma tabela não reconstrói depois.
         write_record(
             setup_record(panel, run, cases_path),
             record_path,
@@ -176,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
         )
         print(f"Wrote {pred_path}")
         print(f"Wrote {metrics_path}")
+        print(f"Wrote {quantile_path}")
+        print(f"Wrote {interval_path}")
         print(f"Wrote {record_path}")
 
     return 0
