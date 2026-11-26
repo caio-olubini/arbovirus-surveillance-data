@@ -92,10 +92,19 @@ ponto de corte disparou, uma frente mudou de escopo.
 
 ## Formato do plano
 
-O script lê a tabela de entregas, então ela tem colunas fixas. Alterar as colunas
-`Fecha em` ou `Prova que fechou` quebra a medição — e o teste
-`tests/scripts/test_estado_do_plano.py::test_o_plano_real_do_repositorio_ainda_e_legivel`
-existe para avisar disso.
+**O plano em vigor não tem essa tabela.** Desde 2026-11-20 `notes/plano.md` é uma
+lista de passos preenchida à mão, com a confirmação de cada passo escrita na própria
+linha (`confirma: caminho` ou `caminho#palavra`). O script que mede o plano
+(`scripts/estado_do_plano.py`) lê avaliador, literatura e produtos normalmente, mas
+procura as fatias numa tabela de colunas fixas que não existe mais — por isso a
+seção FATIAS sai vazia e ele reporta `semana 0 de 0`. Isso é um descompasso
+conhecido, não uma medida do plano.
+
+A tabela abaixo é o formato que o leitor de fatias entende. Se uma reorganização
+voltar a usar fatias medidas, é esta a forma; enquanto não voltar, não invente a
+tabela só para a medição ter o que ler. Não existe teste no repositório que guarde
+o formato do plano real — os testes de `scripts/estado_do_plano.py` montam planos
+sintéticos em `tmp_path`.
 
 | # | Fecha em | Fatia | Prova que fechou | Prosa |
 |---|---|---|---|---|
@@ -130,7 +139,7 @@ e a semana 0 de um plano costuma ser isso: colocar no git o que já
 existe.
 
 Fora da tabela, o plano carrega: prazo, tempo disponível, a pergunta do paper, o
-desenho do experimento, a regra de decisão, o que fica de fora, a ordem de
+desenho do experimento, a regra de comparação, o que fica de fora, a ordem de
 dependências e os pontos de corte.
 
 ## Regras duras

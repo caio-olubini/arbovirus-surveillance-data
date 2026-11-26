@@ -53,9 +53,11 @@ every document must stand on its own without the conversation that produced it.
 - **Report results; do not referee them.** A paper that measures which feature set
   pays its cost states the measured gain, on which weeks, at which grain, with its
   uncertainty, and then discusses what it means. It does not declare a champion, a
-  classification or a knockout. Pre-registering what will be compared, and the
-  magnitude that will be called material, is method — that stays. Calling a set
-  "the winner" is not.
+  classification or a knockout, and it does not pre-register a threshold below
+  which a gain is called immaterial: a small gain is a measurement like any other,
+  and the study's point is to try, report and discuss. What is pre-registered is
+  the comparison — which sets are compared with which, on which weeks, under which
+  metrics and at which settings. Calling a set "the winner" is not.
 - **Answer in Brazilian Portuguese.** Code, identifiers, commit messages and
   artefact names follow the repository's existing convention (mostly English);
   everything written for a person is Portuguese.

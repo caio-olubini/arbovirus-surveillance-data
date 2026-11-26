@@ -49,8 +49,6 @@ Natal e no Ano Novo, então contam meio período.
       rolling origin, métricas pontuais, janela de pontuação, registro de execução
 - [ ] distribuições para todos os modelos, inclusive os dois ingênuos —
       confirma: `src/forecast/README.md#quantile`
-- [ ] valor mínimo do ganho registrado no protocolo 00, antes de existir
-      resultado — confirma: `00-protocolo-comparacao.md#mínimo`
 - [ ] Métodos §avaliação escrito
 
 ### Passo 3 — Os quatro baselines que faltam · até 2026-12-11
@@ -167,9 +165,8 @@ a frase que resume cada decisão, porque cada passo da lista depende delas.
 6. **Métrica principal: WIS/CRPS**, que pontua a distribuição; MAE ao lado.
 7. **Regra de decisão:** o conjunto `+ texto` é comparado com dois resultados — o
    conjunto anterior e o ensemble sem texto. São **oito comparações** na correção
-   para comparações múltiplas, e o valor mínimo do ganho é declarado antes de
-   existir resultado. O que o artigo reporta é o ganho medido, com a incerteza, e
-   a discussão do que ele indica — não um conjunto declarado vencedor.
+   para comparações múltiplas. O que o artigo reporta é o ganho medido, com a
+   incerteza, e a discussão do que ele indica — não um conjunto declarado vencedor.
 8. **A ablação sem texto é o conjunto `+ busca`**, não o `histórico`.
 9. **Uma ou duas codificadoras de embedding na grade**; as outras variam como
    robustez declarada.

@@ -89,9 +89,10 @@ porque em horizonte curto a média de vários modelos é um número difícil de 
 vir do texto compensando um modelo mal ajustado, não da informação que ele carrega.
 
 **O que o paper faz com esses números:** reporta cada ganho nas semanas em que foi
-medido, no grão declarado, com a incerteza, e discute o que eles indicam. A
-magnitude registrada antes do resultado diz o que o paper vai tratar como material;
-ela não é um veredito sobre qual conjunto é o melhor.
+medido, no grão declarado, com a incerteza, e discute o que eles indicam. Não existe
+ganho mínimo abaixo do qual um resultado seria descartado, e o paper não declara
+conjunto vencedor: um ganho pequeno ou indistinguível de zero é um resultado a
+reportar como tal.
 
 **Dentro do conjunto `+ texto`**, as representações (léxico, embeddings, tópicos e
 extração por LLM) são comparadas entre si, sob a mesma regra de decisão — com uma
@@ -213,11 +214,6 @@ deixa o painel ir até 2026 e devolve 244 semanas pontuadas, não 157.
       A persistência é a referência que vale: em horizonte de 1 semana a curva é
       quase toda autocorrelação, e o naive sazonal paga 4,4× por ignorar a tendência
       entre anos. Falta o "sem texto" com busca e clima, que é o conjunto `+ busca`.
-- [ ] **Registrar aqui a magnitude que o paper vai tratar como material**, em casos
-      por semana, no passo 2 do [plano](plano.md), antes de a primeira célula da
-      grade ser calculada. O número de comparações já está registrado acima
-      (**oito**). O plano confere este registro por um marcador que ainda não existe
-      neste arquivo; criá-lo antes da decisão faria o passo parecer pronto.
 - [ ] Decidir quais **uma ou duas codificadoras de embedding** entram na grade, e
       declarar as outras como robustez.
 

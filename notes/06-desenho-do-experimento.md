@@ -406,8 +406,6 @@ próprio custo?** O caminho [04](04-llm-extracao-estruturada.md) registra isso.
       comparações.
 - [x] **Decidir o ensemble como baseline** (Johansson 2019; Wu 2025) — **entra**,
       com o sem-texto na regra de decisão e o global descritivo, em 2026-11-20.
-- [ ] **Registrar o valor mínimo do ganho no protocolo 00** — semana 2 do plano,
-      antes de a primeira célula da grade ser calculada.
 - [ ] **Escolher uma ou duas codificadoras de embedding** para a grade, e declarar
       as outras quatro como robustez.
 - [ ] **Medir o InfoDengue com prazo fechado** — semana 3; se não convergir em uma
